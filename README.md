@@ -53,6 +53,7 @@ cp .env.example .env
 docker compose up -d
 
 # 5. Apply schema and seed demo data
+pnpm db:generate
 pnpm db:push
 pnpm db:seed
 
