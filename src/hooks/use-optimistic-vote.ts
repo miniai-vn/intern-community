@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseOptimisticVoteOptions {
-  moduleId: string;
-  initialVoted: boolean;
-  initialCount: number;
+    moduleId: string;
+    initialVoted: boolean;
+    initialCount: number;
 }
 
 interface UseOptimisticVoteReturn {
-  voted: boolean;
-  count: number;
-  isLoading: boolean;
-  toggle: () => Promise<void>;
+    voted: boolean;
+    count: number;
+    isLoading: boolean;
+    toggle: () => Promise<void>;
 }
 
 /**
@@ -32,49 +32,56 @@ interface UseOptimisticVoteReturn {
  * See: https://react.dev/learn/synchronizing-with-effects#fetching-data
  */
 export function useOptimisticVote({
-  moduleId,
-  initialVoted,
-  initialCount,
+    moduleId,
+    initialVoted,
+    initialCount,
 }: UseOptimisticVoteOptions): UseOptimisticVoteReturn {
-  const [voted, setVoted] = useState(initialVoted);
-  const [count, setCount] = useState(initialCount);
-  const [isLoading, setIsLoading] = useState(false);
+    const [voted, setVoted] = useState(initialVoted);
+    const [count, setCount] = useState(initialCount);
+    const [isLoading, setIsLoading] = useState(false);
 
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
-  const isMounted = useRef(true);
+    const isMounted = useRef(true);
 
-  const toggle = useCallback(async () => {
-    if (isLoading) return;
+    // FIX: Properly manage isMounted state during component mount/unmount lifecycle.
+    // Without this cleanup, if a user votes and navigates away before the API resolves,
+    // the old closure would still try to update state on an unmounted component.
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
-    // Optimistic update
-    const prevVoted = voted;
-    const prevCount = count;
-    setVoted(!prevVoted);
-    setCount(prevVoted ? count - 1 : count + 1);
-    setIsLoading(true);
+    const toggle = useCallback(async () => {
+        if (isLoading) return;
 
-    try {
-      const res = await fetch("/api/votes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moduleId }),
-      });
+        // Optimistic update
+        const prevVoted = voted;
+        const prevCount = count;
+        setVoted(!prevVoted);
+        setCount(prevVoted ? count - 1 : count + 1);
+        setIsLoading(true);
 
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      // Roll back — but only if still mounted (see edge case note above)
-      if (isMounted.current) {
-        setVoted(prevVoted);
-        setCount(prevCount);
-      }
-    } finally {
-      if (isMounted.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [moduleId, voted, count, isLoading]);
+        try {
+            const res = await fetch("/api/votes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ moduleId }),
+            });
 
-  return { voted, count, isLoading, toggle };
+            if (!res.ok) throw new Error("Vote failed");
+        } catch {
+            // Roll back — but only if still mounted (see edge case note above)
+            if (isMounted.current) {
+                setVoted(prevVoted);
+                setCount(prevCount);
+            }
+        } finally {
+            if (isMounted.current) {
+                setIsLoading(false);
+            }
+        }
+    }, [moduleId, voted, count, isLoading]);
+
+    return { voted, count, isLoading, toggle };
 }
