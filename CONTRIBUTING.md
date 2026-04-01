@@ -29,6 +29,7 @@ Edit `.env` — you need GitHub OAuth credentials:
 
 ```bash
 docker compose up -d       # Start PostgreSQL
+pnpm db:generate           # Generate prisma client
 pnpm db:push               # Apply schema
 pnpm db:seed               # Load demo data
 pnpm dev                   # Start dev server at localhost:3000
