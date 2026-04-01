@@ -124,6 +124,19 @@ model Vote {
   @@map("votes")
 }
 
+/// Tracks every vote action for distributed rate limiting.
+/// Unlike the Vote table (which only stores current state via toggle),
+/// this table logs every action to enable a sliding-window rate limit
+/// that works correctly across multiple serverless instances.
+model VoteEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("vote_events")
+}
+
 enum SubmissionStatus {
   PENDING
   APPROVED
