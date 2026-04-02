@@ -1,7 +1,8 @@
 "use client";
 
+import { NotificationBell } from "@/app/api/notifications/notification-bell";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -22,11 +23,15 @@ export function Navbar() {
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
-              {session.user.isAdmin && (
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
+             {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                   Admin
                 </Link>
               )}
+              <NotificationBell />
               <button
                 onClick={() => signOut()}
                 className="text-sm text-gray-400 hover:text-gray-600"
