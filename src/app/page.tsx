@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -32,8 +32,12 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13,
   });
+
+  const hasMore = modules.length > 12;
+  const items = hasMore ? modules.slice(0, 12) : modules;
+  const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -41,7 +45,7 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: items.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
@@ -103,7 +107,7 @@ export default async function HomePage({
         ))}
       </div>
 
-      {modules.length === 0 ? (
+      {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
@@ -113,15 +117,14 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModuleList
+          key={`${q}-${category}`}
+          initialModules={items}
+          initialNextCursor={nextCursor}
+          votedIds={[...votedIds]}
+          q={q}
+          category={category}
+        />
       )}
     </div>
   );
