@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { SubmissionCard } from "@/components/submission-card";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -44,30 +45,11 @@ export default async function MySubmissionsPage() {
       ) : (
         <div className="space-y-3">
           {submissions.map((sub) => (
-            <div
+            <SubmissionCard
               key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
-            >
-              <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
-                  {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
-                </p>
-                {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                    Feedback: {sub.feedback}
-                  </p>
-                )}
-              </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
-            </div>
+              submission={sub}
+              statusStyles={statusStyles}
+            />
           ))}
         </div>
       )}
