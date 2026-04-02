@@ -59,6 +59,14 @@ export default async function MySubmissionsPage() {
                     Feedback: {sub.feedback}
                   </p>
                 )}
+                {sub.status === "REJECTED" && (
+                  <Link
+                    href={`/my-submissions/${sub.id}/edit`}
+                    className="inline-block rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Revise and resubmit
+                  </Link>
+                )}
               </div>
               <span
                 className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${

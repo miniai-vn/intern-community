@@ -12,6 +12,14 @@ export default async function AdminPage() {
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
+      revisions: {
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 2,
+      },
+      _count: { select: { revisions: true } },
     },
     orderBy: { createdAt: "asc" },
   });
