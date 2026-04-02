@@ -34,12 +34,45 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
+  const currentMiniApp = await db.miniApp.findUnique({
     where: { id },
-    data: {
-      status: parsed.data.status,
-      feedback: parsed.data.feedback,
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      authorId: true,
     },
+  });
+
+  if (!currentMiniApp) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const shouldNotify =
+    currentMiniApp.status !== parsed.data.status &&
+    (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED");
+
+  const updated = await db.$transaction(async (tx) => {
+    const miniApp = await tx.miniApp.update({
+      where: { id },
+      data: {
+        status: parsed.data.status,
+        feedback: parsed.data.feedback,
+      },
+    });
+
+    if (shouldNotify) {
+      await tx.notification.create({
+        data: {
+          userId: currentMiniApp.authorId,
+          miniAppId: currentMiniApp.id,
+          type: parsed.data.status,
+          message: `${currentMiniApp.name} was ${parsed.data.status.toLowerCase()}`,
+        },
+      });
+    }
+
+    return miniApp;
   });
 
   return NextResponse.json(updated);
