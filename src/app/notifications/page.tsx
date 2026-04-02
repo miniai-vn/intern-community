@@ -7,7 +7,7 @@ import { getNotificationsForUser } from "@/lib/notifications";
 export default async function NotificationsPage() {
   const session = await auth();
   if (!session?.user) redirect("/");
-
+// use the same function to fetch notifications and unread count for better performance instead of making multiple API calls from the client
   const { items, unreadCount } = await getNotificationsForUser(session.user.id);
 
   return (
