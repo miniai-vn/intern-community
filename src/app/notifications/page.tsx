@@ -58,16 +58,10 @@ export default async function NotificationsPage() {
         </Link>
       </div>
 
-      {initialNotifications.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-          <p className="text-gray-500">You do not have any notifications yet.</p>
-        </div>
-      ) : (
-        <NotificationsPanel
-          initialNotifications={initialNotifications}
-          initialUnreadCount={unreadCount}
-        />
-      )}
+      <NotificationsPanel
+        initialNotifications={initialNotifications}
+        initialUnreadCount={unreadCount}
+      />
     </div>
   );
 }

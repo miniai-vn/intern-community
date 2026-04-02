@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { formatRelativeTime } from "@/lib/utils";
 
 type NotificationItem = {
@@ -18,6 +18,11 @@ type NotificationItem = {
   };
 };
 
+type NotificationsResponse = {
+  items: NotificationItem[];
+  unreadCount: number;
+};
+
 interface NotificationsPanelProps {
   initialNotifications: NotificationItem[];
   initialUnreadCount: number;
@@ -31,6 +36,33 @@ export function NotificationsPanel({
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState(initialNotifications);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshNotifications() {
+      const response = await fetch("/api/notifications", {
+        cache: "no-store",
+      });
+
+      if (!response.ok || cancelled) return;
+
+      const data = (await response.json()) as NotificationsResponse;
+      setNotifications(data.items);
+      setUnreadCount(data.unreadCount);
+    }
+
+    const onFocus = () => {
+      void refreshNotifications();
+    };
+
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   async function markOneAsRead(notificationId: string) {
     const response = await fetch(`/api/notifications/${notificationId}`, {
@@ -88,6 +120,11 @@ export function NotificationsPanel({
       </div>
 
       <div className="space-y-3">
+        {notifications.length === 0 && (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
+            <p className="text-gray-500">You do not have any notifications yet.</p>
+          </div>
+        )}
         {notifications.map((notification) => {
           const isUnread = notification.readAt === null;
 
