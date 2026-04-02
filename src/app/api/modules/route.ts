@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // NOTE: Always include category and author to avoid N+1 on listing pages.
@@ -40,7 +40,25 @@ export async function GET(req: NextRequest) {
   const items = hasMore ? modules.slice(0, limit) : modules;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-  return NextResponse.json({ items, nextCursor });
+  const session = await auth();
+  let votedIds = new Set<string>();
+  if (session?.user) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: items.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedIds = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const itemsWithVoteInfo = items.map((m) => ({
+    ...m,
+    hasVoted: votedIds.has(m.id),
+  }));
+
+  return NextResponse.json({ items: itemsWithVoteInfo, nextCursor });
 }
 
 // POST /api/modules — submit a new module (authenticated)

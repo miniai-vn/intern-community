@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -19,9 +20,13 @@ export function Navbar() {
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
               </Link>
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
+              <NotificationBell />
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                   Admin

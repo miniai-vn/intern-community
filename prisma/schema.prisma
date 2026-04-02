@@ -60,10 +60,11 @@ model User {
   // Our custom fields
   isAdmin       Boolean   @default(false)
 
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
+  accounts      Account[]
+  sessions      Session[]
+  submissions   MiniApp[]
+  votes         Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -98,7 +99,8 @@ model MiniApp {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
-  votes     Vote[]
+  votes         Vote[]
+  notifications Notification[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -128,4 +130,39 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, action, createdAt])
+  @@map("rate_limit_events")
+}
+
+enum NotificationType {
+  MODULE_APPROVED
+  MODULE_REJECTED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  moduleId  String
+  type      NotificationType
+  // Denormalised message so the UI never needs an extra join.
+  // Generated at write time via formatNotificationMessage().
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // Composite index for badge query (userId + isRead) and list query (userId + createdAt).
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }

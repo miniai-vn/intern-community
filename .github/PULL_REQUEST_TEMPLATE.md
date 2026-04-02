@@ -19,7 +19,7 @@ Closes #
 
 ## Checklist
 
-- [ ] I read the relevant code **before** writing my own
+- [ z] I read the relevant code **before** writing my own
 - [ ] My code follows the existing patterns in the codebase
 - [ ] I ran `pnpm lint` and `pnpm typecheck` locally — no errors
 - [ ] I added or updated tests where applicable
