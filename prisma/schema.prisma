@@ -106,6 +106,7 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status, createdAt])
   @@map("mini_apps")
 }
 
