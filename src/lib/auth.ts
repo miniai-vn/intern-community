@@ -7,8 +7,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
     GitHub({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET,
+      clientId: process.env.Ov23liwrDf6WhbzuyUqB,
+      clientSecret: process.env.b48e1c6acf0cde8b51f89829bd88f4020a1a1874,
     }),
   ],
   callbacks: {
