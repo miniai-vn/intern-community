@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { IframePreview } from "@/components/iframe-preview";
 import { VoteButton } from "@/components/vote-button";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -79,21 +80,8 @@ export default async function ModuleDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* TODO [hard-challenge]: Implement sandboxed iframe preview here.
-          Requirements:
-          - Only show if module.demoUrl exists
-          - Use sandbox="allow-scripts allow-same-origin" at minimum
-          - Add Content-Security-Policy header for the iframe origin
-          - Show a loading skeleton while the iframe loads
-          See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
-        </div>
-      )}
+      {/* Sandboxed iframe preview */}
+      {module.demoUrl && <IframePreview demoUrl={module.demoUrl} />}
     </div>
   );
 }
