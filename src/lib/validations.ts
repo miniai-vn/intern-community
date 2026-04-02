@@ -27,5 +27,8 @@ export const adminReviewSchema = z.object({
   feedback: z.string().max(500).optional(),
 });
 
+export const moduleResubmitSchema = submitModuleSchema;
+
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;
 export type AdminReviewInput = z.infer<typeof adminReviewSchema>;
+export type ModuleResubmitInput = z.infer<typeof moduleResubmitSchema>;
