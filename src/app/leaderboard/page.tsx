@@ -109,11 +109,6 @@ export default async function LeaderboardPage() {
                       <h3 className="font-bold text-gray-900 text-lg sm:text-xl group-hover:text-blue-700 transition-colors">
                         {entry.user?.name || "Anonymous Developer"}
                       </h3>
-                      {entry.rank === 1 && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 shadow-sm">
-                          Current Champion 👑
-                        </span>
-                      )}
                     </div>
                   </div>
                   
