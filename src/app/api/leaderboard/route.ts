@@ -46,38 +46,47 @@ export async function GET(req: NextRequest) {
   const { year, month } = parsed;
 
   try {
-    const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
-    const endOfMonth = new Date(Date.UTC(year, month, 1));
-
-    // Get list leaderboard
-    const leaderboard = await db.miniApp.groupBy({
-      by: ["authorId"],
-      where: {
-        status: "APPROVED",
-        createdAt: { gte: startOfMonth, lt: endOfMonth },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: limitResult.data,
-    });
-    // Get leaderboard users
-    const authorIds = leaderboard.map((entry) => entry.authorId);
-    const users = await db.user.findMany({
-      where: { id: { in: authorIds } },
-      select: { id: true, name: true, image: true },
-    });
-
-    // Map result
-    const userMap = new Map(users.map((u) => [u.id, u]));
-    const result = leaderboard.map((entry, index) => ({
-      rank: index + 1,
-      count: entry._count.id,
-      user: userMap.get(entry.authorId) ?? null,
-    }));
-
+    const result = await loadLeaderboard(year, month, limitResult.data);
     return NextResponse.json(result);
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
+
+export const loadLeaderboard = async (
+  year: number,
+  month: number,
+  limit: number,
+) => {
+  const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
+  const endOfMonth = new Date(Date.UTC(year, month, 1));
+
+  // Get list leaderboard
+  const leaderboard = await db.miniApp.groupBy({
+    by: ["authorId"],
+    where: {
+      status: "APPROVED",
+      createdAt: { gte: startOfMonth, lt: endOfMonth },
+    },
+    _count: { id: true },
+    orderBy: { _count: { id: "desc" } },
+    take: limit,
+  });
+  // Get leaderboard users
+  const authorIds = leaderboard.map((entry) => entry.authorId);
+  const users = await db.user.findMany({
+    where: { id: { in: authorIds } },
+    select: { id: true, name: true, image: true },
+  });
+
+  // Map result
+  const userMap = new Map(users.map((u) => [u.id, u]));
+  const result = leaderboard.map((entry, index) => ({
+    rank: index + 1,
+    count: entry._count.id,
+    user: userMap.get(entry.authorId) ?? null,
+  }));
+
+  return result;
+};
