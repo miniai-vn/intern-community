@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -32,8 +33,13 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13, // limit + 1 to check for hasMore
   });
+
+  const limit = 12;
+  const hasMore = modules.length > limit;
+  const itemsToRender = hasMore ? modules.slice(0, limit) : modules;
+  const nextCursor = hasMore ? itemsToRender[itemsToRender.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -41,12 +47,17 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: itemsToRender.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
+
+  const initialModules = itemsToRender.map((module) => ({
+    ...module,
+    hasVoted: votedIds.has(module.id),
+  }));
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -78,7 +89,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,9 +98,9 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
-          <a
+          <Link
             key={c.id}
             href={`/?category=${c.slug}`}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
@@ -99,30 +110,17 @@ export default async function HomePage({
             }`}
           >
             {c.name}
-          </a>
+          </Link>
         ))}
       </div>
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <ModuleList
+        initialModules={initialModules as unknown as import("@/types").Module[]}
+        initialNextCursor={nextCursor}
+        q={q}
+        category={category}
+      />
     </div>
   );
 }
