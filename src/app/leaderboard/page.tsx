@@ -95,7 +95,7 @@ export default async function LeaderboardPage() {
                     {entry.approvedCount}
                   </div>
                   <div className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Approved
+                    Submissions
                   </div>
                 </div>
               </div>
