@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canDeleteModule } from "@/lib/submission-permissions";
 import { adminReviewSchema } from "@/lib/validations";
 
 type Params = { params: Promise<{ id: string }> };
@@ -8,7 +9,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const submission = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +17,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!submission) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json(submission);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -53,13 +56,33 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const submission = await db.miniApp.findUnique({ where: { id } });
+  if (!submission) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  const isOwner = submission.authorId === session.user.id;
+  const canDelete = canDeleteModule({
+    isAdmin: session.user.isAdmin,
+    isOwner,
+    status: submission.status,
+  });
+
+  if (!canDelete) {
+    if (isOwner) {
+      return NextResponse.json(
+        { error: "Only pending submissions can be deleted." },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await db.miniApp.delete({ where: { id } });
+  await db.$transaction([
+    db.vote.deleteMany({ where: { moduleId: id } }),
+    db.miniApp.delete({ where: { id } }),
+  ]);
+
   return new NextResponse(null, { status: 204 });
 }
