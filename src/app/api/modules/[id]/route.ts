@@ -42,6 +42,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  if (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED") {
+    const statusText = parsed.data.status.toLowerCase();
+    await db.notification.create({
+      data: {
+        userId: updated.authorId,
+        message: `${updated.name} was ${statusText}`,
+      },
+    });
+  }
+
   return NextResponse.json(updated);
 }
 
