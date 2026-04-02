@@ -1,66 +1,40 @@
-"use client";
+'use client';
 
-import { useOptimisticVote } from "@/hooks/use-optimistic-vote";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
 
-interface VoteButtonProps {
-  moduleId: string;
-  initialVoted: boolean;
-  initialCount: number;
-}
+export function VoteButton({ moduleId, initialCount, initialVoted = false }: { moduleId: string, initialCount: number, initialVoted?: boolean }) {
+  const [count, setCount] = useState(initialCount);
+  const [hasVoted, setHasVoted] = useState(false);
 
-export function VoteButton({
-  moduleId,
-  initialVoted,
-  initialCount,
-}: VoteButtonProps) {
-  const { data: session } = useSession();
-  const { voted, count, isLoading, toggle } = useOptimisticVote({
-    moduleId,
-    initialVoted,
-    initialCount,
-  });
+  useEffect(() => {
+    const savedVotes = JSON.parse(localStorage.getItem('my_votes') || '{}');
+    if (savedVotes[moduleId]) {
+      setHasVoted(true);
+      setCount(initialCount + 1);
+    }
+  }, [moduleId, initialCount]);
 
-  if (!session) {
-    return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
-        <TriangleIcon />
-        {count}
-      </span>
-    );
-  }
+  const handleVote = (e: React.MouseEvent) => {
+e.preventDefault(); 
+  e.stopPropagation();
+
+  const savedVotes = JSON.parse(localStorage.getItem('my_votes') || '{}');
+
+    if (hasVoted) {
+      delete savedVotes[moduleId];
+      setCount(prev => prev - 1);
+      setHasVoted(false);
+    } else {
+      savedVotes[moduleId] = true;
+      setCount(prev => prev + 1);
+      setHasVoted(true);
+    }
+    localStorage.setItem('my_votes', JSON.stringify(savedVotes));
+  };
 
   return (
-    <button
-      onClick={toggle}
-      disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
-    >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
+    <button onClick={handleVote} className={`flex items-center gap-2 rounded-lg px-3 py-1 text-sm font-medium transition-all ${hasVoted ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-transparent hover:bg-gray-200'}`}>
+      <span>▲</span> <span>{count}</span>
     </button>
-  );
-}
-
-function TriangleIcon({ filled = false }: { filled?: boolean }) {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden="true"
-    >
-      <path d="M6 1 L11 10 L1 10 Z" />
-    </svg>
   );
 }

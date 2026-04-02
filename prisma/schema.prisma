@@ -4,128 +4,26 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-}
-
-// ─── NextAuth required models ──────────────────────────────────────────────
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
-}
-
-// ─── App models ────────────────────────────────────────────────────────────
-
-model User {
-  id            String    @id @default(cuid())
-  // NextAuth required fields
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  // Our custom fields
-  isAdmin       Boolean   @default(false)
-
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
-
-  createdAt DateTime @default(now())
-
-  @@map("users")
+  url      = "postgresql://khanh_dev:password123@localhost:5432/intern_hub"
 }
 
 model Category {
-  id      String    @id @default(cuid())
-  name    String    @unique
-  slug    String    @unique
-  modules MiniApp[]
-
-  @@map("categories")
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  modules Module[]
 }
 
-// NOTE: "MiniApp" in the DB maps to "Module" in the UI.
-// This naming drift is intentional — mirrors real-world legacy systems.
-// Do NOT rename without a migration plan discussion with maintainers.
-model MiniApp {
-  id          String           @id @default(cuid())
-  slug        String           @unique
+model Module {
+  id          String   @id @default(cuid())
   name        String
   description String
-  repoUrl     String
+  slug        String   @unique
+  voteCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  authorName  String   @default("Khánh Dev")
+  repoUrl     String?
   demoUrl     String?
-  status      SubmissionStatus @default(PENDING)
-  feedback    String?
-
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId String
-
-  author   User   @relation(fields: [authorId], references: [id])
-  authorId String
-
-  votes     Vote[]
-  // Denormalized for read performance on the browse page.
-  // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
-  voteCount Int    @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("mini_apps")
-}
-
-model Vote {
-  id String @id @default(cuid())
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  module   MiniApp @relation(fields: [moduleId], references: [id])
-  moduleId String
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, moduleId])
-  @@map("votes")
-}
-
-enum SubmissionStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
 }

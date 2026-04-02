@@ -1,84 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { submitModuleSchema } from "@/lib/validations";
-import { generateSlug, makeUniqueSlug } from "@/lib/utils";
+import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
-// GET /api/modules — list approved modules (with optional category filter + search)
-export async function GET(req: NextRequest) {
-  const { searchParams } = req.nextUrl;
-  const category = searchParams.get("category");
-  const search = searchParams.get("q");
-  const cursor = searchParams.get("cursor");
-  const limit = 12;
+const prisma = new PrismaClient();
 
-  const modules = await db.miniApp.findMany({
-    where: {
-      status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
-      ...(search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    // NOTE: Always include category and author to avoid N+1 on listing pages.
-    // DO NOT remove the include without running EXPLAIN ANALYZE on the query.
-    include: {
-      category: true,
-      author: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { voteCount: "desc" },
-    take: limit + 1,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-  });
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, description, categorySlug, repoUrl, authorName } = body;
 
-  const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
+    if (!name || !description || !categorySlug || !repoUrl || !authorName) {
+      return NextResponse.json({ error: "Thiếu thông tin. Vui lòng kiểm tra lại!" }, { status: 400 });
+    }
 
-  return NextResponse.json({ items, nextCursor });
-}
+    const category = await prisma.category.findUnique({
+      where: { slug: categorySlug }
+    });
 
-// POST /api/modules — submit a new module (authenticated)
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const newModule = await prisma.module.create({
+      data: {
+        name,
+        description,
+        slug: name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-'),
+        repoUrl,
+        categoryId: category?.id || "",
+        authorName: authorName,
+        voteCount: 0,
+      },
+    });
+
+    return NextResponse.json(newModule);
+  } catch (error) {
+    return NextResponse.json({ error: "Lỗi Server!" }, { status: 500 });
   }
-
-  const body = await req.json();
-  const parsed = submitModuleSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.flatten() },
-      { status: 422 }
-    );
-  }
-
-  const { name, description, categoryId, repoUrl, demoUrl } = parsed.data;
-
-  const baseSlug = generateSlug(name);
-  const existingSlugs = await db.miniApp
-    .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
-  const slug = makeUniqueSlug(baseSlug, existingSlugs);
-
-  const module = await db.miniApp.create({
-    data: {
-      slug,
-      name,
-      description,
-      categoryId,
-      repoUrl,
-      demoUrl,
-      authorId: session.user.id,
-      status: "PENDING",
-    },
-  });
-
-  return NextResponse.json(module, { status: 201 });
 }
