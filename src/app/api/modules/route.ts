@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
     .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+    .then((r) => r.map((item) => item.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const createdItem = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +80,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(createdItem, { status: 201 });
 }

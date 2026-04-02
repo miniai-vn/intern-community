@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { CategoryFilter } from "@/components/category-filter";
+import Link from "next/link";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -8,15 +10,16 @@ import { ModuleCard } from "@/components/module-card";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string | string[] }>;
 }) {
   const { q, category } = await searchParams;
+  const categoryArray = [category].flat().filter(Boolean) as string[];
   const session = await auth();
 
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categoryArray.length > 0 ? { category: { slug: { in: categoryArray } } } : {}),
       ...(q
         ? {
             OR: [
@@ -77,48 +80,24 @@ export default async function HomePage({
       </div>
 
       {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      <CategoryFilter categories={categories} />
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
+          {modules.map((item) => (
             <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
+              key={item.id}
+              module={item}
+              hasVoted={votedIds.has(item.id)}
             />
           ))}
         </div>
