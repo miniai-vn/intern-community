@@ -1,9 +1,13 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { getCachedData, setCachedData } from "@/lib/redis";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
+export const revalidate = 600; // ISR: revalidate every 10 minutes as fallback
+
+type ModuleData = typeof modules;
 
 export default async function HomePage({
   searchParams,
@@ -13,27 +17,51 @@ export default async function HomePage({
   const { q, category } = await searchParams;
   const session = await auth();
 
-  const modules = await db.miniApp.findMany({
-    where: {
-      status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    // DO NOT remove include — avoids N+1 on category/author fields.
-    include: {
-      category: true,
-      author: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { voteCount: "desc" },
-    take: 12,
-  });
+  // { changed code } Cache key based on filter parameters
+  const cacheKey = `modules:popular:${category || "all"}:${q || "all"}`;
+  let modules: ModuleData = [];
+
+  // Step 1: Check Redis cache first
+  if (!q && !category) {
+    // Only cache the "no filter" case for simplicity
+    const cachedModules = await getCachedData<ModuleData>(cacheKey);
+    if (cachedModules) {
+      console.log("[Cache HIT] Popular modules from Redis");
+      modules = cachedModules;
+    }
+  }
+
+  // Step 2: If cache miss, fetch from database
+  if (modules.length === 0) {
+    console.log("[Cache MISS] Fetching popular modules from database");
+    modules = await db.miniApp.findMany({
+      where: {
+        status: "APPROVED",
+        ...(category ? { category: { slug: category } } : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      // DO NOT remove include — avoids N+1 on category/author fields.
+      include: {
+        category: true,
+        author: { select: { id: true, name: true, image: true } },
+      },
+      orderBy: { voteCount: "desc" },
+      take: 12,
+    });
+
+    // Step 3: Store in Redis cache (only if no search filters)
+    if (!q && !category) {
+      await setCachedData(cacheKey, modules, 300); // 5 minutes TTL
+    }
+  }
+  // { changed code }
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -49,6 +77,7 @@ export default async function HomePage({
   }
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
+
 
   return (
     <div className="space-y-6">

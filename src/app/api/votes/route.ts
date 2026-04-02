@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
+import { deleteCachedData } from "@/lib/redis";
 // Simple in-memory rate limit: max 10 votes per minute per user.
 // In production, replace with Redis-backed sliding window (e.g. Upstash).
 // TODO [medium-challenge]: Replace this with a proper rate limiter
@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
         data: { voteCount: { decrement: 1 } },
       }),
     ]);
+
+      // { changed code } Invalidate popular modules cache after vote is removed
+      await deleteCachedData("modules:popular:all:all");
+      console.log("[Cache INVALIDATED] Popular modules cache cleared (vote removed)");
     return NextResponse.json({ voted: false });
   } else {
     // Vote
@@ -63,6 +67,10 @@ export async function POST(req: NextRequest) {
         data: { voteCount: { increment: 1 } },
       }),
     ]);
+    await deleteCachedData("modules:popular:all:all");
+    console.log("[Cache INVALIDATED] Popular modules cache cleared (new vote)");
+    // { changed code }
+
     return NextResponse.json({ voted: true });
   }
 }
