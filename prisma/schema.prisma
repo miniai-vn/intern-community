@@ -71,10 +71,11 @@ model User {
 }
 
 model Category {
-  id      String    @id @default(cuid())
-  name    String    @unique
-  slug    String    @unique
-  modules MiniApp[]
+  id              String           @id @default(cuid())
+  name            String           @unique
+  slug            String           @unique
+  modules         MiniApp[]
+  moduleRevisions ModuleRevision[]
 
   @@map("categories")
 }
@@ -99,6 +100,7 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  revisions ModuleRevision[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -107,6 +109,25 @@ model MiniApp {
   updatedAt DateTime @updatedAt
 
   @@map("mini_apps")
+}
+
+model ModuleRevision {
+  id          String           @id @default(cuid())
+  module      MiniApp          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId    String
+  name        String
+  description String
+  repoUrl     String
+  demoUrl     String?
+  status      SubmissionStatus
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+
+  createdAt DateTime @default(now())
+
+  @@index([moduleId, createdAt])
+  @@map("module_revisions")
 }
 
 model Vote {
