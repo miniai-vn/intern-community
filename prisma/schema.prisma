@@ -66,7 +66,7 @@ model User {
   votes       Vote[]
 
   createdAt DateTime @default(now())
-
+  rateLimitEvents RateLimitEvent[]
   @@map("users")
 }
 
@@ -128,4 +128,15 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  // Index này cực kỳ quan trọng để đếm số lượng request theo thời gian
+  @@index([userId, createdAt])
+  @@map("rate_limit_events")
 }

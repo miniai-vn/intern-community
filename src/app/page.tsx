@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import Link from "next/link";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -54,7 +55,9 @@ export default async function HomePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Community Modules
+          </h1>
           <p className="text-sm text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
@@ -78,7 +81,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,7 +90,7 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
           <a
             key={c.id}
@@ -107,9 +110,12 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
