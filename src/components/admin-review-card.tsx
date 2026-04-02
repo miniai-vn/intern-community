@@ -38,6 +38,29 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
 
       <p className="text-sm text-gray-600">{module.description}</p>
 
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <p className="text-xs font-medium text-gray-700">
+          Revision history ({module._count?.revisions ?? 0})
+        </p>
+        {module.revisions && module.revisions.length > 0 ? (
+          <ul className="mt-2 space-y-2">
+            {module.revisions.map((revision, index) => (
+              <li key={revision.id} className="text-xs text-gray-600">
+                <p className="font-medium text-gray-700">
+                  {index === 0 ? "Latest snapshot" : "Previous snapshot"}
+                </p>
+                <p>
+                  {new Date(revision.createdAt).toLocaleString()} · {revision.category.name}
+                </p>
+                <p>{revision.name}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1 text-xs text-gray-500">No prior revisions yet.</p>
+        )}
+      </div>
+
       <div className="flex gap-2 text-xs">
         <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
           GitHub →
