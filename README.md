@@ -107,7 +107,7 @@ pnpm db:studio    # Open Prisma Studio
 9. Strong PRs → invited to a short follow-up chat
 ```
 
-### Challenge levels
+### Challenge levels (you guys can pick the issue here or can just bring any updates/feature you want to the project)
 
 | Level | Tag | Description | Est. time |
 |---|---|---|---|
