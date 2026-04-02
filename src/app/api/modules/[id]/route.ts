@@ -16,7 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!module)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(module);
 }
 
@@ -31,7 +32,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body = await req.json();
   const parsed = adminReviewSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+    return NextResponse.json(
+      { error: parsed.error.flatten() },
+      { status: 422 },
+    );
   }
 
   const updated = await db.miniApp.update({
@@ -39,6 +43,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     data: {
       status: parsed.data.status,
       feedback: parsed.data.feedback,
+    },
+  });
+
+  await db.notification.create({
+    data: {
+      userId: updated.authorId,
+      title:
+        updated.status === "APPROVED"
+          ? `${updated.name}" was approved`
+          : `${updated.name}" was rejected`,
+      message: `Your module "${updated.name}" has been ${updated.status.toLowerCase()}.`,
     },
   });
 
@@ -54,7 +69,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   const { id } = await params;
   const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!module)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (module.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
