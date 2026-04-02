@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { voteRateLimit } from "@/lib/rate-limit";
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
 async function checkRateLimit(userId: string): Promise<boolean> {
   const { success } = await voteRateLimit.limit(userId);
-  return success
+  return success;
 }
 
 
@@ -18,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!( await checkRateLimit(session.user.id))) {
+  if (!(await checkRateLimit(session.user.id))) {
     return NextResponse.json(
       { error: "Too many votes. Please wait a moment." },
       { status: 429 }
