@@ -37,8 +37,27 @@ export async function GET(req: NextRequest) {
   });
 
   const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
+  const rawItems = hasMore ? modules.slice(0, limit) : modules;
+  const nextCursor = hasMore ? rawItems[rawItems.length - 1].id : null;
+
+  const session = await auth();
+  let votedIds = new Set<string>();
+
+  if (session?.user && rawItems.length > 0) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: rawItems.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedIds = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    hasVoted: votedIds.has(item.id),
+  }));
 
   return NextResponse.json({ items, nextCursor });
 }
