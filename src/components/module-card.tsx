@@ -9,39 +9,63 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex min-h-[210px] flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-lg hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-2">
-        <Link
-          href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
-        >
-          {module.name}
-        </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 hover:text-sky-700">
+            <Link
+              href={`/modules/${module.slug}`}
+              className="block"
+            >
+              {module.name}
+            </Link>
+          </h2>
+          <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+            {module.description}
+          </p>
+        </div>
+
         {module.demoUrl && (
           <a
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label={`Open demo for ${module.name}`}
+            className="rounded-lg border border-blue-100 bg-blue-50 p-2 text-blue-600 hover:bg-blue-100"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+            {module.category.name}
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+            ⭐ {module.voteCount}
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
+            🧑 {module.author.name ?? "Unknown"}
+          </span>
+        </div>
 
-      <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-          {module.category.name}
-        </span>
-
-        <VoteButton
-          moduleId={module.id}
-          initialVoted={hasVoted}
-          initialCount={module.voteCount}
-        />
+        <div className="flex items-center justify-between gap-2">
+          <a
+            href={module.repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-sky-700 hover:text-sky-900"
+          >
+            View on GitHub
+          </a>
+          <VoteButton
+            moduleId={module.id}
+            initialVoted={hasVoted}
+            initialCount={module.voteCount}
+          />
+        </div>
       </div>
     </article>
   );

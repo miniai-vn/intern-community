@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { AuthSessionProvider } from "@/components/session-provider";
 import { BackToTop } from "@/components/back-to-top";
+import { Footer } from "@/components/footer";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
@@ -20,13 +21,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-gray-50 font-sans">
+      <body className="flex min-h-full flex-col bg-[#f6f9ff] font-sans text-slate-800">
         <AuthSessionProvider>
           <Navbar />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
             {children}
+            <BackToTop />
           </main>
-          <BackToTop />
+          <Footer />
         </AuthSessionProvider>
       </body>
     </html>
