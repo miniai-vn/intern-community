@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -122,6 +123,21 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String 
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String   
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
 }
 
 enum SubmissionStatus {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { NotificationBadge } from "./notification-badge";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -16,14 +17,24 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/submit"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Submit Module
               </Link>
-              <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/my-submissions"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 My Submissions
               </Link>
+              <NotificationBadge />
               {session.user.isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium text-orange-600 hover:text-orange-700"
+                >
                   Admin
                 </Link>
               )}
