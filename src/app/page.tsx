@@ -1,3 +1,4 @@
+
 import { CategoryFilter } from "@/components/category-filter";
 import { ModuleList } from "@/components/module-list";
 import { auth } from "@/lib/auth";
