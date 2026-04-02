@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -60,13 +61,18 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+              <div className="flex flex-col items-end space-y-2">
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    statusStyles[sub.status]
+                  }`}
+                >
+                  {sub.status}
+                </span>
+                {sub.status === "PENDING" && (
+                  <DeleteSubmissionButton id={sub.id} />
+                )}
+              </div>
             </div>
           ))}
         </div>
