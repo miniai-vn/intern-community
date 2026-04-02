@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -99,6 +100,7 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  notifications Notification[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -122,6 +124,30 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  moduleId  String?
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module MiniApp? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  APPROVED
+  REJECTED
 }
 
 enum SubmissionStatus {
