@@ -1,5 +1,5 @@
 import { CategoryFilter } from "@/components/category-filter";
-import { ModuleCard } from "@/components/module-card";
+import { ModuleList } from "@/components/module-list";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -80,26 +80,13 @@ export default async function HomePage({
       {/* Category filter placeholder — see TODO above */}
      <CategoryFilter categories={categories} currentCategory={category || null} />
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+      <ModuleList
+        initialModules={modules}
+        initialVotedIds={votedIds}
+        categories={categories}
+        currentCategory={category || null}
+        currentQuery={q || null}
+      />
     </div>
   );
 }
