@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { AuthSessionProvider } from "@/components/session-provider";
+import { BackToTop } from "@/components/back-to-top";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
@@ -22,6 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
         </AuthSessionProvider>
+
+        <BackToTop />
       </body>
     </html>
   );
