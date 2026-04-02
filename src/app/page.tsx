@@ -1,6 +1,7 @@
-import { db } from "@/lib/db";
+import { CategoryFilter } from "@/components/category-filter";
+import { ModuleList } from "@/components/module-list";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import { db } from "@/lib/db";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -77,52 +78,15 @@ export default async function HomePage({
       </div>
 
       {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+     <CategoryFilter categories={categories} currentCategory={category || null} />
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+      <ModuleList
+        initialModules={modules}
+        initialVotedIds={votedIds}
+        categories={categories}
+        currentCategory={category || null}
+        currentQuery={q || null}
+      />
     </div>
   );
 }
