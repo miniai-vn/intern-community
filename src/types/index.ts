@@ -11,4 +11,4 @@ export type Module = MiniApp & {
 
 export type ModuleStatus = SubmissionStatus;
 
-export type { Category, User };
+export type { Category, User, MiniApp };
