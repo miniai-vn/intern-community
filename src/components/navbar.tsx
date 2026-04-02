@@ -14,6 +14,9 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link href="/leaderboard" className="text-sm font-medium text-amber-600 hover:text-amber-700">
+            Leaderboard
+          </Link>
           {session ? (
             <>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
