@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 type Params = { params: Promise<{ id: string }> };
-
+// API mark a specific notification as read
 export async function PATCH(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user) {

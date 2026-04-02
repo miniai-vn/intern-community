@@ -1,45 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useNotificationBadge } from "@/hooks/use-notification-badge";
 
 export function Navbar() {
   const { data: session } = useSession();
-  const [unreadCount, setUnreadCount] = useState(0);
   const userId = session?.user?.id;
-
-  useEffect(() => {
-    if (!userId) return;
-
-    let cancelled = false;
-
-    async function loadUnreadCount() {
-      const response = await fetch("/api/notifications/unread-count", {
-        cache: "no-store",
-      });
-
-      if (!response.ok || cancelled) return;
-
-      const data = (await response.json()) as { count?: number };
-      setUnreadCount(data.count ?? 0);
-    }
-
-    void loadUnreadCount();
-
-    const refreshUnreadCount = () => {
-      void loadUnreadCount();
-    };
-
-    window.addEventListener("focus", refreshUnreadCount);
-    window.addEventListener("notifications-updated", refreshUnreadCount);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("focus", refreshUnreadCount);
-      window.removeEventListener("notifications-updated", refreshUnreadCount);
-    };
-  }, [userId]);
+  const unreadCount = useNotificationBadge(userId);
 
   return (
     <nav className="border-b border-gray-200 bg-white">

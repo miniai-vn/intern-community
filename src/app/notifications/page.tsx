@@ -1,47 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { NotificationsPanel } from "@/components/notifications-panel";
-
-type NotificationListItem = {
-  id: string;
-  message: string;
-  readAt: string | null;
-  createdAt: string;
-  type: "APPROVED" | "REJECTED";
-  miniApp: {
-    id: string;
-    slug: string;
-    name: string;
-  };
-};
+import { getNotificationsForUser } from "@/lib/notifications";
 
 export default async function NotificationsPage() {
   const session = await auth();
   if (!session?.user) redirect("/");
 
-  const [notifications, unreadCount] = await Promise.all([
-    db.notification.findMany({
-      where: { userId: session.user.id },
-      include: {
-        miniApp: { select: { id: true, slug: true, name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.notification.count({
-      where: { userId: session.user.id, readAt: null },
-    }),
-  ]);
-
-  const initialNotifications: NotificationListItem[] = notifications.map((notification) => ({
-    id: notification.id,
-    message: notification.message,
-    readAt: notification.readAt ? notification.readAt.toISOString() : null,
-    createdAt: notification.createdAt.toISOString(),
-    type: notification.type,
-    miniApp: notification.miniApp,
-  }));
+  const { items, unreadCount } = await getNotificationsForUser(session.user.id);
 
   return (
     <div className="space-y-6">
@@ -59,7 +26,7 @@ export default async function NotificationsPage() {
       </div>
 
       <NotificationsPanel
-        initialNotifications={initialNotifications}
+        initialNotifications={items}
         initialUnreadCount={unreadCount}
       />
     </div>
