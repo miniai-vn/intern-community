@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { CategoryFilter } from "@/components/category-filter";
+import { LoadMoreModules } from "@/components/load-more-modules";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -19,11 +21,11 @@ export default async function HomePage({
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // DO NOT remove include — avoids N+1 on category/author fields.
@@ -32,8 +34,12 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13,
   });
+
+  const hasMore = modules.length > 12;
+  const displayedModules = hasMore ? modules.slice(0, 12) : modules;
+  const initialNextCursor = hasMore ? displayedModules[displayedModules.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -61,6 +67,7 @@ export default async function HomePage({
         </div>
 
         <form className="flex gap-2">
+          {category && <input type="hidden" name="category" value={category} />}
           <input
             name="q"
             defaultValue={q}
@@ -77,31 +84,7 @@ export default async function HomePage({
       </div>
 
       {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      <CategoryFilter categories={categories} />
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
@@ -114,13 +97,18 @@ export default async function HomePage({
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
+          {displayedModules.map((module) => (
             <ModuleCard
               key={module.id}
               module={module}
               hasVoted={votedIds.has(module.id)}
             />
           ))}
+          <LoadMoreModules
+            initialNextCursor={initialNextCursor}
+            q={q}
+            category={category}
+          />
         </div>
       )}
     </div>
