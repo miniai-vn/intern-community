@@ -63,3 +63,4 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   await db.miniApp.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }
+
