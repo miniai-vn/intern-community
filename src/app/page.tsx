@@ -58,6 +58,7 @@ export default async function HomePage({
           <p className="text-sm text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
+          
         </div>
 
         <form className="flex gap-2">
