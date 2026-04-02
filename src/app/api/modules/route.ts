@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
-
+import { moduleRateLimit } from "@/lib/rate-limit";
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -49,7 +49,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
+  const { success } = await moduleRateLimit.limit(session.user.id);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many submissions. Please wait a moment." },
+      { status: 429 }
+    );
+  }
   const body = await req.json();
   const parsed = submitModuleSchema.safeParse(body);
   if (!parsed.success) {
@@ -67,7 +73,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const miniApp = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +86,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(miniApp, { status: 201 });
 }
