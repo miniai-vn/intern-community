@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -56,16 +56,37 @@ describe("makeUniqueSlug", () => {
 });
 
 // ============================================================
-// formatRelativeTime — NOT yet tested, candidate must write all tests
+// formatRelativeTime
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-02T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns "just now" for dates less than 1 minute ago', () => {
+    expect(formatRelativeTime(new Date("2026-04-02T11:59:45.000Z"))).toBe("just now");
+  });
+
+  it('returns minutes for dates 1-59 minutes ago', () => {
+    expect(formatRelativeTime(new Date("2026-04-02T11:45:00.000Z"))).toBe("15m ago");
+  });
+
+  it('returns hours for dates 1-23 hours ago', () => {
+    expect(formatRelativeTime(new Date("2026-04-02T06:00:00.000Z"))).toBe("6h ago");
+  });
+
+  it('returns days for dates 1-29 days ago', () => {
+    expect(formatRelativeTime(new Date("2026-03-29T12:00:00.000Z"))).toBe("4d ago");
+  });
+
+  it('falls back to locale date string for dates 30+ days ago', () => {
+    const date = new Date("2026-03-01T12:00:00.000Z");
+    expect(formatRelativeTime(date)).toBe(date.toLocaleDateString());
+  });
+});

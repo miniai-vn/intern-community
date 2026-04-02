@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useNotificationBadge } from "@/hooks/use-notification-badge";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const unreadCount = useNotificationBadge(userId);
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -18,6 +21,19 @@ export function Navbar() {
             <>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
+              </Link>
+              <Link
+                href="/notifications"
+                className={`relative text-sm text-gray-600 hover:text-gray-900 ${
+                  unreadCount > 0 ? "pr-4" : ""
+                }`}
+              >
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 text-[9px] font-bold leading-none text-white shadow-sm">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions

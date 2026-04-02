@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(miniApp);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -34,12 +34,45 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
+  const currentMiniApp = await db.miniApp.findUnique({
     where: { id },
-    data: {
-      status: parsed.data.status,
-      feedback: parsed.data.feedback,
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      authorId: true,
     },
+  });
+
+  if (!currentMiniApp) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const shouldNotify =
+    currentMiniApp.status !== parsed.data.status &&
+    (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED");
+
+  const updated = await db.$transaction(async (tx) => {
+    const miniApp = await tx.miniApp.update({
+      where: { id },
+      data: {
+        status: parsed.data.status,
+        feedback: parsed.data.feedback,
+      },
+    });
+
+    if (shouldNotify) {
+      await tx.notification.create({
+        data: {
+          userId: currentMiniApp.authorId,
+          miniAppId: currentMiniApp.id,
+          type: parsed.data.status,
+          message: `${currentMiniApp.name} was ${parsed.data.status.toLowerCase()}`,
+        },
+      });
+    }
+
+    return miniApp;
   });
 
   return NextResponse.json(updated);
@@ -53,10 +86,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const miniApp = await db.miniApp.findUnique({ where: { id } });
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (miniApp.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

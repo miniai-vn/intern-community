@@ -11,4 +11,22 @@ export type Module = MiniApp & {
 
 export type ModuleStatus = SubmissionStatus;
 
+export type NotificationItem = {
+  id: string;
+  message: string;
+  readAt: string | null;
+  createdAt: string;
+  type: "APPROVED" | "REJECTED";
+  miniApp: {
+    id: string;
+    slug: string;
+    name: string;
+  };
+};
+
+export type NotificationsResponse = {
+  items: NotificationItem[];
+  unreadCount: number;
+};
+
 export type { Category, User };
