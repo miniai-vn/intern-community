@@ -19,12 +19,12 @@ Closes #
 
 ## Checklist
 
-- [ ] I read the relevant code **before** writing my own
-- [ ] My code follows the existing patterns in the codebase
-- [ ] I ran `pnpm lint` and `pnpm typecheck` locally — no errors
-- [ ] I added or updated tests where applicable
-- [ ] I can explain every line of code I wrote (reviewer will ask)
-- [ ] I kept the PR focused — no unrelated changes
+- [x ] I read the relevant code **before** writing my own
+- [ x] My code follows the existing patterns in the codebase
+- [ x] I ran `pnpm lint` and `pnpm typecheck` locally — no errors
+- [ x] I added or updated tests where applicable
+- [ x] I can explain every line of code I wrote (reviewer will ask)
+- [ x] I kept the PR focused — no unrelated changes
 
 ## Notes for reviewer
 
