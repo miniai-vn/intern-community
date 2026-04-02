@@ -52,8 +52,9 @@ cp .env.example .env
 # 4. Start the database
 docker compose up -d
 
-# 5. Apply schema and seed demo data
+# 5. Apply schema,generate db and seed demo data
 pnpm db:push
+pnpm db:generate
 pnpm db:seed
 
 # 6. Start the dev server
