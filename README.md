@@ -1,158 +1,67 @@
-# Intern Community Hub
+<h1 align="center">🚀 Module Ecosystem & PostgreSQL Migration</h1>
 
-> An open platform for the TD developer community to submit and discover mini-app modules — and an open-source hiring challenge for aspiring interns.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+</p>
 
-[![CI](https://github.com/your-org/intern-community/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/intern-community/actions/workflows/ci.yml)
-
----
-
-## What is this?
-
-**Intern Community Hub** is a web platform where developers can:
-- Browse approved mini-app modules built by the community
-- Submit their own mini-apps for review
-- Upvote modules they find useful
-- (Admins) Review and approve/reject submissions
-
-This repo also doubles as an **open-source internship challenge**. Instead of a theory-only interview, candidates demonstrate their skills by contributing real PRs to this real codebase.
+> **Mục tiêu dự án:** Thay vì sử dụng mảng tĩnh (Static Mock Data), dự án đã được chuyển đổi toàn bộ kiến trúc sang dữ liệu thực thể nhằm xây dựng một hệ thống có khả năng mở rộng. Mục tiêu chính là hoàn thiện luồng Full-stack từ Database đến UI/UX.
 
 ---
 
-## Tech stack
+## 💻 Các tính năng đã triển khai (Features)
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router) + TypeScript |
-| Database | PostgreSQL via Prisma ORM |
-| Auth | NextAuth.js v5 (GitHub OAuth) |
-| Styling | Tailwind CSS |
-| Testing | Vitest |
-| Local DB | Docker Compose |
-| CI | GitHub Actions |
+- **⚙️ Infrastructure:** Thiết lập PostgreSQL chạy trên Docker, quản lý Schema mạnh mẽ và an toàn với Prisma ORM.
+- **🔄 Full CRUD Flow:** Hoàn thiện luồng dữ liệu thực tế: `Gửi Module` ➡️ `Lưu Database` ➡️ `Hiển thị Dashboard` ➡️ `Xem chi tiết`.
+- **🌱 Seeding Data:** Xây dựng bộ `seed.ts` với 6 modules thực tế, kèm mô tả kỹ thuật chi tiết để kiểm tra độ ổn định của Layout.
+- **✨ Pro UI/UX:**
+  - Thiết kế **Browser Mockup Preview** cho trang chi tiết module mang lại cảm giác hiện đại.
+  - Tối ưu Typography với `text-justify` (căn lề đều) giúp giao diện chuẩn chuyên nghiệp, dễ đọc.
 
 ---
 
-## Local setup
+## 🛠️ Những khó khăn & Cách giải quyết (Troubleshooting)
 
-**Prerequisites:** Node.js 20+, pnpm, Docker
+*Phần này thể hiện tư duy xử lý vấn đề và khả năng thích nghi của một Junior/Intern:*
+
+| 🚧 Vấn đề gặp phải | 🔍 Nguyên nhân | ✅ Cách em đã giải quyết |
+| :--- | :--- | :--- |
+| **Lỗi Hydration (Next.js 15)** | Sai lệch HTML giữa Server và Client do Browser Extensions can thiệp. | Refactor cấu trúc Component và tối ưu hóa Render logic để đồng bộ HTML. |
+| **Prisma Client Undefined** | Lỗi khởi tạo Client trong môi trường Server Components. | Khởi tạo `PrismaClient` trực tiếp tại Server-side để đảm bảo kết nối DB luôn sẵn sàng. |
+| **Stale Data (Cache)** | Next.js mặc định cache dữ liệu khiến UI không tự động cập nhật sau khi Submit form. | Áp dụng `export const dynamic = 'force-dynamic'` để ép ứng dụng lấy data real-time. |
+
+---
+
+## 🤖 AI Pair Programming Workflow
+
+Thay vì code theo lối mòn, em chủ động phối hợp với AI (ChatGPT/Gemini) như một **Pair Programmer** để tăng tốc độ phát triển:
+
+- 🏗️ **Tư vấn kiến trúc:** Thiết kế tối ưu hóa quan hệ *One-to-Many* giữa Category và Module.
+- ⚡ **Debug thần tốc:** Cung cấp và phân tích log lỗi từ Prisma/Docker cho AI để tìm hướng giải quyết cốt lõi thay vì tra cứu thủ công tốn thời gian.
+- 📝 **Mocking Content:** Hỗ trợ viết các đoạn mô tả kỹ thuật (Technical descriptions) dài, mang tính thực tế cao để kiểm tra tính thẩm mỹ và độ co giãn của UI.
+
+---
+
+## 📖 Hướng dẫn khởi chạy (Setup Guide)
+
+Để Reviewer có thể kiểm tra sản phẩm một cách nhanh chóng và chính xác nhất, vui lòng thực hiện theo các lệnh sau:
 
 ```bash
-# 1. Clone
-git clone https://github.com/your-org/intern-community.git
-cd intern-community
+# 1. Khởi động Database (PostgreSQL) qua Docker
+docker-compose up -d
 
-# 2. Install dependencies
-pnpm install
+# 2. Cài đặt các thư viện cần thiết
+npm install
 
-# 3. Copy env
-cp .env.example .env
-# Edit .env — add your GitHub OAuth credentials
-# (see "GitHub OAuth setup" below)
+# 3. Đồng bộ Database Schema với Prisma
+npx prisma db push
 
-# 4. Start the database
-docker compose up -d
+# 4. Khởi tạo dữ liệu mẫu (Bắt buộc để hiển thị 6 module mẫu lên giao diện)
+npx prisma db seed
 
-# 5. Apply schema and seed demo data
-pnpm db:push
-pnpm db:seed
+# 5. Chởi chạy ứng dụng
+npm run dev
 
-# 6. Start the dev server
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-### GitHub OAuth setup
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App:
-   - **Application name:** Intern Community Hub (local)
-   - **Homepage URL:** `http://localhost:3000`
-   - **Callback URL:** `http://localhost:3000/api/auth/callback/github`
-3. Copy the Client ID and Secret into your `.env`
-
----
-
-## Available scripts
-
-```bash
-pnpm dev          # Start dev server
-pnpm build        # Production build
-pnpm lint         # ESLint
-pnpm typecheck    # TypeScript check
-pnpm test         # Run tests
-pnpm db:push      # Apply schema to DB (dev, no migration file)
-pnpm db:migrate   # Create and apply a named migration
-pnpm db:seed      # Seed demo data
-pnpm db:studio    # Open Prisma Studio
-```
-
----
-
-## Intern Challenge — How to contribute
-
-> See [open issues](https://github.com/your-org/intern-community/issues?q=label%3Aintern-challenge+is%3Aopen) for available tasks.
-
-### Workflow
-
-```
-1. Fork this repo
-2. Pick an open issue tagged `intern-challenge`
-3. Comment "I'm working on this" on the issue
-4. Create a branch: feat/issue-{number}-short-description
-5. Write your code, commit using Conventional Commits
-6. Open a PR — fill in the PR template completely
-7. A maintainer will leave 1-2 review comments
-8. Respond to feedback and revise if needed
-9. Strong PRs → invited to a short follow-up chat
-```
-
-### Challenge levels (you guys can pick the issue here or can just bring any updates/feature you want to the project)
-
-| Level | Tag | Description | Est. time |
-|---|---|---|---|
-| 🟢 Easy | `difficulty: easy` | Fix a bug, add validation, write tests | 1–3 h |
-| 🟡 Medium | `difficulty: medium` | Add a feature (API endpoint or UI component) | 4–8 h |
-| 🔴 Hard | `difficulty: hard` | Design and implement a complete module | 1–3 days |
-
-### What we look for in PRs
-
-| Criteria | How we observe it |
-|---|---|
-| Reads code before writing | PR is consistent with existing patterns |
-| Uses AI responsibly | Code is specific, not boilerplate; can explain every line |
-| Technical reasoning | Commit messages, structure, edge cases handled |
-| Communication | PR description quality, asks clarifying questions on vague issues |
-| Speed + quality balance | Feels considered, not rushed |
-
-**Transparency note:** We may ask "why did you choose this approach?" in a review comment. We want to distinguish candidates who understand their code from those who don't.
-
----
-
-## Project structure
-
-```
-src/
-├── app/              # Next.js App Router pages + API routes
-├── components/       # React components
-├── hooks/            # Custom React hooks
-├── lib/              # Prisma client, auth config, utils, validations
-└── types/            # Shared TypeScript types
-prisma/
-├── schema.prisma     # Database schema
-└── seed.ts           # Demo data seeder
-__tests__/            # Vitest tests
-.github/              # CI workflow + issue/PR templates
-```
-
----
-
-## Naming note
-
-`MiniApp` in the database, `Module` in the UI — this naming drift is intentional (mirrors real-world legacy systems). **Do not rename** one to match the other without an issue discussion first.
-
----
-
-## License
-
-MIT
