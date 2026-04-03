@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const appModule = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!appModule) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(appModule);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -53,11 +53,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const appModule = await db.miniApp.findUnique({ where: { id } });
+  if (!appModule) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (appModule.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Prevent authors from deleting non-pending submissions
+  if (!session.user.isAdmin && appModule.status !== "PENDING") {
+    return NextResponse.json({ error: "Only pending submissions can be deleted" }, { status: 400 });
   }
 
   await db.miniApp.delete({ where: { id } });
