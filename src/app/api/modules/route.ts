@@ -6,6 +6,7 @@ import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
+  const session = await auth();
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("q");
@@ -40,7 +41,25 @@ export async function GET(req: NextRequest) {
   const items = hasMore ? modules.slice(0, limit) : modules;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-  return NextResponse.json({ items, nextCursor });
+  let votedIds = new Set<string>();
+  if (session?.user && items.length > 0) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: items.map((module) => module.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedIds = new Set(votes.map((vote) => vote.moduleId));
+  }
+
+  return NextResponse.json({
+    items: items.map((item) => ({
+      ...item,
+      hasVoted: votedIds.has(item.id),
+    })),
+    nextCursor,
+  });
 }
 
 // POST /api/modules — submit a new module (authenticated)
