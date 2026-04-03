@@ -74,7 +74,7 @@ export function useOptimisticVote({
       if (!res.ok) {
         // Surface a specific, actionable message for rate limiting.
         if (res.status === 429) {
-          throw new Error("Too many vote attempts. Please wait a moment and try again.");
+          throw new Error(res.statusText);
         }
         throw new Error("Unable to update vote right now. Please try again.");
       }
