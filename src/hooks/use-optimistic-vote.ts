@@ -43,6 +43,7 @@ export function useOptimisticVote({
   // BUG: this ref is never reset when the component unmounts and remounts
   // with the same moduleId (e.g. navigating away and back in the same session).
   // The stale `isMounted` from the previous render is reused.
+
   const isMounted = useRef(true);
 
   const toggle = useCallback(async () => {
