@@ -45,8 +45,8 @@ cd intern-community
 pnpm install
 
 # 3. Copy env
-cp .env.example .env
-# Edit .env — add your GitHub OAuth credentials
+cp .env.example .env.local
+# Edit .env.local — add your GitHub OAuth credentials
 # (see "GitHub OAuth setup" below)
 
 # 4. Start the database

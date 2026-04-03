@@ -16,8 +16,8 @@ pnpm install
 
 ### 2. Environment Configuration
 ```bash
-cp .env.example .env
-# Edit .env to add GitHub OAuth credentials
+cp .env.example .env.local
+# Edit .env.local to add GitHub OAuth credentials (optional for local browsing)
 ```
 
 ### 3. Start Database
