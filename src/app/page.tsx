@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { ModuleList } from "@/components/module-list";
+import { CategoryFilter } from "@/components/category-filter";
+import { SearchFilter } from "@/components/search-filter";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -74,48 +76,12 @@ export default async function HomePage({
           </p>
         </div>
 
-        <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Search
-          </button>
-        </form>
+        <SearchFilter key={q} initialQuery={q} />
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </Link>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      <CategoryFilter
+        categories={categories}
+      />
 
       {initialModules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
@@ -128,6 +94,7 @@ export default async function HomePage({
         </div>
       ) : (
         <ModuleList
+          key={`${q}-${category}`}
           initialModules={initialModules}
           initialNextCursor={initialNextCursor}
           q={q}
