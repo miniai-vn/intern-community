@@ -36,16 +36,41 @@ export function VoteButton({
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        ${
+          voted
+            ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      className="animate-spin"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="blue"
+        strokeWidth="3"
+        fill="none"
+        strokeDasharray="60"
+        strokeDashoffset="20"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
