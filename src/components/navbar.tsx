@@ -2,9 +2,25 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/notifications")
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data) => setUnreadCount(data.unreadCount || 0))
+        .catch(() => setUnreadCount(0));
+    } else {
+      setUnreadCount(0);
+    }
+  }, [session]);
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -21,6 +37,14 @@ export function Navbar() {
               </Link>
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
+              </Link>
+              <Link href="/notifications" className="relative text-sm text-gray-600 hover:text-gray-900">
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Link>
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">

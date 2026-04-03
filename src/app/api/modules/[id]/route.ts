@@ -42,6 +42,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  // Create notification for author if status changed to APPROVED or REJECTED
+  if (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED") {
+    await db.notification.create({
+      data: {
+        userId: updated.authorId,
+        moduleId: updated.id,
+        message: `${updated.name} was ${parsed.data.status.toLowerCase()}`,
+      },
+    });
+  }
+
   return NextResponse.json(updated);
 }
 
