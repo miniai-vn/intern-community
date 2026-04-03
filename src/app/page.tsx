@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { CategoryFilter } from "@/components/category-filter";
 import { ModuleCard } from "@/components/module-card";
+import { SortSelect } from "@/components/sort-select";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -8,10 +11,17 @@ import { ModuleCard } from "@/components/module-card";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; sort?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const { q, category, sort } = await searchParams;
   const session = await auth();
+  const sortValue = sort === "newest" || sort === "oldest" ? sort : "top";
+  const orderBy =
+    sortValue === "newest"
+      ? { createdAt: "desc" as const }
+      : sortValue === "oldest"
+        ? { createdAt: "asc" as const }
+        : { voteCount: "desc" as const };
 
   const modules = await db.miniApp.findMany({
     where: {
@@ -26,16 +36,15 @@ export default async function HomePage({
           }
         : {}),
     },
-    // DO NOT remove include — avoids N+1 on category/author fields.
+    // DO NOT remove include - avoids N+1 on category/author fields.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+    orderBy,
     take: 12,
   });
 
-  // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
   if (session?.user) {
     const votes = await db.vote.findMany({
@@ -51,69 +60,71 @@ export default async function HomePage({
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
-            Discover mini-apps built by the Intern developer community.
-          </p>
+    <div className="space-y-8">
+      <section className="section-shell relative overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-emerald-300/25 via-transparent to-amber-200/30" />
+        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl space-y-4">
+            <span className="inline-flex rounded-full border border-emerald-900/10 bg-emerald-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900">
+              Curated by the community
+            </span>
+            <div className="space-y-3">
+              <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                Discover mini-app modules worth shipping.
+              </h1>
+              <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
+                Browse community-built tools, games, and utilities. Review what stands
+                out, upvote the useful ones, and submit your own ideas for review.
+              </p>
+            </div>
+          </div>
+
+          <form className="glass-panel flex w-full max-w-xl flex-col gap-3 rounded-[1.6rem] p-3 sm:flex-row">
+            <label htmlFor="module-search" className="sr-only">
+              Search modules
+            </label>
+            {category && <input type="hidden" name="category" value={category} />}
+            {sortValue && <input type="hidden" name="sort" value={sortValue} />}
+            <input
+              id="module-search"
+              name="q"
+              defaultValue={q}
+              placeholder="Search by module name or description"
+              className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white/90 px-4 py-3 text-sm text-stone-800 outline-none placeholder:text-stone-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+            />
+            <button
+              type="submit"
+              className="rounded-2xl bg-emerald-950 px-5 py-3 text-sm font-semibold text-emerald-50 shadow-lg shadow-emerald-950/15 hover:bg-emerald-900"
+            >
+              Search
+            </button>
+          </form>
         </div>
+      </section>
 
-        <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Search
-          </button>
-        </form>
-      </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <CategoryFilter categories={categories} activeCategory={category} />
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
+        <SortSelect value={sortValue} />
       </div>
 
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+        <div className="section-shell rounded-[1.8rem] border-dashed p-14 text-center">
+          <p className="text-lg font-medium text-stone-800">No modules found.</p>
+          <p className="mt-2 text-sm text-stone-500">
+            Try broadening your search or clearing the active filter.
+          </p>
+          {(q || category || sortValue !== "top") && (
+            <Link
+              href="/"
+              className="mt-4 inline-block text-sm font-medium text-emerald-800 hover:text-emerald-950"
+            >
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {modules.map((module) => (
             <ModuleCard
               key={module.id}

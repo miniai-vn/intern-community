@@ -64,10 +64,47 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
+  comments    Comment[]
+  followers   Follow[]  @relation("UserFollowers")
+  following   Follow[]  @relation("UserFollowing")
 
   createdAt DateTime @default(now())
 
   @@map("users")
+}
+
+model Follow {
+  id String @id @default(cuid())
+
+  follower   User   @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId String
+
+  following   User   @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId, createdAt(sort: Desc)])
+  @@index([followerId, createdAt(sort: Desc)])
+  @@map("follows")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@map("notifications")
 }
 
 model Category {
@@ -99,6 +136,7 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  comments  Comment[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -107,6 +145,28 @@ model MiniApp {
   updatedAt DateTime @updatedAt
 
   @@map("mini_apps")
+}
+
+model Comment {
+  id      String @id @default(cuid())
+  body    String
+
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId   String?
+  replies    Comment[] @relation("CommentReplies")
+
+  author   User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([moduleId, createdAt(sort: Desc)])
+  @@index([parentId, createdAt(sort: Asc)])
+  @@map("comments")
 }
 
 model Vote {

@@ -80,5 +80,30 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await db.notification.create({
+    data: {
+      userId: session.user.id,
+      title: "Submission received",
+      message: `You submitted "${module.name}". It is now waiting for admin review.`,
+      link: "/my-submissions",
+    },
+  });
+
+  const followers = await db.follow.findMany({
+    where: { followingId: session.user.id },
+    select: { followerId: true },
+  });
+
+  if (followers.length > 0) {
+    await db.notification.createMany({
+      data: followers.map((follow) => ({
+        userId: follow.followerId,
+        title: "Creator you follow submitted a module",
+        message: `${session.user.name ?? "A creator you follow"} submitted "${module.name}" for review.`,
+        link: `/profile/${session.user.id}`,
+      })),
+    });
+  }
+
   return NextResponse.json(module, { status: 201 });
 }
