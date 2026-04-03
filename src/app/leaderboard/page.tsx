@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { db } from "@/lib/db";
 
 export const revalidate = 600;
@@ -87,9 +88,11 @@ export default async function LeaderboardPage() {
 
               <div className="flex items-center gap-4">
                 {entry.image ? (
-                  <img
+                  <Image
                     src={entry.image}
                     alt={entry.name}
+                    width={48}
+                    height={48}
                     className="h-12 w-12 rounded-full border-2 border-white shadow-sm object-cover"
                   />
                 ) : (
