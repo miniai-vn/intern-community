@@ -1,112 +1,105 @@
 import Redis from "ioredis";
 
-// Initialize Redis client with fallback configuration
 const redis = new Redis({
   host: process.env.REDIS_HOST || "localhost",
   port: parseInt(process.env.REDIS_PORT || "6379"),
-  // { changed code } Remove lazyConnect to allow automatic connection
-  lazyConnect: false, // Allow automatic connection on initialization
-  retryStrategy: (times) => {
-    const delay = Math.min(times * 50, 2000);
-    return delay;
-  },
-  enableReadyCheck: false,
-  enableOfflineQueue: true, // Allow queueing commands while connecting
-  maxRetriesPerRequest: null, // Important for connection stability
-  // { changed code }
+  retryStrategy: (times) => Math.min(times * 50, 2000),
+  connectTimeout: 10000,
+  enableReadyCheck: true,
+  // Đổi thành true để ioredis tự đợi kết nối rồi mới chạy lệnh
+  enableOfflineQueue: true, 
+  maxRetriesPerRequest: null, // Để ioredis tự quản lý việc retry lệnh
 });
 
-// Handle connection errors gracefully
+const checkConnection = () => redis.status === "ready" || redis.status === "connect";
+
+let isRedisReady = false;
+
+redis.on("ready", () => {
+  isRedisReady = true;
+  console.log("[Redis] Connected and ready");
+});
+
 redis.on("error", (err) => {
-  console.warn("[Redis] Connection error (app will fallback to DB):", err.message);
+  const error = err as NodeJS.ErrnoException;
+  isRedisReady = false;
+  
+  if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND") {
+    console.warn(
+      "[Redis] Connection error (app will fallback to DB):",
+      error.message
+    );
+  } else {
+    console.error("[Redis] Unexpected error:", error);
+  }
 });
 
-redis.on("connect", () => {
-  console.log("[Redis] Connected successfully");
+redis.on("close", () => {
+  isRedisReady = false;
+  console.warn("[Redis] Connection closed");
 });
 
-/**
- * Get cached data from Redis
- * Returns null if Redis is unavailable or key doesn't exist
- */
 export async function getCachedData<T>(key: string): Promise<T | null> {
   try {
-    if (!redis.status || redis.status === "close") {
-      console.warn(`[Redis] Client not ready, skipping cache for key: ${key}`);
-      return null;
-    }
+    // Nếu redis đang đóng hẳn (end), không gọi nữa
+    if (redis.status === "end") return null;
 
-    const cached = await redis.get(key);
-    if (!cached) {
-      return null;
-    }
-
-    return JSON.parse(cached) as T;
+    const data = await redis.get(key);
+    return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.warn(`[Redis] Failed to get cache for key ${key}:`, error);
-    return null; // Fallback gracefully
+    console.warn("[Redis] Get failed:", error);
+    return null;
   }
 }
 
-/**
- * Set data in Redis with TTL (Time-To-Live)
- * Returns false if Redis is unavailable
- */
 export async function setCachedData<T>(
   key: string,
   data: T,
-  ttlSeconds: number = 300 // Default 5 minutes
+  ttlSeconds: number = 300
 ): Promise<boolean> {
   try {
-    if (!redis.status || redis.status === "close") {
-      console.warn(`[Redis] Client not ready, skipping cache set for key: ${key}`);
+    if (!isRedisReady) {
       return false;
     }
 
     await redis.setex(key, ttlSeconds, JSON.stringify(data));
+    console.log(
+      `[Redis] Cached key: ${key} with TTL: ${ttlSeconds}s`
+    );
     return true;
   } catch (error) {
-    console.warn(`[Redis] Failed to set cache for key ${key}:`, error);
-    return false; // Fallback gracefully
+    console.warn("[Redis] Set failed:", error);
+    return false;
   }
 }
 
-/**
- * Delete a cache key (used for invalidation)
- * Returns false if Redis is unavailable
- */
 export async function deleteCachedData(key: string): Promise<boolean> {
   try {
-    if (!redis.status || redis.status === "close") {
-      console.warn(`[Redis] Client not ready, skipping cache delete for key: ${key}`);
+    if (!isRedisReady) {
       return false;
     }
 
     await redis.del(key);
     return true;
   } catch (error) {
-    console.warn(`[Redis] Failed to delete cache for key ${key}:`, error);
+    console.warn("[Redis] Delete failed:", error);
     return false;
   }
 }
 
-/**
- * Clear all cache keys matching a pattern (useful for bulk invalidation)
- */
-export async function invalidateCachePattern(pattern: string): Promise<number> {
+export async function invalidateCachePattern(
+  pattern: string
+): Promise<number> {
   try {
-    if (!redis.status || redis.status === "close") {
-      console.warn(`[Redis] Client not ready, skipping pattern invalidation: ${pattern}`);
+    if (!isRedisReady) {
       return 0;
     }
 
     const keys = await redis.keys(pattern);
     if (keys.length === 0) return 0;
-
-    await redis.del(...keys);
-    return keys.length;
+    return await redis.del(...keys);
   } catch (error) {
-    console.warn(`[Redis] Failed to invalidate pattern ${pattern}:`, error);
+    console.warn("[Redis] Pattern invalidation failed:", error);
     return 0;
   }
 }
