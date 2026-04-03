@@ -7,12 +7,22 @@ import type { Category } from "@/types";
 
 interface SubmitFormProps {
   categories: Category[];
+  initialData?: {
+    id: string;
+    name: string;
+    description: string;
+    categoryId: string;
+    repoUrl: string;
+    demoUrl: string;
+  } | null;
 }
 
-export function SubmitForm({ categories }: SubmitFormProps) {
+export function SubmitForm({ categories, initialData = null }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEditMode = Boolean(initialData);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,8 +38,14 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/modules", {
-        method: "POST",
+      const url = isEditMode
+        ? `/api/my-submissions/${initialData?.id}`
+        : "/api/modules";
+
+      const method = isEditMode ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
       });
@@ -56,6 +72,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           placeholder="e.g. Pomodoro Timer"
           maxLength={60}
           className={inputClass}
+          defaultValue={initialData?.name ?? ""}
         />
       </Field>
 
@@ -67,11 +84,12 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
+          defaultValue={initialData?.description ?? ""}
         />
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
-        <select name="categoryId" className={inputClass} defaultValue="">
+        <select name="categoryId" className={inputClass} defaultValue={initialData?.categoryId ?? ""}>
           <option value="" disabled>Select a category</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
@@ -85,6 +103,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           type="url"
           placeholder="https://github.com/your-username/your-repo"
           className={inputClass}
+          defaultValue={initialData?.repoUrl ?? ""}
         />
       </Field>
 
@@ -94,6 +113,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           type="url"
           placeholder="https://your-demo.vercel.app"
           className={inputClass}
+          defaultValue={initialData?.demoUrl ?? ""}
         />
       </Field>
 
@@ -106,7 +126,13 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         disabled={isSubmitting}
         className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {isSubmitting ? "Submitting…" : "Submit Module"}
+        {isSubmitting
+          ? isEditMode
+            ? "Saving…"
+            : "Submitting…"
+          : isEditMode
+            ? "Save Changes"
+            : "Submit Module"}
       </button>
     </form>
   );
