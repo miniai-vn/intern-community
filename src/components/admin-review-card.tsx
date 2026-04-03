@@ -28,22 +28,32 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
       <div>
-        <h3 className="font-semibold text-gray-900">{module.name}</h3>
-        <p className="text-xs text-gray-400">
+        <h3 className="font-semibold text-foreground">{module.name}</h3>
+        <p className="text-xs text-muted-foreground">
           by {module.author.name} · {module.category.name}
         </p>
       </div>
 
-      <p className="text-sm text-gray-600">{module.description}</p>
+      <p className="text-sm text-muted-foreground">{module.description}</p>
 
       <div className="flex gap-2 text-xs">
-        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+        <a
+          href={module.repoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
           GitHub →
         </a>
         {module.demoUrl && (
-          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a
+            href={module.demoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
             Demo →
           </a>
         )}
@@ -55,7 +65,7 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         placeholder="Feedback for the contributor (optional)"
         rows={2}
         maxLength={500}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-blue-500"
       />
 
       <div className="flex gap-2">

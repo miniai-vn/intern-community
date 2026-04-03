@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-gray-50 font-sans">
+      <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
         <AuthSessionProvider>
           <Navbar />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
