@@ -104,7 +104,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-blue-600 dark:bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 transition-colors"
       >
         {isSubmitting ? "Submitting…" : "Submit Module"}
       </button>
@@ -113,7 +113,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder:text-gray-400 dark:placeholder:text-gray-500";
 
 function Field({
   label,
@@ -130,12 +130,12 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
-      {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
+      {hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error.join(", ")}</p>}
     </div>
   );
 }

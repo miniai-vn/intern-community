@@ -9,11 +9,11 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+          className="text-base font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
         >
           {module.name}
         </Link>
@@ -23,17 +23,17 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{module.description}</p>
 
       <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+        <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
           {module.category.name}
         </span>
 
