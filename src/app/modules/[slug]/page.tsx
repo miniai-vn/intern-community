@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { SandboxedDemoPreview } from "@/components/sandboxed-demo-preview";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,6 +26,8 @@ export default async function ModuleDetailPage({ params }: Props) {
   });
 
   if (!miniApp) notFound();
+
+  const safeDemoUrl = getHttpsUrl(miniApp.demoUrl);
 
   let hasVoted = false;
   if (session?.user) {
@@ -79,21 +82,20 @@ export default async function ModuleDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* TODO [hard-challenge]: Implement sandboxed iframe preview here.
-          Requirements:
-          - Only show if module.demoUrl exists
-          - Use sandbox="allow-scripts allow-same-origin" at minimum
-          - Add Content-Security-Policy header for the iframe origin
-          - Show a loading skeleton while the iframe loads
-          See: ISSUES.md for full acceptance criteria */}
-      {miniApp.demoUrl && (
-        <div className="card-bg p-8 text-center text-sm text-[var(--muted-foreground)] border-dashed">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="link-primary font-medium">
-            ISSUES.md
-          </Link>
-        </div>
-      )}
+        {safeDemoUrl && (
+          <SandboxedDemoPreview demoUrl={safeDemoUrl} moduleName={miniApp.name} />
+        )}
     </div>
   );
 }
+
+  function getHttpsUrl(url?: string | null): string | null {
+    if (!url) return null;
+
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" ? parsed.toString() : null;
+    } catch {
+      return null;
+    }
+  }
