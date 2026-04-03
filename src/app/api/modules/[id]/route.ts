@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { adminReviewSchema } from "@/lib/validations";
+import { adminPatchSchema } from "@/lib/validations";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,28 +20,48 @@ export async function GET(_req: NextRequest, { params }: Params) {
   return NextResponse.json(module);
 }
 
-// PATCH /api/modules/[id] — admin approve/reject
+// PATCH /api/modules/[id] — admin approve/reject (RFC 6902 JSON Patch)
+//
+// Content-Type: application/json-patch+json
+//
+// Supported operations:
+//   { "op": "replace", "path": "/status",   "value": "APPROVED" | "REJECTED" }
+//   { "op": "replace", "path": "/feedback", "value": "<string max 500>" }
+//   { "op": "remove",  "path": "/feedback" }
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const contentType = req.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json-patch+json")) {
+    return NextResponse.json(
+      { error: "Content-Type must be application/json-patch+json" },
+      { status: 415 },
+    );
+  }
+
   const { id } = await params;
   const body = await req.json();
-  const parsed = adminReviewSchema.safeParse(body);
+  const parsed = adminPatchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
-    where: { id },
-    data: {
-      status: parsed.data.status,
-      feedback: parsed.data.feedback,
-    },
-  });
+  // Reduce the patch operations into a Prisma update payload.
+  const data: { status?: "APPROVED" | "REJECTED"; feedback?: string | null } = {};
+  for (const op of parsed.data) {
+    if (op.path === "/status" && op.op === "replace") {
+      data.status = op.value;
+    } else if (op.path === "/feedback" && op.op === "replace") {
+      data.feedback = op.value;
+    } else if (op.path === "/feedback" && op.op === "remove") {
+      data.feedback = null;
+    }
+  }
 
+  const updated = await db.miniApp.update({ where: { id }, data });
   return NextResponse.json(updated);
 }
 

@@ -27,5 +27,41 @@ export const adminReviewSchema = z.object({
   feedback: z.string().max(500).optional(),
 });
 
+/**
+ * RFC 6902 JSON Patch schema for admin review.
+ *
+ * Allowed operations:
+ *   { "op": "replace", "path": "/status",   "value": "APPROVED" | "REJECTED" }
+ *   { "op": "replace", "path": "/feedback", "value": "<string max 500>" }
+ *   { "op": "remove",  "path": "/feedback" }
+ *
+ * Example request body:
+ * [
+ *   { "op": "replace", "path": "/status",   "value": "REJECTED" },
+ *   { "op": "replace", "path": "/feedback", "value": "Please add a demo link." }
+ * ]
+ */
+const adminPatchOpSchema = z.union([
+  z.object({
+    op: z.literal("replace"),
+    path: z.literal("/status"),
+    value: z.enum(["APPROVED", "REJECTED"]),
+  }),
+  z.object({
+    op: z.literal("replace"),
+    path: z.literal("/feedback"),
+    value: z.string().max(500),
+  }),
+  z.object({
+    op: z.literal("remove"),
+    path: z.literal("/feedback"),
+  }),
+]);
+
+export const adminPatchSchema = z
+  .array(adminPatchOpSchema)
+  .min(1, "At least one patch operation is required");
+
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;
 export type AdminReviewInput = z.infer<typeof adminReviewSchema>;
+export type AdminPatchInput = z.infer<typeof adminPatchSchema>;
