@@ -95,6 +95,128 @@ async function main() {
       authorId: contributor.id,
       voteCount: 41,
     },
+
+    {
+      slug: "2048-game-productivity",
+      name: "2048 Game Productivity",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "productivity")!.id,
+      authorId: contributor.id,
+      voteCount: 45,
+    },
+
+    {
+      slug: "2048-game-social",
+      name: "2048 Game Social",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "social")!.id,
+      authorId: contributor.id,
+      voteCount: 1,
+    },
+    {
+      slug: "2048-game-utility",
+      name: "2048 Game Utility",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      authorId: contributor.id,
+      voteCount: 2,
+    },
+    {
+      slug: "2048-game-finance",
+      name: "2048 Game Finance",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "finance")!.id,
+      authorId: contributor.id,
+      voteCount: 41,
+    },
+    {
+      slug: "chat-app",
+      name: "Chat App",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      authorId: contributor.id,
+      voteCount: 41,
+    },
+    {
+      slug: "mental-health-app",
+      name: "Mental Health App",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "productivity")!.id,
+      authorId: contributor.id,
+      voteCount: 41,
+    },
+    {
+      slug: "surfway-surfer",
+      name: "Surfway Surfer",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "game")!.id,
+      authorId: contributor.id,
+      voteCount: 41,
+    },
+    {
+      slug: "bank-app",
+      name: "Bank App",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "finance")!.id,
+      authorId: contributor.id,
+      voteCount: 16,
+    },
+    {
+      slug: "mario-game",
+      name: "Mario Game",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "game")!.id,
+      authorId: contributor.id,
+      voteCount: 13,
+    },
+    {
+      slug: "knight-game",
+      name: "Knight Game",
+      description:
+        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
+      repoUrl: "https://github.com/example/2048",
+      demoUrl: "https://2048.example.com",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "game")!.id,
+      authorId: contributor.id,
+      voteCount: 12,
+    },
   ];
 
   for (const mod of approvedModules) {
