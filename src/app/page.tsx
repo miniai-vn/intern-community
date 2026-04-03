@@ -51,11 +51,14 @@ export default async function HomePage({
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
+    // h-1500 test back to top
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">
+            Community Modules
+          </h1>
+          <p className="text-sm text-muted-foreground">
             Discover mini-apps built by the Intern developer community.
           </p>
         </div>
@@ -65,7 +68,7 @@ export default async function HomePage({
             name="q"
             defaultValue={q}
             placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
           <button
             type="submit"
@@ -83,7 +86,7 @@ export default async function HomePage({
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
               ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              : "bg-card text-muted-foreground hover:bg-background"
           }`}
         >
           All
@@ -95,7 +98,7 @@ export default async function HomePage({
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               category === c.slug
                 ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : ":bg-card text-muted-foreground hover:bg-background"
             }`}
           >
             {c.name}
@@ -104,10 +107,13 @@ export default async function HomePage({
       </div>
 
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
+        <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <a
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
             </a>
           )}

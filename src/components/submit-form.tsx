@@ -36,7 +36,9 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error?.fieldErrors ?? { _: ["Submission failed. Try again."] });
+        setError(
+          body.error?.fieldErrors ?? { _: ["Submission failed. Try again."] },
+        );
         return;
       }
 
@@ -59,7 +61,12 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
+      <Field
+        label="Description"
+        name="description"
+        error={error.description}
+        hint="Max 500 characters"
+      >
         {/* TODO [easy-challenge]: add a live character counter below this textarea */}
         <textarea
           name="description"
@@ -72,9 +79,13 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
         <select name="categoryId" className={inputClass} defaultValue="">
-          <option value="" disabled>Select a category</option>
+          <option value="" disabled>
+            Select a category
+          </option>
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
           ))}
         </select>
       </Field>
@@ -97,9 +108,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      {error._ && (
-        <p className="text-sm text-red-600">{error._.join(", ")}</p>
-      )}
+      {error._ && <p className="text-sm text-red-600">{error._.join(", ")}</p>}
 
       <button
         type="submit"
@@ -113,7 +122,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
 function Field({
   label,
@@ -130,11 +139,14 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label
+        htmlFor={name}
+        className="block text-sm font-medium text-foreground"
+      >
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
