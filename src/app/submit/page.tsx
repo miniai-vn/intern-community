@@ -10,12 +10,11 @@ export default async function SubmitPage() {
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
+    <div className="relative z-10 mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Submit a Module</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Share your mini-app with the TD community. Submissions are reviewed by
-          maintainers before being listed publicly.
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Submit a Module</h1>
+        <p className="mt-3 text-slate-300">
+          Chia sẻ mini-app của bạn với TD community. Các submission sẽ được maintainer duyệt trước khi công bố.
         </p>
       </div>
       <SubmitForm categories={categories} />

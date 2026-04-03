@@ -3,7 +3,7 @@ import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth: authWithMiddleware, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
     GitHub({
@@ -26,6 +26,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+// Dev mode: Return mock admin session for testing
+export async function auth() {
+  if (process.env.NODE_ENV === "development") {
+    return {
+      user: {
+        id: "dev-user",
+        name: "Dev Admin",
+        email: "dev@localhost",
+        image: null,
+        isAdmin: true,
+      },
+    };
+  }
+  return authWithMiddleware();
+}
 
 // Extend next-auth types
 declare module "next-auth" {

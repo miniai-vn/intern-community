@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { memo } from "react";
 import { VoteButton } from "@/components/vote-button";
 import type { Module } from "@/types";
 
@@ -7,13 +8,13 @@ interface ModuleCardProps {
   hasVoted?: boolean;
 }
 
-export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
+export const ModuleCard = memo(function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex flex-col gap-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 shadow-lg hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+          className="text-base font-semibold text-slate-100 hover:text-purple-400 hover:underline transition"
         >
           {module.name}
         </Link>
@@ -23,17 +24,17 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            className="shrink-0 text-slate-500 hover:text-purple-400 transition"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <p className="line-clamp-2 text-sm text-slate-400">{module.description}</p>
 
       <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+        <span className="rounded-full bg-gradient-to-r from-purple-900/50 to-pink-900/50 px-2 py-0.5 text-xs font-medium text-purple-300">
           {module.category.name}
         </span>
 
@@ -45,7 +46,7 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
       </div>
     </article>
   );
-}
+});
 
 function ExternalLinkIcon() {
   return (

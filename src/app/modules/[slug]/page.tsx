@@ -8,15 +8,15 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const module = await db.miniApp.findUnique({ where: { slug } });
-  return { title: module ? `${module.name} — Intern Community Hub` : "Not Found" };
+  const app = await db.miniApp.findUnique({ where: { slug } });
+  return { title: app ? `${app.name} — Intern Community Hub` : "Not Found" };
 }
 
 export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const module = await db.miniApp.findUnique({
+  const app = await db.miniApp.findUnique({
     where: { slug, status: "APPROVED" },
     include: {
       category: true,
@@ -24,57 +24,57 @@ export default async function ModuleDetailPage({ params }: Props) {
     },
   });
 
-  if (!module) notFound();
+  if (!app) notFound();
 
   let hasVoted = false;
   if (session?.user) {
     const vote = await db.vote.findUnique({
       where: {
-        userId_moduleId: { userId: session.user.id, moduleId: module.id },
+        userId_moduleId: { userId: session.user.id, moduleId: app.id },
       },
     });
     hasVoted = !!vote;
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-        ← Back to modules
+    <div className="relative z-10 mx-auto max-w-2xl space-y-6">
+      <Link href="/" className="text-sm text-slate-400 hover:text-slate-300 transition">
+        ← Quay lại danh sách
       </Link>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{app.name}</h1>
           <VoteButton
-            moduleId={module.id}
+            moduleId={app.id}
             initialVoted={hasVoted}
-            initialCount={module.voteCount}
+            initialCount={app.voteCount}
           />
         </div>
-        <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
+        <p className="text-sm text-slate-400">
+          by {app.author.name} · {app.category.name}
         </p>
       </div>
 
-      <p className="text-gray-700">{module.description}</p>
+      <p className="text-slate-300 leading-relaxed">{app.description}</p>
 
       <div className="flex gap-3">
         <a
-          href={module.repoUrl}
+          href={app.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-lg bg-gradient-to-r from-slate-700 to-slate-800 px-4 py-2 text-sm font-medium text-slate-100 hover:shadow-[0_0_10px_rgba(168,85,247,0.2)] transition"
         >
-          View on GitHub
+          🔗 GitHub
         </a>
-        {module.demoUrl && (
+        {app.demoUrl && (
           <a
-            href={module.demoUrl}
+            href={app.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-medium text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition"
           >
-            Live Demo
+            🚀 Live Demo
           </a>
         )}
       </div>
@@ -86,12 +86,10 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Add Content-Security-Policy header for the iframe origin
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
+      {app.demoUrl && (
+        <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-8 text-center border border-slate-700">
+          <p className="text-sm text-slate-400 mb-2">📦 Sandboxed preview sắp có</p>
+          <p className="text-xs text-slate-500">Đóng góp feature này tại <Link href="https://github.com" className="text-purple-400 hover:text-purple-300">ISSUES.md</Link></p>
         </div>
       )}
     </div>

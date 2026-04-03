@@ -28,22 +28,22 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+    <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 space-y-3 shadow-lg hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition">
       <div>
-        <h3 className="font-semibold text-gray-900">{module.name}</h3>
-        <p className="text-xs text-gray-400">
+        <h3 className="font-semibold text-slate-100">{module.name}</h3>
+        <p className="text-xs text-slate-400">
           by {module.author.name} · {module.category.name}
         </p>
       </div>
 
-      <p className="text-sm text-gray-600">{module.description}</p>
+      <p className="text-sm text-slate-300">{module.description}</p>
 
       <div className="flex gap-2 text-xs">
-        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 transition">
           GitHub →
         </a>
         {module.demoUrl && (
-          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 transition">
             Demo →
           </a>
         )}
@@ -52,26 +52,26 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
       <textarea
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
-        placeholder="Feedback for the contributor (optional)"
+        placeholder="Feedback cho contributor (tuỳ chọn)"
         rows={2}
         maxLength={500}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-lg bg-slate-700/50 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 outline-none focus:bg-slate-700 focus:ring-2 focus:ring-purple-500/50 transition"
       />
 
       <div className="flex gap-2">
         <button
           onClick={() => review("APPROVED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex-1 rounded-lg bg-gradient-to-r from-green-600 to-green-500 px-3 py-2 text-xs font-medium text-white hover:shadow-[0_0_10px_rgba(34,197,94,0.3)] disabled:opacity-50 transition"
         >
-          Approve
+          ✅ Approve
         </button>
         <button
           onClick={() => review("REJECTED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className="flex-1 rounded-lg bg-gradient-to-r from-red-600 to-red-500 px-3 py-2 text-xs font-medium text-white hover:shadow-[0_0_10px_rgba(239,68,68,0.3)] disabled:opacity-50 transition"
         >
-          Reject
+          ❌ Reject
         </button>
       </div>
     </div>
