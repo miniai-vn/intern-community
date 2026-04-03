@@ -204,7 +204,8 @@ The My Submissions page exists but is basic. It shows a list of submissions but 
 **Files:** New files + `src/app/api/`, `prisma/schema.prisma`
 
 **Context:**  
-When a maintainer approves or rejects a submission, the author currently has no way to know other than checking "My Submissions". We want to notify authors in-app.
+Khi admin approve/reject một submission, tác giả cần được báo trong-app ngoài việc tự xem "My Submissions".
+Hiện dự án đã có UI bell/toast tạm thời, nhưng notification cần được lưu bền (DB), có unread badge và khả năng mark-as-read.
 
 **Task description:**  
 Design and implement an in-app notification system that alerts module authors when their submission status changes.

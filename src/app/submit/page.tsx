@@ -6,6 +6,7 @@ import { SubmitForm } from "@/components/submit-form";
 export default async function SubmitPage() {
   const session = await auth();
   if (!session?.user) redirect("/api/auth/signin");
+  if (session.user.isAdmin) redirect("/admin");
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 

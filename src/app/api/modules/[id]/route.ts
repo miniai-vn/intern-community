@@ -34,6 +34,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
+  const existing = await db.miniApp.findUnique({
+    where: { id },
+    select: { id: true, authorId: true, name: true },
+  });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const updated = await db.miniApp.update({
     where: { id },
     data: {
@@ -41,6 +47,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       feedback: parsed.data.feedback,
     },
   });
+
+  if (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED") {
+    const when = new Date().toISOString();
+    const decision = parsed.data.status === "APPROVED" ? "approved" : "rejected";
+    await db.notification.create({
+      data: {
+        userId: existing.authorId,
+        moduleId: existing.id,
+        message: `${existing.name} was ${decision} — ${when}`,
+      },
+    });
+  }
 
   return NextResponse.json(updated);
 }
