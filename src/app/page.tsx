@@ -1,9 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
-
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+import Link from "next/link";
 
 export default async function HomePage({
   searchParams,
@@ -22,6 +20,7 @@ export default async function HomePage({
             OR: [
               { name: { contains: q, mode: "insensitive" } },
               { description: { contains: q, mode: "insensitive" } },
+              { category: { name: { contains: q, mode: "insensitive" } } },
             ],
           }
         : {}),
@@ -54,62 +53,77 @@ export default async function HomePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Community Modules</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Discover mini-apps built by the Intern developer community.
           </p>
         </div>
 
         <form className="flex gap-2">
+          {/* Giữ lại category state khi submit form tìm kiếm */}
+          {category && <input type="hidden" name="category" value={category} />}
+          
           <input
             name="q"
             defaultValue={q}
             placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-[#1a1a1a] dark:border-gray-700 dark:text-gray-200"
           />
           <button
             type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             Search
           </button>
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
+      {/* Category filter: Đã chuyển sang <Link> và gộp Query Params */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
+        <Link
+          href={{
+            pathname: "/",
+            query: q ? { q } : {},
+          }}
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
               ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
-          <a
+          <Link
             key={c.id}
-            href={`/?category=${c.slug}`}
+            href={{
+              pathname: "/",
+              query: { ...(q ? { q } : {}), category: c.slug },
+            }}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               category === c.slug
                 ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
           >
             {c.name}
-          </a>
+          </Link>
         ))}
       </div>
 
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
+        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link 
+              href={{
+                pathname: "/",
+                query: category ? { category } : {},
+              }} 
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
