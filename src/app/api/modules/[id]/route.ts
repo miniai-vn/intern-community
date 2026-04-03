@@ -42,6 +42,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  // Notify author about the status change
+  const actionWord = parsed.data.status === "APPROVED" ? "approved" : "rejected";
+  await db.notification.create({
+    data: {
+      userId: updated.authorId,
+      message: `Your module "${updated.name}" was ${actionWord}.`,
+    }
+  });
+
   return NextResponse.json(updated);
 }
 

@@ -4,18 +4,26 @@ import { db } from "@/lib/db";
 
 // Simple in-memory rate limit: max 10 votes per minute per user.
 // In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const oneMinuteAgo = new Date(Date.now() - 60_000);
+  
+  const count = await db.rateLimitEvent.count({
+    where: {
+      userId,
+      action: "VOTE",
+      createdAt: { gte: oneMinuteAgo },
+    },
+  });
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 10) return false;
-  entry.count++;
+  if (count >= 10) return false;
+
+  await db.rateLimitEvent.create({
+    data: {
+      userId,
+      action: "VOTE",
+    },
+  });
+
   return true;
 }
 
@@ -26,7 +34,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRateLimit(session.user.id)) {
+  if (!(await checkRateLimit(session.user.id))) {
     return NextResponse.json(
       { error: "Too many votes. Please wait a moment." },
       { status: 429 }
