@@ -56,7 +56,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const module = await db.miniApp.findUnique({ where: { id } });
   if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (!session.user.isAdmin && (module.authorId !== session.user.id || module.status !== "PENDING")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
