@@ -16,10 +16,21 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   async function review(status: "APPROVED" | "REJECTED") {
     setIsLoading(true);
     try {
+      // Build an RFC 6902 JSON Patch document.
+      type PatchOp =
+        | { op: "replace"; path: string; value: string }
+        | { op: "remove"; path: string };
+
+      const ops: PatchOp[] = [{ op: "replace", path: "/status", value: status }];
+
+      if (feedback) {
+        ops.push({ op: "replace", path: "/feedback", value: feedback });
+      }
+
       await fetch(`/api/modules/${module.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, feedback: feedback || undefined }),
+        headers: { "Content-Type": "application/json-patch+json" },
+        body: JSON.stringify(ops),
       });
       router.refresh();
     } finally {
