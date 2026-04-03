@@ -18,14 +18,7 @@ export function Footer() {
                     </button>
                 </div>
             </div>
-            <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 text-xs text-slate-500">
-                <span className="font-medium text-slate-600">Collaborative Lab © 2024 Nexus Foundry</span>
-                <div className="flex flex-wrap gap-4">
-                    <a href="#" className="rounded-md px-2 py-1 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">Docs</a>
-                    <a href="#" className="rounded-md px-2 py-1 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">Terms</a>
-                    <a href="#" className="rounded-md px-2 py-1 text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">Privacy</a>
-                </div>
-            </div>
+
         </footer>
     );
 }

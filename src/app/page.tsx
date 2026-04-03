@@ -62,35 +62,36 @@ export default async function HomePage({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-blue-100 bg-white p-8 shadow-sm ring-1 ring-blue-50">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#1f2a56]">
+      <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-8 shadow-lg ring-1 ring-blue-50">
+        <div className="flex items-center justify-between gap-6 mb-6">
+          <div className="flex-1">
+            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
               Community Modules
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-[#58668f]">
+            <p className="mt-3 text-base text-slate-600 leading-relaxed">
               A minimalist directory of curated engineering tools. Built for performance, designed for clarity.
             </p>
           </div>
-          <form method="GET" action="/" className="flex w-full max-w-md items-center gap-2 rounded-full bg-slate-50 px-3 py-2 shadow-sm">
-            <svg className="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <form method="GET" action="/" className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 backdrop-blur-sm px-4 py-3 shadow-sm hover:shadow-md transition-shadow min-w-0 flex-shrink-0">
+            <svg className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             <input
               name="q"
               defaultValue={q}
               placeholder="Search modules..."
-              className="w-full border-none bg-transparent text-sm outline-none"
+              className="w-full border-none bg-transparent text-sm outline-none placeholder:text-slate-400 min-w-0"
             />
             <button type="submit" className="sr-only">Search</button>
           </form>
-
-
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <a
               href="/"
-              className={`rounded-full px-4 py-1.5 font-semibold ${!category ? "bg-blue-700 text-white" : "bg-white text-slate-600 hover:bg-blue-50"}`}
+              className={`rounded-full px-4 py-2 font-semibold text-sm transition-all duration-200 ${!category
+                ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                }`}
             >
               All
             </a>
@@ -98,25 +99,33 @@ export default async function HomePage({
               <a
                 key={c.id}
                 href={`/?category=${c.slug}`}
-                className={`rounded-full px-4 py-1.5 font-semibold ${category === c.slug ? "bg-blue-700 text-white" : "bg-white text-slate-600 hover:bg-blue-50"}`}
+                className={`rounded-full px-4 py-2 font-semibold text-sm transition-all duration-200 ${category === c.slug
+                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                  }`}
               >
                 {c.name}
               </a>
             ))}
           </div>
-          <div className="rounded-full border border-blue-200 bg-white px-3 py-1 text-sm text-blue-700">
-            SORT BY Most Recent
-          </div>
+
         </div>
       </div>
-
-
       {
         modules.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50 p-12 text-center">
-            <p className="text-gray-500">No modules found.</p>
+          <div className="rounded-2xl border border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white p-16 text-center shadow-sm">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">No modules found</h3>
+            <p className="text-slate-600 mb-4">Try adjusting your search or browse all categories.</p>
             {q && (
-              <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+              <a href="/" className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
                 Clear search
               </a>
             )}
