@@ -1,9 +1,12 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import Link from "next/link";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
+
+const LIMIT = 12;
 
 export default async function HomePage({
   searchParams,
@@ -13,7 +16,8 @@ export default async function HomePage({
   const { q, category } = await searchParams;
   const session = await auth();
 
-  const modules = await db.miniApp.findMany({
+  // Fetch LIMIT + 1 so we can detect whether a next page exists.
+  const raw = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
       ...(category ? { category: { slug: category } } : {}),
@@ -32,21 +36,31 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: LIMIT + 1,
   });
 
-  // Fetch which modules the current user has voted on
+  const hasMore = raw.length > LIMIT;
+  const items = hasMore ? raw.slice(0, LIMIT) : raw;
+  const initialNextCursor = hasMore ? items[items.length - 1].id : null;
+
+  // Fetch which modules the current user has voted on.
   let votedIds = new Set<string>();
   if (session?.user) {
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: items.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
+
+  // Attach hasVoted to each item so ModuleList doesn't need a second API call.
+  const initialModules = items.map((m) => ({
+    ...m,
+    hasVoted: votedIds.has(m.id),
+  }));
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -78,7 +92,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,7 +101,7 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
           <a
             key={c.id}
@@ -103,25 +117,22 @@ export default async function HomePage({
         ))}
       </div>
 
-      {modules.length === 0 ? (
+      {initialModules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModuleList
+          initialModules={initialModules}
+          initialNextCursor={initialNextCursor}
+          q={q}
+          category={category}
+        />
       )}
     </div>
   );
