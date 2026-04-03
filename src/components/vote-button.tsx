@@ -42,10 +42,32 @@ export function VoteButton({
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? (
+        <span className="animate-spin" aria-hidden="true">
+          <LoadingIcon />
+        </span>
+      ) : (
+        <TriangleIcon filled={voted} />
+      )}
       {count}
     </button>
+  );
+}
+
+function LoadingIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   );
 }
 
