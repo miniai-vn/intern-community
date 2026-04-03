@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descriptionLength, setDescriptionLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,14 +61,26 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
         <textarea
+          id="description"
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
+          onChange={(e) => setDescriptionLength(e.target.value.length)}
+          aria-describedby="description-hint description-counter"
         />
+        <p
+          id="description-counter"
+          className={`text-xs ${
+            descriptionLength >= 450
+              ? "text-red-600 dark:text-red-400"
+              : "text-gray-400 dark:text-gray-500"
+          }`}
+        >
+          {descriptionLength} / 500
+        </p>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
@@ -134,7 +147,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
+      {hint && <p id={`${name}-hint`} className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error.join(", ")}</p>}
     </div>
   );
