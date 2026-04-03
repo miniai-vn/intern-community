@@ -24,6 +24,8 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 text-gray-400 hover:text-gray-600"
+            // ✅ thêm aria-label để screen reader hiểu rõ chức năng
+            aria-label={`Open demo for ${module.name}`}
           >
             <ExternalLinkIcon />
           </a>

@@ -3,7 +3,7 @@
 # Local env — never commit
 .env
 .env.local
-
+pnpm-lock.yaml
 # dependencies
 /node_modules
 /.pnp
