@@ -12,6 +12,7 @@ interface UseOptimisticVoteReturn {
   voted: boolean;
   count: number;
   isLoading: boolean;
+  errorMessage: string | null;
   toggle: () => Promise<void>;
 }
 
@@ -36,9 +37,14 @@ export function useOptimisticVote({
   initialVoted,
   initialCount,
 }: UseOptimisticVoteOptions): UseOptimisticVoteReturn {
+  // Keep loading visible for at least 500ms so users can clearly perceive
+  // that their click was registered, even when the API responds very quickly.
+  const MIN_LOADING_MS = 500;
+
   const [voted, setVoted] = useState(initialVoted);
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // BUG: this ref is never reset when the component unmounts and remounts
   // with the same moduleId (e.g. navigating away and back in the same session).
@@ -47,6 +53,8 @@ export function useOptimisticVote({
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
+    // Clear old error before a new attempt so the message reflects latest state.
+    setErrorMessage(null);
 
     // Optimistic update
     const prevVoted = voted;
@@ -54,6 +62,7 @@ export function useOptimisticVote({
     setVoted(!prevVoted);
     setCount(prevVoted ? count - 1 : count + 1);
     setIsLoading(true);
+    const requestStartedAt = Date.now();
 
     try {
       const res = await fetch("/api/votes", {
@@ -62,19 +71,37 @@ export function useOptimisticVote({
         body: JSON.stringify({ moduleId }),
       });
 
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
+      if (!res.ok) {
+        // Surface a specific, actionable message for rate limiting.
+        if (res.status === 429) {
+          throw new Error(res.statusText);
+        }
+        throw new Error("Unable to update vote right now. Please try again.");
+      }
+    } catch (error) {
       // Roll back — but only if still mounted (see edge case note above)
       if (isMounted.current) {
         setVoted(prevVoted);
         setCount(prevCount);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to update vote right now. Please try again."
+        );
       }
     } finally {
+      // Enforce minimum spinner display time to avoid "blink" loading.
+      const elapsed = Date.now() - requestStartedAt;
+      const remaining = Math.max(MIN_LOADING_MS - elapsed, 0);
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
+
       if (isMounted.current) {
         setIsLoading(false);
       }
     }
   }, [moduleId, voted, count, isLoading]);
 
-  return { voted, count, isLoading, toggle };
+  return { voted, count, isLoading, errorMessage, toggle };
 }

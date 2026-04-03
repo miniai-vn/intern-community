@@ -4,9 +4,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 const statusStyles: Record<string, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200",
+  PENDING: "badge-secondary bg-amber-100 text-amber-800",
+  APPROVED: "badge-success",
+  REJECTED: "bg-red-100 text-red-700",
 };
 
 export default async function MySubmissionsPage() {
@@ -22,21 +22,21 @@ export default async function MySubmissionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+        <h1 className="text-2xl font-bold text-foreground">My Submissions</h1>
         <Link
           href="/submit"
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="btn-primary text-sm px-3 py-2"
         >
           + New Submission
         </Link>
       </div>
 
       {submissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No submissions yet.</p>
+        <div className="card-bg p-12 text-center border-dashed">
+          <p className="text-muted-foreground">No submissions yet.</p>
           <Link
             href="/submit"
-            className="mt-2 block text-sm text-blue-600 hover:underline"
+            className="mt-2 block text-sm text-[var(--primary)] hover:underline"
           >
             Submit your first module →
           </Link>
@@ -46,16 +46,16 @@ export default async function MySubmissionsPage() {
           {submissions.map((sub) => (
             <div
               key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
+              className="card-elevated p-4 flex items-start justify-between"
             >
               <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
+                <p className="font-medium text-foreground">{sub.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {sub.category.name} ·{" "}
                   {new Date(sub.createdAt).toLocaleDateString()}
                 </p>
                 {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
+                  <p className="mt-1 rounded-md bg-[var(--muted-background)] px-2 py-1 text-xs text-[var(--muted-foreground)] border border-[var(--border)]">
                     Feedback: {sub.feedback}
                   </p>
                 )}

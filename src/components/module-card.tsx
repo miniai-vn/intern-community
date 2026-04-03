@@ -9,31 +9,31 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex flex-col gap-3 card-elevated p-5">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+          className="text-base font-semibold text-foreground hover:text-[var(--primary)] hover:underline"
         >
           {module.name}
         </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
         {module.demoUrl && (
           <a
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label={`Open demo for ${module.name}`}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <p className="line-clamp-2 text-sm text-muted-foreground">{module.description}</p>
 
       <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+        <span className="badge-primary text-xs">
           {module.category.name}
         </span>
 

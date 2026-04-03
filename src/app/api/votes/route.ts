@@ -1,23 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 10) return false;
-  entry.count++;
-  return true;
-}
+import { voteRatelimit } from "@/lib/rate-limit";
 
 // POST /api/votes — toggle vote on a module
 export async function POST(req: NextRequest) {
@@ -26,10 +10,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRateLimit(session.user.id)) {
+  // Distributed rate limit backed by Upstash Redis.
+  // Key is user id, so each user gets an independent quota.
+  const { success, reset } = await voteRatelimit.limit(session.user.id);
+  if (!success) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
-      { status: 429 }
+      { error: "Too many votes. Please wait a moment before voting again" },
+      {
+        status: 429,
+        headers: {
+          // HTTP standard hint for clients: seconds until next allowed attempt.
+          "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
+        },
+      }
     );
   }
 

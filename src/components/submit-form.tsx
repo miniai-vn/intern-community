@@ -14,6 +14,22 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Local textarea state is needed so the counter can update on every keystroke.
+  const [description, setDescription] = useState("");
+
+  // Counter thresholds:
+  // - >= 400: warning zone (yellow)
+  // - >= 500: hard limit reached (red)
+  const descriptionLength = description.length;
+  const isDescriptionNearLimit = descriptionLength >= 400 && descriptionLength < 500;
+  const isDescriptionAtLimit = descriptionLength >= 500;
+
+  const descriptionCounterClass = isDescriptionAtLimit
+    ? "text-destructive"
+    : isDescriptionNearLimit
+      ? "text-amber-300"
+      : "text-muted-foreground";
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError({});
@@ -59,15 +75,36 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field label="Description" name="description" error={error.description}>
         <textarea
+          id="description"
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          value={description}
+          onChange={(e) => {
+            // Keep value capped at 500 even for large paste operations.
+            const nextValue = e.currentTarget.value.slice(0, 500);
+            if (nextValue !== e.currentTarget.value) {
+              e.currentTarget.value = nextValue;
+            }
+            setDescription(nextValue);
+          }}
+          aria-describedby="description-counter"
           className={inputClass}
         />
+
+        <div className="mt-1 flex min-h-4 items-center justify-between text-xs">
+          <span className="text-muted-foreground">Max 500 characters</span>
+          <span
+            id="description-counter"
+            className={descriptionCounterClass}
+            aria-live="polite"
+          >
+            {descriptionLength} / 500
+          </span>
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
@@ -98,13 +135,13 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       {error._ && (
-        <p className="text-sm text-red-600">{error._.join(", ")}</p>
+        <p className="text-sm text-destructive">{error._.join(", ")}</p>
       )}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="btn-primary w-full"
       >
         {isSubmitting ? "Submitting…" : "Submit Module"}
       </button>
@@ -113,7 +150,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "input-base input-sm";
 
 function Field({
   label,
@@ -130,12 +167,12 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="block text-sm font-medium text-foreground">
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
-      {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {error && <p className="text-xs text-destructive">{error.join(", ")}</p>}
     </div>
   );
 }
