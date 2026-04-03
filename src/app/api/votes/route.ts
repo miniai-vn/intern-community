@@ -2,12 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Simple in-memory rate limit: max 10 votes per minute per user.
+// Robust in-memory rate limit: max 10 votes per minute per user.
 // In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
+// FIX [medium-challenge]: Added periodic garbage collection (sweepExpired) to prevent memory leaks in the Map.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
+// Run cleanup every 5 minutes to sweep expired entries and prevent Map explosion
+const CLEANUP_INTERVAL = 5 * 60 * 1000;
+let lastCleanup = Date.now();
+
+function sweepExpired() {
+  const now = Date.now();
+  if (now - lastCleanup > CLEANUP_INTERVAL) {
+    for (const [key, entry] of rateLimitMap.entries()) {
+      if (entry.resetAt < now) {
+        rateLimitMap.delete(key);
+      }
+    }
+    lastCleanup = now;
+  }
+}
+
 function checkRateLimit(userId: string): boolean {
+  sweepExpired(); // Cleanup periodically on requests
   const now = Date.now();
   const entry = rateLimitMap.get(userId);
   if (!entry || entry.resetAt < now) {
