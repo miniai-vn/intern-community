@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import Link from "next/link";
+import { CategoryFilter } from "@/components/category-filter";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -8,20 +9,29 @@ import { ModuleCard } from "@/components/module-card";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: { q?: string | string[]; category?: string | string[] };
 }) {
   const { q, category } = await searchParams;
+  const query = Array.isArray(q) ? q[0] : q;
+  const selectedCategory = Array.isArray(category) ? category[0] : category;
+  const normalizedQuery = typeof query === "string" ? query.trim() : undefined;
+  const normalizedCategory =
+    typeof selectedCategory === "string" && selectedCategory.trim().length > 0
+      ? selectedCategory.trim()
+      : undefined;
+
   const session = await auth();
 
+  const limit = 12;
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
-      ...(q
+      ...(normalizedCategory ? { category: { slug: normalizedCategory } } : {}),
+      ...(normalizedQuery
         ? {
             OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
+              { name: { contains: normalizedQuery, mode: "insensitive" } },
+              { description: { contains: normalizedQuery, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -32,8 +42,12 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: limit + 1,
   });
+
+  const hasMore = modules.length > limit;
+  const items = hasMore ? modules.slice(0, limit) : modules;
+  const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -41,7 +55,7 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: items.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
@@ -61,11 +75,15 @@ export default async function HomePage({
         </div>
 
         <form className="flex gap-2">
+          {/* If a category is active, preserve it in the search params */}
+          {category && (
+            <input type="hidden" name="category" value={category} />
+          )}
           <input
             name="q"
             defaultValue={q}
             placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-black outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400"
           />
           <button
             type="submit"
@@ -77,51 +95,58 @@ export default async function HomePage({
       </div>
 
       {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      <CategoryFilter categories={categories} />
 
-      {modules.length === 0 ? (
+      {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((module) => (
+            <li
               key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={`/modules/${module.slug}`}
+                  className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                >
+                  {module.name}
+                </Link>
+                {module.demoUrl && (
+                  <a
+                    href={module.demoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open demo for ${module.name} module`}
+                    className="shrink-0 text-gray-400 hover:text-gray-600"
+                  >
+                    Demo
+                  </a>
+                )}
+              </div>
+
+              <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+
+              <div className="mt-auto flex items-center justify-between">
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  {module.category.name}
+                </span>
+                <span className="text-sm font-medium text-gray-700">{module.voteCount} votes</span>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

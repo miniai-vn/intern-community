@@ -153,6 +153,34 @@ __tests__/            # Vitest tests
 
 ---
 
+## Troubleshooting
+
+### Port 3000 already in use
+
+If you see "Port 3000 is in use", Next.js will automatically use port 3001. If that fails too:
+
+```bash
+# Kill any running Next.js processes
+taskkill /IM node.exe /F /T
+# Or on Linux/Mac: pkill -f next
+
+# Then run on a specific port
+PORT=3002 pnpm dev
+```
+
+### Database connection issues
+
+- Ensure Docker is running: `docker compose ps`
+- Reset DB: `docker compose down -v && docker compose up -d`
+- Re-apply schema: `pnpm db:push`
+
+### OAuth not working
+
+- Check `.env` has correct `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`
+- Ensure callback URL matches: `http://localhost:3000/api/auth/callback/github`
+
+---
+
 ## License
 
 MIT

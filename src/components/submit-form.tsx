@@ -13,6 +13,10 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descriptionCharCount, setDescriptionCharCount] = useState(0);
+
+  const DESCRIPTION_MAX = 500;
+  const DESCRIPTION_WARNING_AT = 450;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,14 +64,25 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
         <textarea
           name="description"
+          id="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
+          onChange={(e) => setDescriptionCharCount(e.currentTarget.value.length)}
+          aria-describedby="description-counter"
         />
+        <div
+          id="description-counter"
+          className={`text-xs ${
+            descriptionCharCount >= DESCRIPTION_WARNING_AT ? "text-red-600" : "text-gray-400"
+          }`}
+          aria-live="polite"
+        >
+          {descriptionCharCount} / {DESCRIPTION_MAX}
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>

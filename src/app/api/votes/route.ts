@@ -38,14 +38,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "moduleId is required" }, { status: 400 });
   }
 
-  const existing = await db.vote.findUnique({
+  // Validate module existence and status
+  const moduleRecord = await db.miniApp.findUnique({
+    where: { id: moduleId },
+    select: { id: true, status: true }
+  });
+  if (!moduleRecord) {
+    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+  if (moduleRecord.status !== "APPROVED") {
+    return NextResponse.json({ error: "Voting is only allowed for approved modules" }, { status: 400 });
+  }
+
+  const existing = await db.Vote.findUnique({
     where: { userId_moduleId: { userId: session.user.id, moduleId } },
   });
 
   if (existing) {
     // Un-vote
     await db.$transaction([
-      db.vote.delete({ where: { id: existing.id } }),
+      db.Vote.delete({ where: { id: existing.id } }),
       db.miniApp.update({
         where: { id: moduleId },
         data: { voteCount: { decrement: 1 } },
@@ -55,7 +67,7 @@ export async function POST(req: NextRequest) {
   } else {
     // Vote
     await db.$transaction([
-      db.vote.create({
+      db.Vote.create({
         data: { userId: session.user.id, moduleId },
       }),
       db.miniApp.update({
