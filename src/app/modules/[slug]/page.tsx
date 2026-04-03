@@ -8,15 +8,15 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const module = await db.miniApp.findUnique({ where: { slug } });
-  return { title: module ? `${module.name} — Intern Community Hub` : "Not Found" };
+  const miniApp = await db.miniApp.findUnique({ where: { slug } });
+  return { title: miniApp ? `${miniApp.name} — Intern Community Hub` : "Not Found" };
 }
 
 export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { slug, status: "APPROVED" },
     include: {
       category: true,
@@ -24,13 +24,13 @@ export default async function ModuleDetailPage({ params }: Props) {
     },
   });
 
-  if (!module) notFound();
+  if (!miniApp) notFound();
 
   let hasVoted = false;
   if (session?.user) {
     const vote = await db.vote.findUnique({
       where: {
-        userId_moduleId: { userId: session.user.id, moduleId: module.id },
+        userId_moduleId: { userId: session.user.id, moduleId: miniApp.id },
       },
     });
     hasVoted = !!vote;
@@ -44,32 +44,32 @@ export default async function ModuleDetailPage({ params }: Props) {
 
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-foreground">{module.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{miniApp.name}</h1>
           <VoteButton
-            moduleId={module.id}
+            moduleId={miniApp.id}
             initialVoted={hasVoted}
-            initialCount={module.voteCount}
+            initialCount={miniApp.voteCount}
           />
         </div>
         <p className="text-sm text-muted-foreground">
-          by {module.author.name} · {module.category.name}
+          by {miniApp.author.name} · {miniApp.category.name}
         </p>
       </div>
 
-      <p className="text-foreground">{module.description}</p>
+      <p className="text-foreground">{miniApp.description}</p>
 
       <div className="flex gap-3">
         <a
-          href={module.repoUrl}
+          href={miniApp.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-secondary text-sm"
         >
           View on GitHub
         </a>
-        {module.demoUrl && (
+        {miniApp.demoUrl && (
           <a
-            href={module.demoUrl}
+            href={miniApp.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary text-sm"
@@ -86,7 +86,7 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Add Content-Security-Policy header for the iframe origin
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
+      {miniApp.demoUrl && (
         <div className="card-bg p-8 text-center text-sm text-[var(--muted-foreground)] border-dashed">
           Sandboxed preview coming soon. Contribute this feature! See{" "}
           <Link href="https://github.com" className="link-primary font-medium">
