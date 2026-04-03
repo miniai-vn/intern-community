@@ -15,7 +15,7 @@ export function VoteButton({
   initialCount,
 }: VoteButtonProps) {
   const { data: session } = useSession();
-  const { voted, count, isLoading, toggle } = useOptimisticVote({
+  const { voted, count, isLoading, errorMessage, toggle } = useOptimisticVote({
     moduleId,
     initialVoted,
     initialCount,
@@ -31,21 +31,69 @@ export function VoteButton({
   }
 
   return (
-    <button
-      onClick={toggle}
-      disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-all duration-300 ease-out
-        ${voted
-          ? "bg-[var(--primary-light)] text-[var(--primary)] hover:shadow-md hover:scale-105"
-          : "bg-[var(--muted-background)] text-[var(--muted-foreground)] hover:bg-[var(--border)]"
-        }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={toggle}
+        disabled={isLoading}
+        // aria-busy allows assistive tech to announce that the control
+        // is currently processing a user action.
+        aria-label={voted ? "Remove vote" : "Upvote this module"}
+        aria-busy={isLoading}
+        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-all duration-300 ease-out
+          ${voted
+            ? "bg-[var(--primary-light)] text-[var(--primary)] hover:shadow-md hover:scale-105"
+            : "bg-[var(--muted-background)] text-[var(--muted-foreground)] hover:bg-[var(--border)]"
+          }
+          disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
+        {count}
+        {/* Screen-reader-only loading text so feedback is not color/icon only. */}
+        {isLoading && <span className="sr-only">Updating vote...</span>}
+      </button>
+
+      {/*
+        Keep this message area mounted to avoid layout jumping when errors appear.
+        aria-live makes API failures (e.g. 429) announced accessibly.
+      */}
+      <p
+        aria-live="polite"
+        className={`max-w-52 text-right text-xs text-destructive ${
+          errorMessage ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {errorMessage ?? ""}
+      </p>
+    </div>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      className="animate-spin"
+      aria-hidden="true"
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
-    </button>
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="3"
+      />
+      <path
+        d="M21 12a9 9 0 0 0-9-9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
