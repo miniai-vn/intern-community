@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -40,10 +40,15 @@ export function useOptimisticVote({
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
+  // FIX: Properly initialize and cleanup the isMounted ref to avoid memory leak and stale states
   const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
@@ -62,12 +67,20 @@ export function useOptimisticVote({
         body: JSON.stringify({ moduleId }),
       });
 
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      // Roll back — but only if still mounted (see edge case note above)
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Vote failed");
+      }
+    } catch (error: unknown) {
+      // Roll back — but only if still mounted
       if (isMounted.current) {
         setVoted(prevVoted);
         setCount(prevCount);
+        
+        // Surface specific backend error (e.g. rate limit) via alert
+        if (error instanceof Error && error.message !== "Vote failed") {
+          window.alert(error.message);
+        }
       }
     } finally {
       if (isMounted.current) {
