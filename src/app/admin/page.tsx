@@ -27,7 +27,7 @@ export default async function AdminPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="w-3/5 max-lg:w-[95%]">
       <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
 
       <section className="space-y-4">
@@ -38,7 +38,7 @@ export default async function AdminPage() {
           <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {pending.map((module) => (
+            {pending.map((module: any) => (
               <AdminReviewCard key={module.id} module={module} />
             ))}
           </div>
@@ -48,7 +48,7 @@ export default async function AdminPage() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
         <div className="space-y-2">
-          {recentlyReviewed.map((module) => (
+          {recentlyReviewed.map((module: any) => (
             <div
               key={module.id}
               className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"

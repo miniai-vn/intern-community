@@ -20,7 +20,7 @@ export default async function MySubmissionsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-3/5 max-lg:w-[95%]">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
         <Link
@@ -43,7 +43,7 @@ export default async function MySubmissionsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {submissions.map((sub) => (
+          {submissions.map((sub: any) => (
             <div
               key={sub.id}
               className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"

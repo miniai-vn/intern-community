@@ -37,7 +37,7 @@ export default async function ModuleDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="w-3/5 max-lg:w-[95%] flex flex-col gap-3">
       <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
         ← Back to modules
       </Link>

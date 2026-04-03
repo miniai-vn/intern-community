@@ -10,7 +10,7 @@ export default async function SubmitPage() {
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
+    <div className="w-3/5 max-lg:w-[95%]">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Submit a Module</h1>
         <p className="mt-1 text-sm text-gray-500">

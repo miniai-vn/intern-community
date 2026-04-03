@@ -7,12 +7,14 @@ interface VoteButtonProps {
   moduleId: string;
   initialVoted: boolean;
   initialCount: number;
+  updateVotedUI: (id: string) => void
 }
 
 export function VoteButton({
   moduleId,
   initialVoted,
   initialCount,
+  updateVotedUI
 }: VoteButtonProps) {
   const { data: session } = useSession();
   const { voted, count, isLoading, toggle } = useOptimisticVote({
@@ -32,13 +34,18 @@ export function VoteButton({
 
   return (
     <button
-      onClick={toggle}
+      onClick={(e) => {
+        e.stopPropagation();
+        updateVotedUI(moduleId)
+        toggle();
+      }}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-medium transition-colors
+        ${
+          voted
+            ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
@@ -52,8 +59,8 @@ export function VoteButton({
 function TriangleIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg
-      width="12"
-      height="12"
+      width="20"
+      height="20"
       viewBox="0 0 12 12"
       fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
