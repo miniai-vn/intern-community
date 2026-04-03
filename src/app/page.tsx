@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 import { ModuleCard } from "@/components/module-card";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
@@ -78,7 +79,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,9 +88,9 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
-          <a
+          <Link
             key={c.id}
             href={`/?category=${c.slug}`}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
@@ -99,7 +100,7 @@ export default async function HomePage({
             }`}
           >
             {c.name}
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -107,9 +108,9 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
