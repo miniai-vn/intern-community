@@ -4,6 +4,35 @@ import { db } from "@/lib/db";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
+// DELETE /api/modules/[id] 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const submission = await db.miniApp.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!submission) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  
+  if (submission.authorId !== session.user.id || submission.status !== "PENDING") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await db.miniApp.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ success: true });
+}
+
+
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -64,7 +93,7 @@ export async function POST(req: NextRequest) {
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
     .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+    .then((r: { slug: string }[]) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
   const module = await db.miniApp.create({
