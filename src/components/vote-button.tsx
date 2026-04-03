@@ -23,7 +23,7 @@ export function VoteButton({
 
   if (!session) {
     return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
+      <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
         <TriangleIcon />
         {count}
       </span>
@@ -35,10 +35,10 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-all duration-300 ease-out
         ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "bg-[var(--primary-light)] text-[var(--primary)] hover:shadow-md hover:scale-105"
+          : "bg-[var(--muted-background)] text-[var(--muted-foreground)] hover:bg-[var(--border)]"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >

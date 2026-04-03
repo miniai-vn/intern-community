@@ -1,21 +1,65 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light theme */
+  --background: #fafafa;
+  --foreground: #1a1a1a;
+  --navbar-background: #ffffff;
+  --card-background: #ffffff;
+  --border: #e5e5e5;
+  --input-border: #d4d4d8;
+  --muted-background: #f5f5f5;
+  --muted-foreground: #666666;
+  
+  /* Colors for components */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --primary-light: #eff6ff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card-background);
+  --color-navbar: var(--navbar-background);
+  --color-border: var(--border);
+  --color-input: var(--input-border);
+  --color-muted: var(--muted-background);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark theme */
+    --background: #0f0f0f;
+    --foreground: #f0f0f0;
+    --navbar-background: #1a1a1a;
+    --card-background: #1a1a1a;
+    --border: #333333;
+    --input-border: #404040;
+    --muted-background: #262626;
+    --muted-foreground: #a0a0a0;
+    
+    /* Colors for components stay consistent */
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --primary-light: #1e3a8a;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --success: #22c55e;
+    --success-foreground: #ffffff;
   }
 }
 
@@ -23,4 +67,81 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  /* Navbar styling */
+  .navbar-bg {
+    @apply bg-[var(--navbar-background)] shadow-sm border-b border-[var(--border)];
+  }
+  
+  /* Card styling with depth */
+  .card-bg {
+    @apply bg-[var(--card-background)] rounded-lg border border-[var(--border)] transition-all duration-300 ease-out hover:shadow-md;
+  }
+  
+  .card-elevated {
+    @apply bg-[var(--card-background)] rounded-lg border border-[var(--border)] shadow-sm transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* Button styling */
+  .btn-primary {
+    @apply bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[var(--primary)]/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--muted-background)] text-foreground px-4 py-2 rounded-lg font-medium border border-[var(--border)] transition-all duration-300 ease-out hover:bg-[var(--border)] active:scale-95 disabled:opacity-50;
+  }
+  
+  .btn-destructive {
+    @apply bg-[var(--destructive)] text-[var(--destructive-foreground)] px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[var(--destructive)]/30 active:scale-95 disabled:opacity-50;
+  }
+  
+  .btn-success {
+    @apply bg-[var(--success)] text-[var(--success-foreground)] px-4 py-2 rounded-lg font-medium transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[var(--success)]/30 active:scale-95 disabled:opacity-50;
+  }
+  
+  /* Input styling */
+  .input-base {
+    @apply w-full px-4 py-2.5 rounded-lg border border-[var(--input-border)] bg-[var(--card-background)] text-foreground placeholder:text-[var(--muted-foreground)] transition-all duration-300 ease-out outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20 focus-visible:shadow-md;
+  }
+  
+  .input-sm {
+    @apply px-3 py-2 text-sm;
+  }
+  
+  /* Badge/Tag styling */
+  .badge-primary {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--primary-light)] text-[var(--primary)];
+  }
+  
+  .badge-secondary {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--muted-background)] text-[var(--muted-foreground)];
+  }
+  
+  .badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700;
+  }
+  
+  .badge-destructive {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700;
+  }
+  
+  /* Link styling */
+  .link-primary {
+    @apply text-[var(--primary)] hover:underline transition-colors duration-200 cursor-pointer;
+  }
+  
+  .link-muted {
+    @apply text-[var(--muted-foreground)] hover:text-foreground transition-colors duration-200;
+  }
+  
+  /* Text styles */
+  .text-muted-foreground {
+    @apply text-[var(--muted-foreground)];
+  }
+  
+  .text-secondary {
+    @apply text-[var(--muted-foreground)];
+  }
 }

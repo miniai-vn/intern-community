@@ -38,32 +38,32 @@ export default async function ModuleDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
+      <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
         ← Back to modules
       </Link>
 
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{module.name}</h1>
           <VoteButton
             moduleId={module.id}
             initialVoted={hasVoted}
             initialCount={module.voteCount}
           />
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           by {module.author.name} · {module.category.name}
         </p>
       </div>
 
-      <p className="text-gray-700">{module.description}</p>
+      <p className="text-foreground">{module.description}</p>
 
       <div className="flex gap-3">
         <a
           href={module.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="btn-secondary text-sm"
         >
           View on GitHub
         </a>
@@ -72,7 +72,7 @@ export default async function ModuleDetailPage({ params }: Props) {
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="btn-primary text-sm"
           >
             Live Demo
           </a>
@@ -87,9 +87,9 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
       {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
+        <div className="card-bg p-8 text-center text-sm text-[var(--muted-foreground)] border-dashed">
           Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
+          <Link href="https://github.com" className="link-primary font-medium">
             ISSUES.md
           </Link>
         </div>
