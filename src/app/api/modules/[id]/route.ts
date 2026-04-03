@@ -34,12 +34,38 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
+  const existing = await db.miniApp.findUnique({
     where: { id },
-    data: {
-      status: parsed.data.status,
-      feedback: parsed.data.feedback,
-    },
+    select: { id: true, name: true, authorId: true, status: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const updated = await db.$transaction(async (tx) => {
+    const nextModule = await tx.miniApp.update({
+      where: { id },
+      data: {
+        status: parsed.data.status,
+        feedback: parsed.data.feedback,
+      },
+    });
+
+    if (existing.status !== parsed.data.status) {
+      const statusLabel =
+        parsed.data.status === "APPROVED" ? "approved" : "rejected";
+
+      await tx.notification.create({
+        data: {
+          userId: existing.authorId,
+          title: `Submission ${statusLabel}`,
+          message: `Your submission "${existing.name}" was ${statusLabel} by an admin.`,
+          link: "/my-submissions",
+        },
+      });
+    }
+
+    return nextModule;
   });
 
   return NextResponse.json(updated);
@@ -58,6 +84,13 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   if (module.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (!session.user.isAdmin && module.status !== "PENDING") {
+    return NextResponse.json(
+      { error: "Only pending submissions can be deleted." },
+      { status: 409 }
+    );
   }
 
   await db.miniApp.delete({ where: { id } });

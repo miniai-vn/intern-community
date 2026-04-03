@@ -27,5 +27,15 @@ export const adminReviewSchema = z.object({
   feedback: z.string().max(500).optional(),
 });
 
+export const commentSchema = z.object({
+  body: z
+    .string()
+    .trim()
+    .min(3, "Comment must be at least 3 characters")
+    .max(500, "Comment must be at most 500 characters"),
+  parentId: z.string().cuid().optional(),
+});
+
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;
 export type AdminReviewInput = z.infer<typeof adminReviewSchema>;
+export type CommentInput = z.infer<typeof commentSchema>;
