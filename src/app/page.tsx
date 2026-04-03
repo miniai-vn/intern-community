@@ -51,10 +51,13 @@ export default async function HomePage({
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="space-y-6">
+    // h-1500 test back to top
+    <div className="space-y-6 h-[1500px]">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Community Modules
+          </h1>
           <p className="text-sm text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
@@ -107,7 +110,10 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <a
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
             </a>
           )}
