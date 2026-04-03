@@ -35,7 +35,7 @@ async function main() {
     }),
   ]);
 
-  // Seed demo admin user
+  //Seed demo admin user
   const admin = await prisma.user.upsert({
     where: { email: "admin@td.com" },
     update: {},
@@ -53,6 +53,16 @@ async function main() {
     create: {
       name: "Demo Dev",
       email: "dev@example.com",
+      isAdmin: false,
+    },
+  });
+
+  const contributor2 = await prisma.user.upsert({
+    where: { email: "[EMAIL_ADDRESS]" },
+    update: {},
+    create: {
+      name: "Irisus",
+      email: "[EMAIL_ADDRESS]",
       isAdmin: false,
     },
   });
@@ -105,7 +115,7 @@ async function main() {
       demoUrl: "https://2048.example.com",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "productivity")!.id,
-      authorId: contributor.id,
+      authorId: contributor2.id,
       voteCount: 45,
     },
 
@@ -142,7 +152,7 @@ async function main() {
       demoUrl: "https://2048.example.com",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "finance")!.id,
-      authorId: contributor.id,
+      authorId: contributor2.id,
       voteCount: 41,
     },
     {
@@ -178,7 +188,7 @@ async function main() {
       demoUrl: "https://2048.example.com",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "game")!.id,
-      authorId: contributor.id,
+      authorId: contributor2.id,
       voteCount: 41,
     },
     {
@@ -202,7 +212,7 @@ async function main() {
       demoUrl: "https://2048.example.com",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "game")!.id,
-      authorId: contributor.id,
+      authorId: contributor2.id,
       voteCount: 13,
     },
     {
