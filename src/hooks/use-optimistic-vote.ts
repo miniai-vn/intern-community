@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -21,15 +21,6 @@ interface UseOptimisticVoteReturn {
  * Optimistically updates the UI immediately, then syncs with the server.
  * Rolls back on error.
  *
- * ⚠️ KNOWN EDGE CASE (intentional for code review purposes):
- * The abort/cleanup logic uses a stale ref pattern. If the user:
- *   1. Clicks vote
- *   2. Navigates away before the API responds
- *   3. Returns to the same page
- * ...the rollback on failure may not execute because `isMounted` is reset.
- * A good reviewer will notice and ask about this. A good candidate will too.
- *
- * See: https://react.dev/learn/synchronizing-with-effects#fetching-data
  */
 export function useOptimisticVote({
   moduleId,
@@ -39,11 +30,20 @@ export function useOptimisticVote({
   const [voted, setVoted] = useState(initialVoted);
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
+  const isMounted = useRef(false);
 
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
-  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setVoted(initialVoted);
+    setCount(initialCount);
+  }, [moduleId, initialVoted, initialCount]);
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
@@ -52,7 +52,7 @@ export function useOptimisticVote({
     const prevVoted = voted;
     const prevCount = count;
     setVoted(!prevVoted);
-    setCount(prevVoted ? count - 1 : count + 1);
+    setCount(prevVoted ? prevCount - 1 : prevCount + 1);
     setIsLoading(true);
 
     try {
@@ -64,7 +64,7 @@ export function useOptimisticVote({
 
       if (!res.ok) throw new Error("Vote failed");
     } catch {
-      // Roll back — but only if still mounted (see edge case note above)
+      // Ignore state updates after unmount to avoid reviving stale optimistic state.
       if (isMounted.current) {
         setVoted(prevVoted);
         setCount(prevCount);
