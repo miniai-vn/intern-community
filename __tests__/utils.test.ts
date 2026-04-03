@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -22,14 +22,21 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  it("keeps an already valid slug unchanged", () => {
+    expect(generateSlug("already-a-slug")).toBe("already-a-slug");
+  });
+
+  it("preserves numbers", () => {
+    expect(generateSlug("Top 10 App 2026")).toBe("top-10-app-2026");
+  });
+
+  it("returns an empty string for an empty name", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  it("strips leading and trailing hyphens after cleanup", () => {
+    expect(generateSlug("---Hello World---")).toBe("hello-world");
+  });
 });
 
 // ============================================================
@@ -49,23 +56,58 @@ describe("makeUniqueSlug", () => {
     expect(makeUniqueSlug("my-app", ["my-app", "my-app-1"])).toBe("my-app-2");
   });
 
-  // TODO [easy-challenge]: Add test cases for:
-  // 1. When many suffixed versions already exist (e.g. -1 through -5)
-  // 2. When the existing list contains similar but non-conflicting slugs
-  //    e.g. existing = ["my-app-tool"] should NOT block "my-app"
+  it("skips to the next available suffix after many conflicts", () => {
+    expect(
+      makeUniqueSlug("my-app", [
+        "my-app",
+        "my-app-1",
+        "my-app-2",
+        "my-app-3",
+        "my-app-4",
+        "my-app-5",
+      ])
+    ).toBe("my-app-6");
+  });
+
+  it("ignores similar but non-conflicting slugs", () => {
+    expect(makeUniqueSlug("my-app", ["my-app-tool"])).toBe("my-app");
+  });
 });
 
 // ============================================================
 // formatRelativeTime — NOT yet tested, candidate must write all tests
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  const now = new Date("2026-04-04T12:00:00.000Z");
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns just now for dates less than one minute ago", () => {
+    expect(formatRelativeTime(new Date("2026-04-04T11:59:30.000Z"))).toBe("just now");
+  });
+
+  it("returns minutes for dates between one and fifty-nine minutes ago", () => {
+    expect(formatRelativeTime(new Date("2026-04-04T11:15:00.000Z"))).toBe("45m ago");
+  });
+
+  it("returns hours for dates between one and twenty-three hours ago", () => {
+    expect(formatRelativeTime(new Date("2026-04-04T07:00:00.000Z"))).toBe("5h ago");
+  });
+
+  it("returns days for dates between one and twenty-nine days ago", () => {
+    expect(formatRelativeTime(new Date("2026-03-10T12:00:00.000Z"))).toBe("25d ago");
+  });
+
+  it("falls back to locale date string for dates thirty days or older", () => {
+    const date = new Date("2026-03-01T12:00:00.000Z");
+    expect(formatRelativeTime(date)).toBe(date.toLocaleDateString());
+  });
+});

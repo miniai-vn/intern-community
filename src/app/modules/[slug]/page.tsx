@@ -38,32 +38,32 @@ export default async function ModuleDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
+      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
         ← Back to modules
       </Link>
 
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{module.name}</h1>
           <VoteButton
             moduleId={module.id}
             initialVoted={hasVoted}
             initialCount={module.voteCount}
           />
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           by {module.author.name} · {module.category.name}
         </p>
       </div>
 
-      <p className="text-gray-700">{module.description}</p>
+      <p className="text-gray-700 dark:text-gray-300">{module.description}</p>
 
       <div className="flex gap-3">
         <a
           href={module.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           View on GitHub
         </a>
@@ -87,7 +87,7 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
       {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
+        <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-8 text-center text-sm text-gray-400 dark:text-gray-500">
           Sandboxed preview coming soon. Contribute this feature! See{" "}
           <Link href="https://github.com" className="text-blue-600 hover:underline">
             ISSUES.md

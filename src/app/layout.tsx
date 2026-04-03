@@ -14,8 +14,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-gray-50 font-sans">
+    // suppressHydrationWarning: the 'dark' class is toggled by client JS before hydration
+    <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Inline script runs synchronously before React hydrates — prevents flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(_){}})();`,
+          }}
+        />
+      </head>
+      <body className="flex min-h-full flex-col bg-gray-50 dark:bg-gray-950 font-sans transition-colors">
         <AuthSessionProvider>
           <Navbar />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
