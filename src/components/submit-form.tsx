@@ -98,22 +98,24 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       {error._ && (
-        <p className="text-sm text-red-600">{error._.join(", ")}</p>
+        <div className="rounded-lg bg-red-500/20 border border-red-500/30 p-3">
+          <p className="text-sm text-red-300">{error._.join(", ")}</p>
+        </div>
       )}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm font-medium text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] disabled:opacity-50 transition"
       >
-        {isSubmitting ? "Submitting…" : "Submit Module"}
+        {isSubmitting ? "Đang gửi…" : "Submit Module"}
       </button>
     </form>
   );
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-lg bg-slate-700/50 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 outline-none focus:bg-slate-700 focus:ring-2 focus:ring-purple-500/50 transition";
 
 function Field({
   label,
@@ -130,12 +132,12 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="block text-sm font-medium text-slate-200">
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
-      {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
+      {hint && <p className="text-xs text-slate-400">{hint}</p>}
+      {error && <p className="text-xs text-red-400">{error.join(", ")}</p>}
     </div>
   );
 }

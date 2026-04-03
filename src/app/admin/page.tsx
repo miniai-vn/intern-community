@@ -28,14 +28,20 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+      <div className="relative z-10">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">Admin — Module Review</h1>
+        <p className="text-slate-300">Quản lý và duyệt các module submissions từ developer</p>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
-          Pending ({pending.length})
+      {/* Pending Section */}
+      <section className="relative z-10 space-y-4">
+        <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          ⏳ Pending ({pending.length})
         </h2>
         {pending.length === 0 ? (
-          <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
+          <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-8 text-center">
+            <p className="text-slate-300 font-medium">No pending submissions. 🎉</p>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {pending.map((module) => (
@@ -45,20 +51,23 @@ export default async function AdminPage() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
+      {/* Recently Reviewed Section */}
+      <section className="relative z-10 space-y-4">
+        <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          ✅ Recently Reviewed
+        </h2>
         <div className="space-y-2">
           {recentlyReviewed.map((module) => (
             <div
               key={module.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center justify-between rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition"
             >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
+              <span className="text-sm font-medium text-slate-100">{module.name}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
                   module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : "bg-red-500/20 text-red-400 border border-red-500/30"
                 }`}
               >
                 {module.status}

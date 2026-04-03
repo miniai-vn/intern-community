@@ -4,9 +4,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 const statusStyles: Record<string, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200",
+  PENDING: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+  APPROVED: "bg-green-500/20 text-green-300 border border-green-500/30",
+  REJECTED: "bg-red-500/20 text-red-300 border border-red-500/30",
 };
 
 export default async function MySubmissionsPage() {
@@ -20,25 +20,25 @@ export default async function MySubmissionsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="relative z-10 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">My Submissions</h1>
         <Link
           href="/submit"
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-medium text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition"
         >
-          + New Submission
+          + Submission Mới
         </Link>
       </div>
 
       {submissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No submissions yet.</p>
+        <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-12 text-center">
+          <p className="text-slate-300">Chưa có submission nào.</p>
           <Link
             href="/submit"
-            className="mt-2 block text-sm text-blue-600 hover:underline"
+            className="mt-3 inline-block text-sm text-purple-400 hover:text-purple-300 transition"
           >
-            Submit your first module →
+            Submit module đầu tiên của bạn →
           </Link>
         </div>
       ) : (
@@ -46,25 +46,28 @@ export default async function MySubmissionsPage() {
           {submissions.map((sub) => (
             <div
               key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
+              className="flex items-start justify-between rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-4 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition"
             >
-              <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
+              <div className="space-y-1 flex-1">
+                <p className="font-medium text-slate-100">{sub.name}</p>
+                <p className="text-xs text-slate-400">
                   {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
+                  {new Date(sub.createdAt).toLocaleDateString("vi-VN")}
                 </p>
                 {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                    Feedback: {sub.feedback}
+                  <p className="mt-2 rounded-md bg-slate-700/50 px-3 py-2 text-xs text-slate-300 border border-slate-600/30">
+                    💬 <strong>Feedback:</strong> {sub.feedback}
                   </p>
                 )}
               </div>
               <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ml-4 ${
                   statusStyles[sub.status]
                 }`}
               >
+                {sub.status === "PENDING" && "⏳ " }
+                {sub.status === "APPROVED" && "✅ " }
+                {sub.status === "REJECTED" && "❌ " }
                 {sub.status}
               </span>
             </div>

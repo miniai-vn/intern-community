@@ -6,6 +6,7 @@ import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 // ============================================================
 
 describe("generateSlug", () => {
+  // ===== Test Cases Cơ Bản =====
   it("lowercases and hyphenates words", () => {
     expect(generateSlug("My Cool App")).toBe("my-cool-app");
   });
@@ -22,14 +23,48 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  // ===== Edge Cases =====
+  // Test case 1: Slug đã hợp lệ (không cần thay đổi)
+  it("keeps already valid slugs unchanged", () => {
+    expect(generateSlug("valid-slug-here")).toBe("valid-slug-here");
+  });
+
+  // Test case 2: Bảo toàn số trong slug (ví dụ: "App v2" -> "app-v2")
+  it("preserves numbers in the slug", () => {
+    expect(generateSlug("App v2.5 Release")).toBe("app-v25-release");
+  });
+
+  // Test case 3: Xử lý chuỗi trống (rỗng -> rỗng)
+  it("handles empty string gracefully", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  // Test case 4: Xóa dấu gạch ngang thừa ở đầu/cuối (sau khi xóa ký tự đặc biệt)
+  it("removes leading and trailing hyphens after special char removal", () => {
+    expect(generateSlug("-Hello World-")).toBe("hello-world");
+  });
+
+  // Test case 5: Mix của tất cả - special chars, spaces, số, hoa/thường
+  it("handles complex input with mixed cases", () => {
+    expect(generateSlug("!@# Hello123 --- World @#$")).toBe("hello123-world");
+  });
+
+  // ===== MAX LENGTH TESTS =====
+  // Test case 6: Input dài hơn 100 ký tự (shouldtruncate/limit)
+  it("handles input at boundary (100 characters)", () => {
+    const longInput = "a".repeat(100);
+    const result = generateSlug(longInput);
+    expect(result).toBe("a".repeat(100));
+    expect(result.length).toBeLessThanOrEqual(100);
+  });
+
+  // Test case 7: Very long input (dài hơn 100)
+  it("should handle very long input gracefully", () => {
+    const veryLongInput = "The quick brown fox jumps over the lazy dog ".repeat(5);
+    const result = generateSlug(veryLongInput);
+    // Result should be valid slug (lowercase, hyphens, no special chars)
+    expect(result).toMatch(/^[a-z0-9-]*$/);
+  });
 });
 
 // ============================================================
