@@ -14,8 +14,6 @@ export function PreviewIframe({ url }: PreviewIframeProps) {
 
   useEffect(() => {
     if (!isHttps) {
-      setHasError(true);
-      setIsLoading(false);
       return;
     }
 
@@ -89,7 +87,7 @@ export function PreviewIframe({ url }: PreviewIframeProps) {
               </svg>
               <p className="font-medium text-gray-900 mt-2">Preview could not be loaded</p>
               <p>
-                The author's server may have blocked embedding via{" "}
+                The author&apos;s server may have blocked embedding via{" "}
                 <code className="rounded bg-gray-200 px-1 py-0.5">X-Frame-Options</code> or{" "}
                 <code className="rounded bg-gray-200 px-1 py-0.5">Content-Security-Policy</code>.
               </p>
