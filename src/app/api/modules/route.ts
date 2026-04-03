@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor");
   const limit = 12;
 
+  const session = await auth();
+
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
@@ -40,7 +42,25 @@ export async function GET(req: NextRequest) {
   const items = hasMore ? modules.slice(0, limit) : modules;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-  return NextResponse.json({ items, nextCursor });
+  // Attach hasVoted to each item for authenticated callers (avoids a second round-trip).
+  let votedSet = new Set<string>();
+  if (session?.user) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: items.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedSet = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const itemsWithVoted = items.map((m) => ({
+    ...m,
+    hasVoted: votedSet.has(m.id),
+  }));
+
+  return NextResponse.json({ items: itemsWithVoted, nextCursor });
 }
 
 // POST /api/modules — submit a new module (authenticated)
