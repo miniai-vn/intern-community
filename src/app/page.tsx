@@ -19,11 +19,11 @@ export default async function HomePage({
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // DO NOT remove include — avoids N+1 on category/author fields.
@@ -80,11 +80,10 @@ export default async function HomePage({
       <div className="flex flex-wrap gap-2">
         <a
           href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
+          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${!category
               ? "bg-blue-600 text-white"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
+            }`}
         >
           All
         </a>
@@ -92,11 +91,10 @@ export default async function HomePage({
           <a
             key={c.id}
             href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${category === c.slug
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+              }`}
           >
             {c.name}
           </a>

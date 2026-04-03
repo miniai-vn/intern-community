@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { Comments } from "@/components/comments";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -94,6 +95,8 @@ export default async function ModuleDetailPage({ params }: Props) {
           </Link>
         </div>
       )}
+
+      <Comments moduleId={module.id} />
     </div>
   );
 }

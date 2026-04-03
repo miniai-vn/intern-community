@@ -64,6 +64,8 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  comments    ModuleComment[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -99,6 +101,8 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  comments  ModuleComment[]
+  notifications Notification[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -122,6 +126,41 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model ModuleComment {
+  id        String   @id @default(cuid())
+  module    MiniApp  @relation(fields: [moduleId], references: [id])
+  moduleId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  content   String
+  isAdmin   Boolean  @default(false)
+  parentId  String?
+  parent    ModuleComment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   ModuleComment[] @relation("CommentReplies")
+  createdAt DateTime @default(now())
+
+  @@index([moduleId, createdAt])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  module    MiniApp? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  moduleId  String?
+
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
 }
 
 enum SubmissionStatus {
