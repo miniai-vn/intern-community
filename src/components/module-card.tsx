@@ -17,13 +17,13 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
         >
           {module.name}
         </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
         {module.demoUrl && (
           <a
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label={`Open demo for ${module.name}`}
           >
             <ExternalLinkIcon />
           </a>

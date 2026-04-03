@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -22,14 +22,22 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  it("keeps a highly valid slug unchanged", () => {
+    expect(generateSlug("valid-slug-already")).toBe("valid-slug-already");
+  });
+
+  it("preserves numbers within the slug", () => {
+    expect(generateSlug("Cool App 123")).toBe("cool-app-123");
+  });
+
+  it("returns an empty string when given an empty string", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  it("cleans up leading and trailing hyphens after special character removals", () => {
+    expect(generateSlug("!!!Hello World???")).toBe("hello-world");
+    expect(generateSlug("-Hello-")).toBe("hello");
+  });
 });
 
 // ============================================================
@@ -49,23 +57,51 @@ describe("makeUniqueSlug", () => {
     expect(makeUniqueSlug("my-app", ["my-app", "my-app-1"])).toBe("my-app-2");
   });
 
-  // TODO [easy-challenge]: Add test cases for:
-  // 1. When many suffixed versions already exist (e.g. -1 through -5)
-  // 2. When the existing list contains similar but non-conflicting slugs
-  //    e.g. existing = ["my-app-tool"] should NOT block "my-app"
+  it("appends correct index when many suffixed versions already exist", () => {
+    expect(makeUniqueSlug("my-app", ["my-app", "my-app-1", "my-app-2", "my-app-3"])).toBe("my-app-4");
+  });
+
+  it("does not clash with similar but non-conflicting slugs", () => {
+    expect(makeUniqueSlug("my-app", ["my-app-tool", "my-app-2", "my-app-xyz"])).toBe("my-app");
+  });
 });
 
 // ============================================================
 // formatRelativeTime — NOT yet tested, candidate must write all tests
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 0, 10, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns just now for dates less than 1 minute ago", () => {
+    const thirtySecsAgo = new Date(Date.now() - 30 * 1000);
+    expect(formatRelativeTime(thirtySecsAgo)).toBe("just now");
+  });
+
+  it("returns {n}m ago for dates 1–59 minutes ago", () => {
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+    expect(formatRelativeTime(fiveMinsAgo)).toBe("5m ago");
+  });
+
+  it("returns {n}h ago for dates 1–23 hours ago", () => {
+    const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    expect(formatRelativeTime(fiveHoursAgo)).toBe("5h ago");
+  });
+
+  it("returns {n}d ago for dates 1–29 days ago", () => {
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    expect(formatRelativeTime(fiveDaysAgo)).toBe("5d ago");
+  });
+
+  it("returns toLocaleDateString() format for dates 30+ days ago", () => {
+    const fortyDaysAgo = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
+    expect(formatRelativeTime(fortyDaysAgo)).toBe(fortyDaysAgo.toLocaleDateString());
+  });
+});
