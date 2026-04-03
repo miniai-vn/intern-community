@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -22,14 +22,21 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  it("returns an already valid slug unchanged", () => {
+    expect(generateSlug("already-valid-slug")).toBe("already-valid-slug");
+  });
+
+  it("preserves numbers in the slug", () => {
+    expect(generateSlug("App 2048 v2")).toBe("app-2048-v2");
+  });
+
+  it("returns an empty string when given an empty string", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  it("strips leading and trailing hyphens created by special character removal", () => {
+    expect(generateSlug("!!!hello world???")).toBe("hello-world");
+  });
 });
 
 // ============================================================
@@ -49,23 +56,64 @@ describe("makeUniqueSlug", () => {
     expect(makeUniqueSlug("my-app", ["my-app", "my-app-1"])).toBe("my-app-2");
   });
 
-  // TODO [easy-challenge]: Add test cases for:
-  // 1. When many suffixed versions already exist (e.g. -1 through -5)
-  // 2. When the existing list contains similar but non-conflicting slugs
-  //    e.g. existing = ["my-app-tool"] should NOT block "my-app"
+  it("finds the next available suffix when many versions already exist", () => {
+    expect(
+      makeUniqueSlug("my-app", [
+        "my-app",
+        "my-app-1",
+        "my-app-2",
+        "my-app-3",
+        "my-app-4",
+        "my-app-5",
+      ])
+    ).toBe("my-app-6");
+  });
+
+  it("ignores similar but non-conflicting slugs", () => {
+    expect(makeUniqueSlug("my-app", ["my-app-tool"])).toBe("my-app");
+  });
 });
 
 // ============================================================
 // formatRelativeTime — NOT yet tested, candidate must write all tests
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-03T10:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns "just now" for dates less than 1 minute ago', () => {
+    expect(formatRelativeTime(new Date("2026-04-03T09:59:30.000Z"))).toBe(
+      "just now"
+    );
+  });
+
+  it("returns minutes for dates between 1 and 59 minutes ago", () => {
+    expect(formatRelativeTime(new Date("2026-04-03T09:15:00.000Z"))).toBe(
+      "45m ago"
+    );
+  });
+
+  it("returns hours for dates between 1 and 23 hours ago", () => {
+    expect(formatRelativeTime(new Date("2026-04-03T07:00:00.000Z"))).toBe(
+      "3h ago"
+    );
+  });
+
+  it("returns days for dates between 1 and 29 days ago", () => {
+    expect(formatRelativeTime(new Date("2026-03-29T10:00:00.000Z"))).toBe(
+      "5d ago"
+    );
+  });
+
+  it("falls back to locale date format for dates 30 or more days ago", () => {
+    const date = new Date("2026-02-20T10:00:00.000Z");
+    expect(formatRelativeTime(date)).toBe(date.toLocaleDateString());
+  });
+});

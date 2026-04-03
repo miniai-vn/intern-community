@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitModuleSchema } from "@/lib/validations";
+import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 
 interface SubmitFormProps {
@@ -13,6 +14,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,6 +53,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <Field label="Module name" name="name" error={error.name}>
         <input
+          id="name"
           name="name"
           type="text"
           placeholder="e.g. Pomodoro Timer"
@@ -59,19 +62,42 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field
+        label="Description"
+        name="description"
+        error={error.description}
+        hint={
+          <div
+            id="description-meta"
+            className="flex items-center justify-between text-xs text-gray-400"
+          >
+            <span>Max 500 characters</span>
+            <span
+              className={cn(
+                "tabular-nums transition-colors",
+                description.length >= 450 ? "text-red-600" : "text-gray-400"
+              )}
+            >
+              {description.length} / 500
+            </span>
+          </div>
+        }
+      >
         <textarea
+          id="description"
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          aria-describedby="description-meta"
           className={inputClass}
         />
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
-        <select name="categoryId" className={inputClass} defaultValue="">
+        <select id="categoryId" name="categoryId" className={inputClass} defaultValue="">
           <option value="" disabled>Select a category</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
@@ -81,6 +107,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       <Field label="GitHub repository URL" name="repoUrl" error={error.repoUrl}>
         <input
+          id="repoUrl"
           name="repoUrl"
           type="url"
           placeholder="https://github.com/your-username/your-repo"
@@ -90,6 +117,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       <Field label="Demo URL (optional)" name="demoUrl" error={error.demoUrl}>
         <input
+          id="demoUrl"
           name="demoUrl"
           type="url"
           placeholder="https://your-demo.vercel.app"
@@ -125,7 +153,7 @@ function Field({
   label: string;
   name: string;
   error?: string[];
-  hint?: string;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -134,7 +162,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <div>{hint}</div>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
