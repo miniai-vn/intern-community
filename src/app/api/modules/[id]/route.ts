@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminReviewSchema } from "@/lib/validations";
+import { LEADERBOARD_CACHE_KEY} from "@/constants/constants";
+import {deleteCachedData} from "@/lib/redis"
 
 type Params = { params: Promise<{ id: string }> };
+
 
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
@@ -42,6 +45,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  // Invalidate leaderboard cache when approval status changes
+  console.log("[Cache INVALIDATE] Leaderboard - submission status changed");
+  await deleteCachedData(LEADERBOARD_CACHE_KEY);
+
   return NextResponse.json(updated);
 }
 
@@ -61,5 +68,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   await db.miniApp.delete({ where: { id } });
+
+  // Invalidate leaderboard cache when submission is deleted
+  console.log("[Cache INVALIDATE] Leaderboard - submission deleted");
+  await deleteCachedData(LEADERBOARD_CACHE_KEY);
+
   return new NextResponse(null, { status: 204 });
 }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCachedData, setCachedData } from "@/lib/redis";
+import { LEADERBOARD_CACHE_KEY} from "@/constants/constants";
 
-const LEADERBOARD_CACHE_KEY = "modules:popular:leaderboard";
-const CACHE_TTL = 600; // 10 minutes
+const CACHE_TTL = 3600; // 1 hours
 
 interface LeaderboardEntry {
   rank: number;
