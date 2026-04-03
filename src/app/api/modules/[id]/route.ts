@@ -70,6 +70,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (!session.user.isAdmin && miniApp.status !== "PENDING") {
+    return NextResponse.json({ error: "Only pending submissions can be deleted" }, { status: 403 });
+  }
+
   await db.miniApp.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }
