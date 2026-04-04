@@ -1,24 +1,35 @@
+import { Suspense } from "react";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleList } from "@/components/module-list";
-import type { Category, Module } from "@/types";
-
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+import { CategoryFilter } from "@/components/category-filter";
+import type { Module } from "@/types";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string | string[] }>;
 }) {
   const { q, category } = await searchParams;
+
+  // Support multi-select: category can be a single string or array of strings
+  const selectedSlugs: string[] = category
+    ? Array.isArray(category)
+      ? category
+      : [category]
+    : [];
+
   const session = await auth();
 
   const limit = 12;
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      // OR logic: module must belong to at least one of the selected categories
+      ...(selectedSlugs.length > 0
+        ? { category: { slug: { in: selectedSlugs } } }
+        : {}),
       ...(q
         ? {
             OR: [
@@ -80,50 +91,37 @@ export default async function HomePage({
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c: Category) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      {/* Category filter — multi-select OR logic, state persists in URL */}
+      <Suspense
+        fallback={
+          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-8 animate-pulse rounded-full bg-gray-200" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-6 w-20 animate-pulse rounded-full bg-gray-100" />
+            ))}
+          </div>
+        }
+      >
+        <CategoryFilter categories={categories} selectedSlugs={selectedSlugs} />
+      </Suspense>
 
       {initialItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
         <ModuleList
-          key={`${q}-${category}`}
+          key={`${q}-${selectedSlugs.join(",")}`}
           initialItems={initialItems}
           initialCursor={initialCursor}
           votedIds={votedIdsArray}
           q={q}
-          category={category}
+          categories={selectedSlugs}
         />
       )}
     </div>

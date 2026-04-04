@@ -9,7 +9,7 @@ interface ModuleListProps {
   initialCursor: string | null;
   votedIds: string[];
   q?: string;
-  category?: string;
+  categories?: string[];
 }
 
 export function ModuleList({
@@ -17,7 +17,7 @@ export function ModuleList({
   initialCursor,
   votedIds,
   q,
-  category,
+  categories,
 }: ModuleListProps) {
   const [items, setItems] = useState<Module[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
@@ -34,7 +34,9 @@ export function ModuleList({
       const params = new URLSearchParams();
       params.set("cursor", nextCursor);
       if (q) params.set("q", q);
-      if (category) params.set("category", category);
+      if (categories && categories.length > 0) {
+        categories.forEach((slug) => params.append("category", slug));
+      }
 
       const res = await fetch(`/api/modules?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch more items");
