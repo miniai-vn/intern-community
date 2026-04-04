@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { BackButton } from "@/components/back-button";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -19,10 +20,10 @@ export default async function ModuleDetailPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; profileId?: string }>;
 }) {
   const { slug } = await params;
-  const { from } = await searchParams;
+  const { from, profileId } = await searchParams;
   const session = await auth();
 
   const module = await db.miniApp.findUnique({
@@ -48,19 +49,14 @@ export default async function ModuleDetailPage({
   // Determine back URL
   const getBackUrl = () => {
     if (from === "profile") {
-      return `/users/${module.author.id}`;
+      return profileId ? `/users/${profileId}` : `/users/${module.author.id}`;
     }
     return "/";
   };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <Link
-        href={getBackUrl()}
-        className="text-sm text-gray-400 hover:text-gray-600"
-      >
-        ← Back to {from === "profile" ? "profile" : "modules"}
-      </Link>
+      <BackButton fallbackUrl={getBackUrl()}>← Back</BackButton>
 
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">

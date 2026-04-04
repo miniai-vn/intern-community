@@ -6,18 +6,30 @@ interface ModuleCardProps {
   module: Module;
   hasVoted?: boolean;
   fromProfile?: boolean;
+  profileId?: string;
 }
 
 export function ModuleCard({
   module,
   hasVoted = false,
   fromProfile = false,
+  profileId,
 }: ModuleCardProps) {
+  const queryParams = new URLSearchParams();
+  if (fromProfile) {
+    queryParams.set("from", "profile");
+    if (profileId) {
+      queryParams.set("profileId", profileId);
+    }
+  }
+
+  const moduleUrl = `/modules/${module.slug}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <Link
-          href={`/modules/${module.slug}${fromProfile ? "?from=profile" : ""}`}
+          href={moduleUrl}
           className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
         >
           {module.name}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { BackButton } from "@/components/back-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -99,9 +100,7 @@ export default async function UserProfilePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-        ← Back to modules
-      </Link>
+      <BackButton fallbackUrl="/">← Back</BackButton>
 
       {/* User Profile Header */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -240,6 +239,7 @@ export default async function UserProfilePage({ params }: Props) {
                 module={module}
                 hasVoted={currentUserVotedIds.has(module.id)}
                 fromProfile={true}
+                profileId={id}
               />
             ))}
           </div>
@@ -264,6 +264,7 @@ export default async function UserProfilePage({ params }: Props) {
                 module={module}
                 hasVoted={currentUserVotedIds.has(module.id)}
                 fromProfile={true}
+                profileId={id}
               />
             ))}
           </div>
