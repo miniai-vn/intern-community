@@ -54,6 +54,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     data: {
       status: newStatus,
       feedback: parsed.data.feedback,
+      // Set approvedAt only on the first transition to APPROVED.
+      // This timestamp is used by the leaderboard to determine "approved this month"
+      // accurately — updatedAt is not reliable because it changes on any edit.
+      ...(newStatus === "APPROVED" && current.status !== "APPROVED"
+        ? { approvedAt: new Date() }
+        : {}),
     },
   });
 

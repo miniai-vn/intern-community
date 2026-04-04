@@ -105,9 +105,17 @@ model MiniApp {
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int @default(0)
 
+  // Set when status transitions to APPROVED. Used by the leaderboard query to
+  // determine "approved this month" accurately — avoids relying on updatedAt
+  // which can change for unrelated reasons (e.g. admin edits feedback).
+  approvedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Composite index for leaderboard query: filter by status + approvedAt range,
+  // then group by authorId. Avoids a full table scan as the table grows.
+  @@index([status, approvedAt])
   @@map("mini_apps")
 }
 

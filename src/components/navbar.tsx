@@ -15,6 +15,10 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          {/* Leaderboard is public — visible to everyone */}
+          <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+            Leaderboard
+          </Link>
           {session ? (
             <>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
