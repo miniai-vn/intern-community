@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -39,11 +40,15 @@ export function useOptimisticVote({
   const [voted, setVoted] = useState(initialVoted);
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
-
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
+  const router = useRouter();
   const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
@@ -63,6 +68,9 @@ export function useOptimisticVote({
       });
 
       if (!res.ok) throw new Error("Vote failed");
+
+      // Sync server data
+      router.refresh();
     } catch {
       // Roll back — but only if still mounted (see edge case note above)
       if (isMounted.current) {
@@ -74,7 +82,7 @@ export function useOptimisticVote({
         setIsLoading(false);
       }
     }
-  }, [moduleId, voted, count, isLoading]);
+  }, [moduleId, voted, count, isLoading, router]);
 
   return { voted, count, isLoading, toggle };
 }
