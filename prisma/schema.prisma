@@ -91,6 +91,7 @@ model MiniApp {
   demoUrl     String?
   status      SubmissionStatus @default(PENDING)
   feedback    String?
+  reviewerNote String?
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId String

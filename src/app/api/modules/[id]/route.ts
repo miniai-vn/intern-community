@@ -59,6 +59,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     data: {
       status: parsed.data.status,
       feedback: parsed.data.feedback,
+      reviewerNote: parsed.data.reviewerNote,
     },
   });
 
