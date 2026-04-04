@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { AuthSessionProvider } from "@/components/session-provider";
+import { Footer } from "@/components/footer";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
@@ -15,12 +16,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-gray-50 font-sans">
+      <body className="flex min-h-full flex-col bg-gray-50 font-sans ">
         <AuthSessionProvider>
           <Navbar />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+          <main className="flex-1">
             {children}
           </main>
+          <Footer />
         </AuthSessionProvider>
       </body>
     </html>
