@@ -1,16 +1,28 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { SortDropdown } from "@/components/sort-dropdown";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
+const getOrderBy = (sortParam?: string) => {
+  switch (sortParam) {
+    case "recent":
+      return { createdAt: "desc" as const };
+    case "name":
+      return { name: "asc" as const };
+    case "votes":
+    default:
+      return { voteCount: "desc" as const };
+  }
+};
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string, sort?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const { q, category, sort } = await searchParams;
   const session = await auth();
 
   const modules = await db.miniApp.findMany({
@@ -31,7 +43,7 @@ export default async function HomePage({
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+    orderBy: getOrderBy(sort),
     take: 12,
   });
 
@@ -102,6 +114,8 @@ export default async function HomePage({
           </a>
         ))}
       </div>
+
+      <SortDropdown />
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
