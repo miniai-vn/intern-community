@@ -35,6 +35,7 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
+      aria-busy={isLoading}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
           ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
@@ -42,10 +43,27 @@ export function VoteButton({
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className="animate-spin"
+    >
+      <circle cx="6" cy="6" r="4" strokeOpacity="0.25" />
+      <path d="M6 2a4 4 0 0 1 4 4" />
+    </svg>
   );
 }
 
