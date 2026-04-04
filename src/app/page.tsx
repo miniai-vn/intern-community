@@ -2,19 +2,25 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { buildBrowseHref } from "@/lib/browse-url";
 
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+const MAX_SEARCH_LEN = 200;
 
 export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const raw = await searchParams;
+  const category = raw.category;
+  const q =
+    raw.q && raw.q.length > MAX_SEARCH_LEN
+      ? raw.q.slice(0, MAX_SEARCH_LEN)
+      : raw.q;
   const session = await auth();
 
-  const modules = await db.miniApp.findMany({
+  const [modules, categories] = await Promise.all([
+    db.miniApp.findMany({
     where: {
       status: "APPROVED",
       ...(category ? { category: { slug: category } } : {}),
@@ -34,7 +40,9 @@ export default async function HomePage({
     },
     orderBy: { voteCount: "desc" },
     take: 12,
-  });
+  }),
+    db.category.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -49,8 +57,6 @@ export default async function HomePage({
     votedIds = new Set(votes.map((vote) => vote.moduleId));
   }
 
-  const categories = await db.category.findMany({ orderBy: { name: "asc" } });
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -61,7 +67,10 @@ export default async function HomePage({
           </p>
         </div>
 
-        <form className="flex gap-2">
+        <form method="get" className="flex gap-2">
+          {category ? (
+            <input type="hidden" name="category" value={category} />
+          ) : null}
           <input
             name="q"
             defaultValue={q}
@@ -77,10 +86,9 @@ export default async function HomePage({
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
         <Link
-          href="/"
+          href={buildBrowseHref({ q })}
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
               ? "bg-blue-600 text-white"
@@ -92,7 +100,7 @@ export default async function HomePage({
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/?category=${cat.slug}`}
+            href={buildBrowseHref({ q, category: cat.slug })}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               category === cat.slug
                 ? "bg-blue-600 text-white"
@@ -109,7 +117,7 @@ export default async function HomePage({
           <p className="text-gray-500">No modules found.</p>
           {q && (
             <Link
-              href="/"
+              href={buildBrowseHref({ category })}
               className="mt-2 block text-sm text-blue-600 hover:underline"
             >
               Clear search

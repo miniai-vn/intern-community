@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
+
+const MAX_BODY_BYTES = 65_536;
+const MAX_SEARCH_QUERY_LEN = 200;
 
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category");
-  const search = searchParams.get("q");
+  const rawSearch = searchParams.get("q");
+  const search =
+    rawSearch && rawSearch.length > MAX_SEARCH_QUERY_LEN
+      ? rawSearch.slice(0, MAX_SEARCH_QUERY_LEN)
+      : rawSearch;
   const cursor = searchParams.get("cursor");
   const limit = 12;
 
@@ -50,7 +58,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  if (
+    !checkRateLimit(`submit:${session.user.id}`, {
+      max: 10,
+      windowMs: 3_600_000,
+    })
+  ) {
+    return NextResponse.json(
+      { error: "Too many submissions. Please try again later." },
+      { status: 429 }
+    );
+  }
+
+  const contentLength = req.headers.get("content-length");
+  if (contentLength !== null) {
+    const n = Number.parseInt(contentLength, 10);
+    if (Number.isFinite(n) && n > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
+  }
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const parsed = submitModuleSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
