@@ -44,7 +44,11 @@ export function VoteButton({
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? (
+        <span className="text-xs">...</span>
+      ) : (
+        <TriangleIcon filled={voted} />
+      )}
       {count}
     </button>
   );

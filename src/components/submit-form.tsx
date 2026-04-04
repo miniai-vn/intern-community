@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -70,11 +71,24 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         {/* TODO [easy-challenge]: add a live character counter below this textarea */}
         <textarea
           name="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
         />
+        <div className="flex justify-between text-xs">
+          <span
+            className={`text-xs ${
+              description.length > 450
+                ? "text-red-600"
+                : "text-muted-foreground"
+            }`}
+          >
+            {description.length} / 500
+          </span>
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
