@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(miniApp);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   return NextResponse.json(updated);
 }
 
-// DELETE /api/modules/[id] — author or admin can delete their own submission
+// DELETE /api/modules/[id] — author can delete PENDING only, admin can delete any
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user) {
@@ -53,11 +53,21 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const miniApp = await db.miniApp.findUnique({ where: { id } });
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  const isOwner = miniApp.authorId === session.user.id;
+  const isAdmin = !!session.user.isAdmin;
+
+  if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (isOwner && !isAdmin && miniApp.status !== "PENDING") {
+    return NextResponse.json(
+      { error: "Only pending submissions can be deleted" },
+      { status: 403 }
+    );
   }
 
   await db.miniApp.delete({ where: { id } });
