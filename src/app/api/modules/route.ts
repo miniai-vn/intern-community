@@ -4,12 +4,24 @@ import { db } from "@/lib/db";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
+const getOrderBy = (sortParam: string) => {
+  switch (sortParam){
+    case "recent": 
+      return { createdAt: "desc" as const };
+    case "name": 
+      return { name: "asc" as const };
+    case "votes":
+    default:
+      return { voteCount: "desc" as const };
+  }
+};
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
+  const sort = searchParams.get("sort") ?? "votes";
   const limit = 12;
 
   const modules = await db.miniApp.findMany({
@@ -31,7 +43,7 @@ export async function GET(req: NextRequest) {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+    orderBy: getOrderBy(sort),
     take: limit + 1,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
