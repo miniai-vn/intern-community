@@ -59,11 +59,12 @@ model User {
   image         String?
   // Our custom fields
   isAdmin       Boolean   @default(false)
-
+  isLocked      Boolean @default(false)
   accounts    Account[]
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  comments    Comment[]
 
   createdAt DateTime @default(now())
 
@@ -98,11 +99,12 @@ model MiniApp {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
+  comments Comment[]
   votes     Vote[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
-
+  commentCount Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -128,4 +130,25 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Comment{
+  id String @id @default(cuid())
+  content String @db.Text
+
+  userId String
+  user User @relation(fields: [userId], references:[id], onDelete: Cascade)
+  
+  appId String
+  app MiniApp @relation(fields: [appId], references:[id], onDelete: Cascade)
+  
+  isEdited Boolean @default(false)
+  isDeleted Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+  @@index([appId])
+  @@index([userId])
 }

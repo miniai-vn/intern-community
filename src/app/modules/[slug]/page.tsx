@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { CommentSection } from "@/components/CommentSection";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -15,12 +16,18 @@ export async function generateMetadata({ params }: Props) {
 export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
-
+  const isAdmin = session?.user?.isAdmin ?? false;
   const module = await db.miniApp.findUnique({
     where: { slug, status: "APPROVED" },
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
+      comments: {
+        where: { isDeleted: false },
+        include: {
+          user: { select: { id: true, name: true, image: true } },
+        },
+      },
     },
   });
 
@@ -94,6 +101,14 @@ export default async function ModuleDetailPage({ params }: Props) {
           </Link>
         </div>
       )}
+      <CommentSection 
+        moduleId={module.id}
+        comments={module.comments}
+        
+        isAdmin={isAdmin}
+        session={session}
+      />
     </div>
+
   );
 }
