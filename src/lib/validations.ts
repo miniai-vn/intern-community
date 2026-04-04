@@ -3,21 +3,21 @@ import { z } from "zod";
 export const submitModuleSchema = z.object({
   name: z
     .string()
-    .min(3, "Name must be at least 3 characters")
-    .max(60, "Name must be at most 60 characters"),
+    .min(3, "Tên cần ít nhất 3 ký tự")
+    .max(60, "Tên tối đa 60 ký tự"),
   description: z
     .string()
-    .min(20, "Description must be at least 20 characters")
-    .max(500, "Description must be at most 500 characters"),
-  categoryId: z.string().cuid("Please select a valid category"),
+    .min(20, "Mô tả cần ít nhất 20 ký tự")
+    .max(500, "Mô tả tối đa 500 ký tự"),
+  categoryId: z.string().cuid("Vui lòng chọn một danh mục hợp lệ"),
   repoUrl: z
-    .url("Must be a valid URL")
+    .url("Phải là một URL hợp lệ")
     .refine(
       (url) => url.startsWith("https://github.com/"),
-      "Must be a GitHub repository URL"
+      "Phải là URL kho GitHub (https://github.com/...)"
     ),
   demoUrl: z
-    .url("Must be a valid URL")
+    .url("Phải là một URL hợp lệ")
     .optional()
     .or(z.literal("").transform(() => undefined)),
 });

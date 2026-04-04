@@ -9,12 +9,12 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 export const metadata: Metadata = {
   title: "Intern Community Hub",
   description:
-    "An open platform for the TD developer community to submit and discover mini-app modules.",
+    "Nền tảng chia sẻ mini-app và module cho cộng đồng thực tập sinh TD — gửi bài, bình chọn và khám phá.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+    <html lang="vi" className={`${geist.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-gray-50 font-sans">
         <AuthSessionProvider>
           <Navbar />
