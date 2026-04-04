@@ -8,12 +8,8 @@ export function Navbar() {
   const { data: session } = useSession();
 
   return (
-    /* Đổi bg-white thành bg-[#f8f9fa] (xám xanh nhẹ) để giống Figma 
-      và bỏ backdrop-blur nếu bạn muốn màu đặc hoàn toàn 
-    */
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-[#f8f9fa]">
-      {/* max-w-full và px-4 để Logo và Actions đẩy sát ra hai lề nhất có thể 
-      */}
+    <nav className="sticky top-0 z-50 border-b border-gray-100 !bg-[#F9F9FB]">
+
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3">
 
         {/* LEFT: Logo & Links */}
