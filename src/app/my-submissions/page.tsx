@@ -2,11 +2,21 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200",
+const statusStyles: Record<string, { badge: string; label: string }> = {
+  PENDING: {
+    badge: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    label: "Pending review",
+  },
+  APPROVED: {
+    badge: "bg-green-50 text-green-700 border-green-200",
+    label: "Approved",
+  },
+  REJECTED: {
+    badge: "bg-red-50 text-red-700 border-red-200",
+    label: "Rejected",
+  },
 };
 
 export default async function MySubmissionsPage() {
@@ -22,7 +32,10 @@ export default async function MySubmissionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+          <p className="text-sm text-gray-500">{submissions.length} submission{submissions.length !== 1 ? "s" : ""}</p>
+        </div>
         <Link
           href="/submit"
           className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -43,32 +56,48 @@ export default async function MySubmissionsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {submissions.map((sub) => (
-            <div
-              key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
-            >
-              <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
-                  {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
-                </p>
-                {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                    Feedback: {sub.feedback}
-                  </p>
-                )}
-              </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
+          {submissions.map((sub) => {
+            const style = statusStyles[sub.status];
+            return (
+              <div
+                key={sub.id}
+                className="flex items-start justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4"
               >
-                {sub.status}
-              </span>
-            </div>
-          ))}
+                <div className="min-w-0 space-y-1">
+                  {sub.status === "APPROVED" ? (
+                    <Link
+                      href={`/modules/${sub.slug}`}
+                      className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                    >
+                      {sub.name}
+                    </Link>
+                  ) : (
+                    <p className="font-medium text-gray-900">{sub.name}</p>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    {sub.category.name} · {new Date(sub.createdAt).toLocaleDateString()}
+                  </p>
+                  {sub.feedback && (
+                    <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
+                      Feedback: {sub.feedback}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${style.badge}`}
+                  >
+                    {style.label}
+                  </span>
+                  {/* Only PENDING submissions can be deleted by the author */}
+                  {sub.status === "PENDING" && (
+                    <DeleteSubmissionButton id={sub.id} name={sub.name} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
