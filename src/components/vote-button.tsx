@@ -23,7 +23,7 @@ export function VoteButton({
 
   if (!session) {
     return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
+      <span className="inline-flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
         <TriangleIcon />
         {count}
       </span>
@@ -35,15 +35,15 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
+      aria-busy={isLoading}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50"
+          : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <LoadingSpinner /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
   );
@@ -61,6 +61,27 @@ function TriangleIcon({ filled = false }: { filled?: boolean }) {
       aria-hidden="true"
     >
       <path d="M6 1 L11 10 L1 10 Z" />
+    </svg>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      className="animate-spin"
+      aria-hidden="true"
+    >
+      <circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+      <path
+        d="M6 1 A5 5 0 0 1 11 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

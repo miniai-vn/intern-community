@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  comments    Comment[]
 
   createdAt DateTime @default(now())
 
@@ -99,6 +100,7 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  comments  Comment[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -122,6 +124,30 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+// Comments allow community discussion on approved modules
+model Comment {
+  id      String @id @default(cuid())
+  content String @db.VarChar(1000)
+
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  // Support single-level replies (parentId = null for root comments)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId String?
+  replies  Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([parentId])
+  @@map("comments")
 }
 
 enum SubmissionStatus {
