@@ -129,3 +129,16 @@ enum SubmissionStatus {
   APPROVED
   REJECTED
 }
+
+// Tracks vote actions for sliding-window rate limiting.
+// Each row represents one vote attempt; rows older than 60s are ignored.
+// Periodically cleaned up by the rate limiter itself to avoid unbounded growth.
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Index on (userId, createdAt) so the sliding-window COUNT query is fast.
+  @@index([userId, createdAt])
+  @@map("rate_limit_events")
+}
