@@ -23,6 +23,7 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, feedback: feedback || undefined }),
       });
+      console.log("res", res);
       if (!res.ok) {
         let message = "Failed to submit review. Please try again.";
 

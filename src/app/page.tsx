@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
-
+import { ModuleList } from "@/components/module-list";
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
 
@@ -32,16 +32,23 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 3,
   });
 
+  const hasMore = modules.length > 2;
+  const initialModules = hasMore ? modules.slice(0, 2) : modules;
+  const initialNextCursor = hasMore
+    ? initialModules[initialModules.length - 1].id
+    : null;
+  console.log("modules length (server):", modules.length);
+  console.log("initialNextCursor:", initialNextCursor);
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
   if (session?.user) {
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: initialModules.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
@@ -98,7 +105,7 @@ export default async function HomePage({
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               category === c.slug
                 ? "bg-blue-600 text-white"
-                : ":bg-card text-muted-foreground hover:bg-background"
+                : "bg-card text-muted-foreground hover:bg-background"
             }`}
           >
             {c.name}
@@ -119,14 +126,28 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
+        <div className="">
+          {initialModules.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+              <p className="text-muted-foreground">No modules found.</p>
+              {q && (
+                <a
+                  href="/"
+                  className="mt-2 block text-sm text-blue-600 hover:underline"
+                >
+                  Clear search
+                </a>
+              )}
+            </div>
+          ) : (
+            <ModuleList
+              initialModules={initialModules}
+              initialNextCursor={initialNextCursor}
+              q={q}
+              category={category}
+              initialVotedIds={[...votedIds]}
             />
-          ))}
+          )}
         </div>
       )}
     </div>
