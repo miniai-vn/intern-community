@@ -1,22 +1,35 @@
+import { Suspense } from "react";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
-
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+import { ModuleList } from "@/components/module-list";
+import { CategoryFilter } from "@/components/category-filter";
+import type { Module } from "@/types";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string | string[] }>;
 }) {
   const { q, category } = await searchParams;
+
+  // Support multi-select: category can be a single string or array of strings
+  const selectedSlugs: string[] = category
+    ? Array.isArray(category)
+      ? category
+      : [category]
+    : [];
+
   const session = await auth();
 
+  const limit = 12;
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      // OR logic: module must belong to at least one of the selected categories
+      ...(selectedSlugs.length > 0
+        ? { category: { slug: { in: selectedSlugs } } }
+        : {}),
       ...(q
         ? {
             OR: [
@@ -26,26 +39,28 @@ export default async function HomePage({
           }
         : {}),
     },
-    // DO NOT remove include — avoids N+1 on category/author fields.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: limit + 1,
   });
 
-  // Fetch which modules the current user has voted on
-  let votedIds = new Set<string>();
+  const hasMore = modules.length > limit;
+  const initialItems = hasMore ? modules.slice(0, limit) : modules;
+  const initialCursor = hasMore ? initialItems[initialItems.length - 1].id : null;
+
+  let votedIdsArray: string[] = [];
   if (session?.user) {
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: initialItems.map((m: Module) => m.id) },
       },
       select: { moduleId: true },
     });
-    votedIds = new Set(votes.map((v) => v.moduleId));
+    votedIdsArray = votes.map((v: { moduleId: string }) => v.moduleId);
   }
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
@@ -76,52 +91,38 @@ export default async function HomePage({
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      {/* Category filter — multi-select OR logic, state persists in URL */}
+      <Suspense
+        fallback={
+          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-8 animate-pulse rounded-full bg-gray-200" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-6 w-20 animate-pulse rounded-full bg-gray-100" />
+            ))}
+          </div>
+        }
+      >
+        <CategoryFilter categories={categories} selectedSlugs={selectedSlugs} />
+      </Suspense>
 
-      {modules.length === 0 ? (
+      {initialItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModuleList
+          key={`${q}-${selectedSlugs.join(",")}`}
+          initialItems={initialItems}
+          initialCursor={initialCursor}
+          votedIds={votedIdsArray}
+          q={q}
+          categories={selectedSlugs}
+        />
       )}
     </div>
   );

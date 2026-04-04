@@ -60,10 +60,11 @@ model User {
   // Our custom fields
   isAdmin       Boolean   @default(false)
 
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
+  accounts      Account[]
+  sessions      Session[]
+  submissions   MiniApp[]
+  votes         Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -98,10 +99,11 @@ model MiniApp {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
-  votes     Vote[]
+  votes         Vote[]
+  notifications Notification[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
-  voteCount Int    @default(0)
+  voteCount Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,6 +124,28 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Notification {
+  id      String @id @default(cuid())
+  message String
+
+  // The user who receives this notification
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // The MiniApp that triggered this notification (for traceability)
+  miniApp   MiniApp @relation(fields: [miniAppId], references: [id], onDelete: Cascade)
+  miniAppId String
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Index on (userId, isRead) for fast unread-count queries per user.
+  // Index on (userId, createdAt) for fast chronological listing per user.
+  @@index([userId, isRead])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
 }
 
 enum SubmissionStatus {

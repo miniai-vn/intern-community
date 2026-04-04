@@ -16,7 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!module)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(module);
 }
 
@@ -31,16 +32,46 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body = await req.json();
   const parsed = adminReviewSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+    return NextResponse.json(
+      { error: parsed.error.flatten() },
+      { status: 422 },
+    );
+  }
+
+  const newStatus = parsed.data.status;
+
+  // Fetch current record to check if status is actually changing
+  const current = await db.miniApp.findUnique({
+    where: { id },
+    select: { status: true, name: true, authorId: true },
+  });
+  if (!current) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const updated = await db.miniApp.update({
     where: { id },
     data: {
-      status: parsed.data.status,
+      status: newStatus,
       feedback: parsed.data.feedback,
     },
   });
+
+  // Create notification only when status transitions to APPROVED or REJECTED
+  // (not on re-reviews of already-reviewed submissions)
+  if (
+    (newStatus === "APPROVED" || newStatus === "REJECTED") &&
+    current.status !== newStatus
+  ) {
+    const verb = newStatus === "APPROVED" ? "approved" : "rejected";
+    await db.notification.create({
+      data: {
+        userId: current.authorId,
+        miniAppId: id,
+        message: `"${current.name}" was ${verb}.`,
+      },
+    });
+  }
 
   return NextResponse.json(updated);
 }
@@ -54,9 +85,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   const { id } = await params;
   const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!module)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (module.authorId !== session.user.id || module.status !== "PENDING") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

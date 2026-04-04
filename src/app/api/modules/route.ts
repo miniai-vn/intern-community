@@ -7,7 +7,8 @@ import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const category = searchParams.get("category");
+  // Support multi-select OR logic: ?category=a&category=b
+  const categorySlugs = searchParams.getAll("category");
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
   const limit = 12;
@@ -15,7 +16,9 @@ export async function GET(req: NextRequest) {
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categorySlugs.length > 0
+        ? { category: { slug: { in: categorySlugs } } }
+        : {}),
       ...(search
         ? {
             OR: [
