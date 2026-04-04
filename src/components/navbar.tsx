@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image"; // 1. Import component Image
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Search, Bell } from "lucide-react";
 
@@ -9,7 +10,6 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-100 !bg-[#F9F9FB]">
-
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3">
 
         {/* LEFT: Logo & Links */}
@@ -32,15 +32,11 @@ export function Navbar() {
 
         {/* RIGHT: Search + Actions */}
         <div className="flex items-center gap-6">
-          {/* Search Bar - Làm vuông hơn và nền trắng tinh */}
           <div className="relative hidden lg:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search modules..."
-              /* rounded-md thay vì rounded-full để vuông hơn.
-                bg-white để nổi bật trên nền Navbar xám.
-              */
               className="w-80 rounded-md border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -56,10 +52,14 @@ export function Navbar() {
                 >
                   Submit Module
                 </Link>
-                <img
-                  src={session.user.image || ""}
-                  alt="Avatar"
-                  className="h-10 w-10 rounded-full border-2 border-white object-cover cursor-pointer"
+
+                {/* 2. Thay img bằng Image của Next.js */}
+                <Image
+                  src={session.user?.image || "/default-avatar.png"} // Thêm ảnh fallback nếu session không có ảnh
+                  alt="User Avatar"
+                  width={40} // Tương đương h-10
+                  height={40} // Tương đương w-10
+                  className="rounded-full border-2 border-white object-cover cursor-pointer"
                   onClick={() => signOut()}
                 />
               </div>
