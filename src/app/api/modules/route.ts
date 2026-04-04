@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // NOTE: Always include category and author to avoid N+1 on listing pages.
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const newModule = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +80,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(newModule, { status: 201 });
 }
