@@ -10,15 +10,27 @@ export default async function SubmitPage() {
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Submit a Module</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Share your mini-app with the TD community. Submissions are reviewed by
-          maintainers before being listed publicly.
-        </p>
+    <div className="space-y-8 py-4">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-800 to-purple-900 px-6 py-10 text-center text-white shadow-xl sm:py-12">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+            Gửi{" "}
+            <span className="bg-gradient-to-r from-blue-300 to-cyan-200 bg-clip-text text-transparent">
+              module
+            </span>{" "}
+            của bạn
+          </h1>
+          <p className="max-w-xl text-sm leading-relaxed text-blue-100/90 sm:text-base">
+            Chia sẻ mini-app với cộng đồng TD. Bài gửi sẽ được người quản trị duyệt trước khi
+            hiển thị công khai trên trang chủ.
+          </p>
+        </div>
       </div>
-      <SubmitForm categories={categories} />
+
+      <div className="mx-auto max-w-3xl">
+        <SubmitForm categories={categories} />
+      </div>
     </div>
   );
 }

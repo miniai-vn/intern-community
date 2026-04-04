@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -20,16 +18,6 @@ interface UseOptimisticVoteReturn {
  *
  * Optimistically updates the UI immediately, then syncs with the server.
  * Rolls back on error.
- *
- * ⚠️ KNOWN EDGE CASE (intentional for code review purposes):
- * The abort/cleanup logic uses a stale ref pattern. If the user:
- *   1. Clicks vote
- *   2. Navigates away before the API responds
- *   3. Returns to the same page
- * ...the rollback on failure may not execute because `isMounted` is reset.
- * A good reviewer will notice and ask about this. A good candidate will too.
- *
- * See: https://react.dev/learn/synchronizing-with-effects#fetching-data
  */
 export function useOptimisticVote({
   moduleId,
@@ -40,13 +28,27 @@ export function useOptimisticVote({
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
-  const isMounted = useRef(true);
+  const isMounted = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
+
+    // Cancel any ongoing request for this specific hook instance
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     // Optimistic update
     const prevVoted = voted;
@@ -60,11 +62,15 @@ export function useOptimisticVote({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ moduleId }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      // Roll back — but only if still mounted (see edge case note above)
+    } catch (err: any) {
+      // Don't rollback if it was a deliberate abort (component unmounted or new click)
+      if (err.name === "AbortError") return;
+
+      // Roll back if still mounted
       if (isMounted.current) {
         setVoted(prevVoted);
         setCount(prevCount);
