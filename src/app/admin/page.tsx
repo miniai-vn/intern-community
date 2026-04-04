@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { AdminReviewCard } from "@/components/admin-review-card";
+import { AdminDashboard } from "@/components/admin-dashboard";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -23,50 +23,20 @@ export default async function AdminPage() {
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { updatedAt: "desc" },
-    take: 5,
+    take: 10, // Increased limit for better audit log
   });
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Admin Console</h1>
+        <p className="text-sm text-gray-500">Manage community submissions and maintain quality standards.</p>
+      </div>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
-          Pending ({pending.length})
-        </h2>
-        {pending.length === 0 ? (
-          <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {pending.map((module) => (
-              <AdminReviewCard key={module.id} module={module} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
-        <div className="space-y-2">
-          {recentlyReviewed.map((module) => (
-            <div
-              key={module.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
-            >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {module.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      <AdminDashboard 
+        initialPending={pending} 
+        initialRecentlyReviewed={recentlyReviewed} 
+      />
     </div>
   );
 }

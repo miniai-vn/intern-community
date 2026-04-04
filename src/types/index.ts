@@ -12,3 +12,15 @@ export type Module = MiniApp & {
 export type ModuleStatus = SubmissionStatus;
 
 export type { Category, User };
+
+export type CommunityStats = {
+  totalModules: number;
+  byStatus: {
+    status: SubmissionStatus;
+    _count: number;
+  }[];
+  topCategories: {
+    category: { name: string; slug: string };
+    _count: number;
+  }[];
+};

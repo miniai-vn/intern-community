@@ -62,12 +62,14 @@ export async function POST(req: NextRequest) {
   const { name, description, categoryId, repoUrl, demoUrl } = parsed.data;
 
   const baseSlug = generateSlug(name);
-  const existingSlugs = await db.miniApp
-    .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+  const slugRows = await db.miniApp.findMany({
+    where: { slug: { startsWith: baseSlug } },
+    select: { slug: true },
+  });
+  const existingSlugs = slugRows.map((row) => row.slug);
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const newMiniApp = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +82,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(newMiniApp, { status: 201 });
 }

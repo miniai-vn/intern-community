@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { voteSchema } from "@/lib/validations";
 
 // Simple in-memory rate limit: max 10 votes per minute per user.
 // In production, replace with Redis-backed sliding window (e.g. Upstash).
@@ -33,9 +34,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { moduleId } = await req.json();
-  if (!moduleId || typeof moduleId !== "string") {
-    return NextResponse.json({ error: "moduleId is required" }, { status: 400 });
+  // Validate request body with Zod — rejects non-CUID strings early.
+  const body = await req.json();
+  const parsed = voteSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const { moduleId } = parsed.data;
+
+  // Security: only allow voting on APPROVED modules.
+  // This prevents users from interacting with PENDING or REJECTED submissions
+  // even if they obtain the ID from their own submission response.
+  const targetModule = await db.miniApp.findUnique({
+    where: { id: moduleId, status: "APPROVED" },
+    select: { id: true },
+  });
+
+  if (!targetModule) {
+    return NextResponse.json(
+      { error: "Module not found or not available for voting" },
+      { status: 404 }
+    );
   }
 
   const existing = await db.vote.findUnique({
