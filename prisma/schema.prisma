@@ -64,7 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
-
+  rateLimits  RateLimitEvent[]
   createdAt DateTime @default(now())
 
   @@map("users")
@@ -128,4 +128,15 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  action    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId, action, createdAt])
+  @@map("rate_limit_events")
 }
