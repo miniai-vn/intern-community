@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
@@ -41,11 +42,11 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: modules.map((row) => row.id) },
       },
       select: { moduleId: true },
     });
-    votedIds = new Set(votes.map((v) => v.moduleId));
+    votedIds = new Set(votes.map((vote) => vote.moduleId));
   }
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
@@ -78,7 +79,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,19 +88,19 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
+        </Link>
+        {categories.map((cat) => (
+          <Link
+            key={cat.id}
+            href={`/?category=${cat.slug}`}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
+              category === cat.slug
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {c.name}
-          </a>
+            {cat.name}
+          </Link>
         ))}
       </div>
 
@@ -107,18 +108,21 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
+          {modules.map((miniApp) => (
             <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
+              key={miniApp.id}
+              module={miniApp}
+              hasVoted={votedIds.has(miniApp.id)}
             />
           ))}
         </div>

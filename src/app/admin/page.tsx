@@ -38,8 +38,8 @@ export default async function AdminPage() {
           <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {pending.map((module) => (
-              <AdminReviewCard key={module.id} module={module} />
+            {pending.map((miniApp) => (
+              <AdminReviewCard key={miniApp.id} module={miniApp} />
             ))}
           </div>
         )}
@@ -48,20 +48,20 @@ export default async function AdminPage() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
         <div className="space-y-2">
-          {recentlyReviewed.map((module) => (
+          {recentlyReviewed.map((miniApp) => (
             <div
-              key={module.id}
+              key={miniApp.id}
               className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
             >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
+              <span className="text-sm font-medium text-gray-800">{miniApp.name}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  module.status === "APPROVED"
+                  miniApp.status === "APPROVED"
                     ? "bg-green-50 text-green-700"
                     : "bg-red-50 text-red-700"
                 }`}
               >
-                {module.status}
+                {miniApp.status}
               </span>
             </div>
           ))}
