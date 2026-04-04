@@ -106,6 +106,8 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Index for leaderboard query: filter by status + createdAt, group by authorId
+  @@index([status, createdAt, authorId])
   @@map("mini_apps")
 }
 
