@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { CommentList } from "@/components/comment-list";
+import { RepoLinks } from "@/components/repo-links";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -36,64 +39,136 @@ export default async function ModuleDetailPage({ params }: Props) {
     hasVoted = !!vote;
   }
 
+  // Fetch comments with replies
+  const comments = await db.comment.findMany({
+    where: {
+      moduleId: module.id,
+      parentId: null,
+    },
+    include: {
+      author: { select: { id: true, name: true, image: true } },
+      replies: {
+        include: {
+          author: { select: { id: true, name: true, image: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Format date for display
+  const createdDate = new Date(module.createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-        ← Back to modules
+    <div className="mx-auto max-w-3xl">
+      {/* Back Navigation */}
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+      >
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to modules
       </Link>
 
-      <div className="space-y-2">
+      {/* Module Header Card */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        {/* Header Row */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
-          <VoteButton
-            moduleId={module.id}
-            initialVoted={hasVoted}
-            initialCount={module.voteCount}
-          />
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{module.name}</h1>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                {module.category.name}
+              </span>
+            </div>
+
+            {/* Author Info */}
+            <div className="mt-3 flex items-center gap-3">
+              {module.author.image ? (
+                <Image
+                  src={module.author.image}
+                  alt={module.author.name || "Author"}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  {module.author.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {module.author.name || "Anonymous"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Submitted on {createdDate}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Vote Section */}
+          <div className="flex flex-col items-center">
+            <VoteButton
+              moduleId={module.id}
+              initialVoted={hasVoted}
+              initialCount={module.voteCount}
+            />
+          </div>
         </div>
-        <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
-        </p>
+
+        {/* Description */}
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            About this module
+          </h2>
+          <p className="text-gray-700 leading-relaxed dark:text-gray-300">{module.description}</p>
+        </div>
+
+        {/* Stats Row */}
+        <div className="mt-6 flex gap-6 border-t border-gray-100 pt-4 dark:border-gray-700">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">👍</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{module.voteCount}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Upvotes</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">💬</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{comments.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Comments</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📅</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{createdDate}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Published</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p className="text-gray-700">{module.description}</p>
-
-      <div className="flex gap-3">
-        <a
-          href={module.repoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          View on GitHub
-        </a>
-        {module.demoUrl && (
-          <a
-            href={module.demoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Live Demo
-          </a>
-        )}
+      {/* Links Section */}
+      <div className="mt-6">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Resources
+        </h2>
+        <RepoLinks repoUrl={module.repoUrl} demoUrl={module.demoUrl} />
       </div>
 
-      {/* TODO [hard-challenge]: Implement sandboxed iframe preview here.
-          Requirements:
-          - Only show if module.demoUrl exists
-          - Use sandbox="allow-scripts allow-same-origin" at minimum
-          - Add Content-Security-Policy header for the iframe origin
-          - Show a loading skeleton while the iframe loads
-          See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
-        </div>
-      )}
+      {/* Comments Section */}
+      <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <CommentList moduleId={module.id} initialComments={comments} />
+      </div>
     </div>
   );
 }
