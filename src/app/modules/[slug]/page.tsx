@@ -8,15 +8,15 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const module = await db.miniApp.findUnique({ where: { slug } });
-  return { title: module ? `${module.name} — Intern Community Hub` : "Not Found" };
+  const miniApp = await db.miniApp.findUnique({ where: { slug } });
+  return { title: miniApp ? `${miniApp.name} — Intern Community Hub` : "Not Found" };
 }
 
 export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { slug, status: "APPROVED" },
     include: {
       category: true,
@@ -24,13 +24,13 @@ export default async function ModuleDetailPage({ params }: Props) {
     },
   });
 
-  if (!module) notFound();
+  if (!miniApp) notFound();
 
   let hasVoted = false;
   if (session?.user) {
     const vote = await db.vote.findUnique({
       where: {
-        userId_moduleId: { userId: session.user.id, moduleId: module.id },
+        userId_moduleId: { userId: session.user.id, moduleId: miniApp.id },
       },
     });
     hasVoted = !!vote;

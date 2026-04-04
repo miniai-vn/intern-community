@@ -27,5 +27,12 @@ export const adminReviewSchema = z.object({
   feedback: z.string().max(500).optional(),
 });
 
+// Vote schema — moduleId must be a valid CUID to prevent enumeration attacks.
+// This is validated on both client (type guard) and server (Zod) per our double-validation pattern.
+export const voteSchema = z.object({
+  moduleId: z.string().cuid("Invalid module ID"),
+});
+
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;
 export type AdminReviewInput = z.infer<typeof adminReviewSchema>;
+export type VoteInput = z.infer<typeof voteSchema>;
