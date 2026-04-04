@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
+import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
 // ============================================================
 // generateSlug — already written as examples

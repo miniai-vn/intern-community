@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +16,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(miniApp);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -34,6 +34,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
+  const existing = await db.miniApp.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const updated = await db.miniApp.update({
     where: { id },
     data: {
@@ -41,6 +44,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       feedback: parsed.data.feedback,
     },
   });
+
+  if (existing.status !== parsed.data.status) {
+    await db.notification.create({
+      data: {
+        userId: existing.authorId,
+        moduleId: existing.id,
+        status: parsed.data.status,
+      },
+    });
+  }
 
   return NextResponse.json(updated);
 }
@@ -53,10 +66,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const miniApp = await db.miniApp.findUnique({ where: { id } });
+  if (!miniApp) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (miniApp.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

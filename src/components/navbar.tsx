@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -27,6 +28,7 @@ export function Navbar() {
                   Admin
                 </Link>
               )}
+              <NotificationBell />
               <button
                 onClick={() => signOut()}
                 className="text-sm text-gray-400 hover:text-gray-600"
