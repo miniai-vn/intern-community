@@ -1,5 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ZodError, ZodObject, ZodSchema } from "zod";
+
+export const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -50,4 +53,21 @@ export function formatRelativeTime(date: Date): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return date.toLocaleDateString();
+}
+export const formatFieldErrors = (err: any) => {
+  return Object.values(err.fieldErrors)
+    .flat()
+    .filter(Boolean)
+    .join(", ");
+}
+export const  checkRateLimitUlti=(userId: string, count: number, time: number): boolean => {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + time });
+    return true;
+  }
+  if (entry.count >= count) return false;
+  entry.count++;
+  return true;
 }

@@ -37,11 +37,11 @@ async function main() {
 
   // Seed demo admin user
   const admin = await prisma.user.upsert({
-    where: { email: "admin@td.com" },
+    where: { email: "tin29102003@gmail.com" },
     update: {},
     create: {
-      name: "TD Admin",
-      email: "admin@td.com",
+      name: "Dev tin",
+      email: "tin29102003@gmail.com",
       isAdmin: true,
     },
   });

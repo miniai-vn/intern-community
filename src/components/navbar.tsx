@@ -22,10 +22,27 @@ export function Navbar() {
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
+              
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                   Admin
                 </Link>
+                
+                
+              )}
+              {session.user.isAdmin && (
+                <Link href="/admin/user" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                  User management
+                </Link>
+                
+                
+              )}
+              {session.user.isAdmin && (
+                <Link href="/admin/category" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                  Category management
+                </Link>
+                
+                
               )}
               <button
                 onClick={() => signOut()}
