@@ -1,7 +1,22 @@
 import { Box, Star, Eye } from "lucide-react";
 import Link from "next/link";
 
-export function ModuleCard({ module }: { module: any }) {
+interface ModuleProps {
+  module: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    category: {
+      name: string;
+    };
+    // Thêm các trường khác nếu bạn dự định dùng sau này
+    viewCount?: number;
+  };
+  hasVoted?: boolean; // Nếu bạn có truyền props này từ HomePage
+}
+
+export function ModuleCard({ module }: ModuleProps) {
 
   return (
     <article className="flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
@@ -12,7 +27,7 @@ export function ModuleCard({ module }: { module: any }) {
         </div>
         <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
           <Star size={14} fill="#1d4ed8" className="text-[#1d4ed8]" />
-          <span>4.8</span> {/* Rating có thể thay bằng dữ liệu thực nếu có */}
+          <span>4.8</span>
         </div>
       </div>
 
@@ -32,10 +47,8 @@ export function ModuleCard({ module }: { module: any }) {
           {module.category.name}
         </span>
 
-        {/* Phần view count mới, khớp 100% với Figma */}
         <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
           <Eye size={14} />
-          {/* Ở đây bạn thay bằng dữ liệu lượt xem thực tế từ database, ví dụ `module.viewCount` */}
           <span>1.2k views</span>
         </div>
       </div>
