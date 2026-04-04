@@ -14,7 +14,7 @@ export const submitModuleSchema = z.object({
     .url("Must be a valid URL")
     .refine(
       (url) => url.startsWith("https://github.com/"),
-      "Must be a GitHub repository URL"
+      "Must be a GitHub repository URL",
     ),
   demoUrl: z
     .url("Must be a valid URL")
