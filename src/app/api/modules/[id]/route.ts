@@ -8,7 +8,8 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  // Đổi module -> targetModule (Lỗi dòng 11)
+  const targetModule = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +17,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!targetModule) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(targetModule);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -53,10 +54,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Đổi module -> targetModule (Lỗi dòng 56)
+  const targetModule = await db.miniApp.findUnique({ where: { id } });
+  if (!targetModule) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (targetModule.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
