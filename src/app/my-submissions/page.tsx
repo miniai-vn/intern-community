@@ -3,6 +3,8 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+import DeleteButton from "@/components/delete-button";
+
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   APPROVED: "bg-green-50 text-green-700 border-green-200",
@@ -60,6 +62,9 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
+              <div
+              className="flex flex-col gap-2"
+              >
               <span
                 className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
                   statusStyles[sub.status]
@@ -67,6 +72,9 @@ export default async function MySubmissionsPage() {
               >
                 {sub.status}
               </span>
+              {sub.status==="PENDING"?(<DeleteButton id={sub.id}/>):(<></>)
+              }
+                </div>
             </div>
           ))}
         </div>
