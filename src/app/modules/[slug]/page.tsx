@@ -3,17 +3,27 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { BackButton } from "@/components/back-button";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const module = await db.miniApp.findUnique({ where: { slug } });
-  return { title: module ? `${module.name} — Intern Community Hub` : "Not Found" };
+  return {
+    title: module ? `${module.name} — Intern Community Hub` : "Not Found",
+  };
 }
 
-export default async function ModuleDetailPage({ params }: Props) {
+export default async function ModuleDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ from?: string; profileId?: string }>;
+}) {
   const { slug } = await params;
+  const { from, profileId } = await searchParams;
   const session = await auth();
 
   const module = await db.miniApp.findUnique({
@@ -36,11 +46,17 @@ export default async function ModuleDetailPage({ params }: Props) {
     hasVoted = !!vote;
   }
 
+  // Determine back URL
+  const getBackUrl = () => {
+    if (from === "profile") {
+      return profileId ? `/users/${profileId}` : `/users/${module.author.id}`;
+    }
+    return "/";
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-        ← Back to modules
-      </Link>
+      <BackButton fallbackUrl={getBackUrl()}>← Back</BackButton>
 
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
@@ -52,7 +68,14 @@ export default async function ModuleDetailPage({ params }: Props) {
           />
         </div>
         <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
+          by{" "}
+          <Link
+            href={`/users/${module.author.id}`}
+            className="font-medium hover:text-blue-600 hover:underline"
+          >
+            {module.author.name}
+          </Link>{" "}
+          · {module.category.name}
         </p>
       </div>
 
@@ -89,7 +112,10 @@ export default async function ModuleDetailPage({ params }: Props) {
       {module.demoUrl && (
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
           Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
+          <Link
+            href="https://github.com"
+            className="text-blue-600 hover:underline"
+          >
             ISSUES.md
           </Link>
         </div>

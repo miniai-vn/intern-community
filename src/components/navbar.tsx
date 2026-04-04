@@ -16,14 +16,17 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/submit"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Submit Module
               </Link>
-              <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
-                My Submissions
-              </Link>
               {session.user.isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium text-orange-600 hover:text-orange-700"
+                >
                   Admin
                 </Link>
               )}
@@ -33,7 +36,12 @@ export function Navbar() {
               >
                 Sign out
               </button>
-              <span className="text-sm text-gray-700">{session.user.name}</span>
+              <Link
+                href={`/users/${session.user.id}`}
+                className="text-sm text-gray-700 hover:text-gray-900"
+              >
+                {session.user.name}
+              </Link>
             </>
           ) : (
             <button
