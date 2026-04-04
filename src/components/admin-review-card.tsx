@@ -16,11 +16,15 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   async function review(status: "APPROVED" | "REJECTED") {
     setIsLoading(true);
     try {
-      await fetch(`/api/modules/${module.id}`, {
+      const res = await fetch(`/api/modules/${module.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, feedback: feedback || undefined }),
       });
+      if (res.ok) {
+        // Signal NotificationBell to refresh — a notification was just created
+        window.dispatchEvent(new CustomEvent("notification:created"));
+      }
       router.refresh();
     } finally {
       setIsLoading(false);

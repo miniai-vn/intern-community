@@ -38,13 +38,40 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
+  const newStatus = parsed.data.status;
+
+  // Fetch current record to check if status is actually changing
+  const current = await db.miniApp.findUnique({
+    where: { id },
+    select: { status: true, name: true, authorId: true },
+  });
+  if (!current) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const updated = await db.miniApp.update({
     where: { id },
     data: {
-      status: parsed.data.status,
+      status: newStatus,
       feedback: parsed.data.feedback,
     },
   });
+
+  // Create notification only when status transitions to APPROVED or REJECTED
+  // (not on re-reviews of already-reviewed submissions)
+  if (
+    (newStatus === "APPROVED" || newStatus === "REJECTED") &&
+    current.status !== newStatus
+  ) {
+    const verb = newStatus === "APPROVED" ? "approved" : "rejected";
+    await db.notification.create({
+      data: {
+        userId: current.authorId,
+        miniAppId: id,
+        message: `"${current.name}" was ${verb}.`,
+      },
+    });
+  }
 
   return NextResponse.json(updated);
 }
