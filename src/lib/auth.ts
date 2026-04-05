@@ -3,7 +3,7 @@ import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuthObj = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
     GitHub({
@@ -15,7 +15,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
-        // Fetch isAdmin from DB — not cached in the JWT to avoid stale values
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
           select: { isAdmin: true },
@@ -26,6 +25,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export const { handlers, auth, signIn, signOut } = nextAuthObj;
+
 
 // Extend next-auth types
 declare module "next-auth" {

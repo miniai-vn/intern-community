@@ -7,7 +7,7 @@ export function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <nav className="border-b border-gray-200 bg-white">
+    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-base font-bold text-gray-900">
           Intern Community Hub
