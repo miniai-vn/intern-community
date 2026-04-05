@@ -1,7 +1,17 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+
+type Submission = {
+  id: string;
+  name: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  feedback: string | null;
+  createdAt: string;
+  category: { name: string };
+};
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -9,15 +19,50 @@ const statusStyles: Record<string, string> = {
   REJECTED: "bg-red-50 text-red-700 border-red-200",
 };
 
-export default async function MySubmissionsPage() {
-  const session = await auth();
-  if (!session?.user) redirect("/api/auth/signin");
+export default function MySubmissionsPage() {
+  const router = useRouter();
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const submissions = await db.miniApp.findMany({
-    where: { authorId: session.user.id },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const fetchSubmissions = useCallback(async () => {
+    const res = await fetch("/api/my-submissions");
+    if (res.status === 401) {
+      router.push("/api/auth/signin");
+      return;
+    }
+    if (res.ok) {
+      setSubmissions(await res.json());
+    }
+    setLoading(false);
+  }, [router]);
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [fetchSubmissions]);
+
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/modules/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSubmissions((prev) => prev.filter((s) => s.id !== id));
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-gray-100" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -60,13 +105,24 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusStyles[sub.status]}`}
+                >
+                  {sub.status}
+                </span>
+                {sub.status === "PENDING" && (
+                  <button
+                    onClick={() => handleDelete(sub.id, sub.name)}
+                    disabled={deletingId === sub.id}
+                    aria-label={`Delete ${sub.name}`}
+                    className="rounded-md px-2 py-1 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    {deletingId === sub.id ? "Deleting…" : "Delete"}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
