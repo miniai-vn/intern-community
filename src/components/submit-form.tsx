@@ -13,6 +13,8 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descLength, setDescLength] = useState(0);
+  const DESC_MAX = 500;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,15 +61,24 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field label="Description" name="description" error={error.description}>
         <textarea
           name="description"
+          id="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
-          maxLength={500}
+          maxLength={DESC_MAX}
+          onChange={(e) => setDescLength(e.target.value.length)}
           className={inputClass}
         />
+        <p
+          className={`text-xs text-right ${descLength >= 450 ? "text-red-500 font-medium" : "text-gray-400"
+            }`}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {descLength} / {DESC_MAX}
+        </p>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
