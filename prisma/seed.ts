@@ -57,6 +57,16 @@ async function main() {
     },
   });
 
+  const quy = await prisma.user.upsert({
+    where: { email: "nquy.digital@gmail.com" },
+    update: {},
+    create: {
+      name: "QuyDepTrai2k2",
+      email: "nquy.digital@gmail.com",
+      isAdmin: false,
+    },
+  });
+
   // Seed approved mini-apps (displayed as "Modules" in the UI)
   const approvedModules = [
     {
@@ -94,6 +104,18 @@ async function main() {
       categoryId: categories.find((c) => c.slug === "game")!.id,
       authorId: contributor.id,
       voteCount: 41,
+    },
+    {
+      slug: "chicken-invaders-zalo",
+      name: "Chien Ke Ga Ran - Chicken Invaders",
+      description:
+        "A Chicken Invaders-style shoot 'em up game on Zalo Mini App. Control a spaceship via touch or mouse, fight through 5 levels of increasing difficulty with 3 enemy types: Normal, Fast, and Bomber Chicken. Built with React, TypeScript, and Canvas 2D.",
+      repoUrl: "https://github.com/QuyDepTrai2k2/MiniAppChienKeGaRan",
+      demoUrl: "https://quydeptrai2k2.github.io/MiniAppChienKeGaRan/",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "game")!.id,
+      authorId: quy.id,
+      voteCount: 12,
     },
   ];
 
