@@ -42,6 +42,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  // Notification for user
+  await db.notification.create({
+    data: {
+      userId: updated.authorId,
+      moduleId: updated.id,
+      message: `Your module "${updated.name}" was ${updated.status.toLowerCase()}.${
+        updated.feedback ? ` Admin feedback: ${updated.feedback}` : ""
+      }`,
+    },
+  });
+
   return NextResponse.json(updated);
 }
 
