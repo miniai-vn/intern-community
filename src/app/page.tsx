@@ -54,13 +54,17 @@ export default async function HomePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Community Modules
+          </h1>
           <p className="text-sm text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
         </div>
 
         <form className="flex gap-2">
+          {/* Giữ category trong URL khi search */}
+          {category && <input type="hidden" name="category" value={category} />}
           <input
             name="q"
             defaultValue={q}
@@ -79,7 +83,7 @@ export default async function HomePage({
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
         <a
-          href="/"
+          href={q ? `/?q=${q}` : "/"}
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
               ? "bg-blue-600 text-white"
@@ -91,7 +95,7 @@ export default async function HomePage({
         {categories.map((c) => (
           <a
             key={c.id}
-            href={`/?category=${c.slug}`}
+            href={q ? `/?category=${c.slug}&q=${q}` : `/?category=${c.slug}`}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               category === c.slug
                 ? "bg-blue-600 text-white"
@@ -107,7 +111,10 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <a
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
             </a>
           )}
