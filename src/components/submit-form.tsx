@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [desc, setDesc] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,7 +68,10 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
         />
+        <p className="text-xs text-gray-400">{desc.length}/500 characters</p>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
