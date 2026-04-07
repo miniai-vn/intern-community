@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -60,13 +61,18 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    statusStyles[sub.status]
+                  }`}
+                >
+                  {sub.status}
+                </span>
+                {sub.status === "PENDING" && (
+                  <DeleteSubmissionButton id={sub.id} />
+                )}
+              </div>
             </div>
           ))}
         </div>
