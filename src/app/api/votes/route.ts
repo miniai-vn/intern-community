@@ -3,8 +3,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
+// ⚠️ LIMITATION: This only works correctly on a single-process deployment.
+// In multi-instance environments (Vercel, Docker replicas), each instance
+// maintains its own Map — rate limits will not be enforced across instances.
+// TODO [medium-challenge]: Replace with a Redis-backed sliding window (e.g. Upstash).
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(userId: string): boolean {
@@ -12,6 +14,10 @@ function checkRateLimit(userId: string): boolean {
   const entry = rateLimitMap.get(userId);
   if (!entry || entry.resetAt < now) {
     rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
+    // Purge expired entries to prevent unbounded Map growth on long-running processes.
+    for (const [key, val] of rateLimitMap) {
+      if (val.resetAt < now) rateLimitMap.delete(key);
+    }
     return true;
   }
   if (entry.count >= 10) return false;

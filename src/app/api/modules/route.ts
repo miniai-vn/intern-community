@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.flatten() },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
@@ -63,8 +63,11 @@ export async function POST(req: NextRequest) {
 
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
-    .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+    .findMany({
+      where: { slug: { startsWith: baseSlug } },
+      select: { slug: true },
+    })
+    .then((r: any[]) => r.map((m: { slug: any }) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
   const module = await db.miniApp.create({

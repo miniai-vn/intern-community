@@ -23,9 +23,9 @@ export function VoteButton({
 
   if (!session) {
     return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
+      <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted">
         <TriangleIcon />
-        {count}
+        <span>{count}</span>
       </span>
     );
   }
@@ -35,16 +35,16 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
+      className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-all
         ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "bg-accent-subtle text-accent-subtle-fg ring-1 ring-accent/30 hover:bg-accent/20"
+          : "bg-surface-2 text-muted hover:bg-accent-subtle hover:text-accent-subtle-fg"
         }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
+        disabled:cursor-not-allowed disabled:opacity-50`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
       <TriangleIcon filled={voted} />
-      {count}
+      <span>{count}</span>
     </button>
   );
 }
@@ -52,12 +52,13 @@ export function VoteButton({
 function TriangleIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg
-      width="12"
-      height="12"
+      width="11"
+      height="11"
       viewBox="0 0 12 12"
       fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth="1.5"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
       <path d="M6 1 L11 10 L1 10 Z" />

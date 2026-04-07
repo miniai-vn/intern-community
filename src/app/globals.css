@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Light theme ─── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F9FAFB;
+  --surface:    #FFFFFF;
+  --surface-2:  #F3F4F6;
+  --border:     #E5E7EB;
+  --foreground: #111827;
+  --muted:      #6B7280;
+
+  --accent:           #F59E0B;
+  --accent-hover:     #D97706;
+  --accent-fg:        #FFFFFF;
+  --accent-subtle:    #FEF3C7;
+  --accent-subtle-fg: #92400E;
 }
 
+/* ─── Dark theme ─── */
+.dark {
+  --background: #0D0D0D;
+  --surface:    #1A1A1A;
+  --surface-2:  #242424;
+  --border:     #2E2E2E;
+  --foreground: #F0F0F0;
+  --muted:      #8A8A8A;
+
+  --accent:           #FBBF24;
+  --accent-hover:     #F59E0B;
+  --accent-fg:        #1A0F00;
+  --accent-subtle:    #271A00;
+  --accent-subtle-fg: #FDE68A;
+}
+
+/* ─── Tailwind v4 theme registration ─── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background:       var(--background);
+  --color-surface:          var(--surface);
+  --color-surface-2:        var(--surface-2);
+  --color-border:           var(--border);
+  --color-foreground:       var(--foreground);
+  --color-muted:            var(--muted);
+  --color-accent:           var(--accent);
+  --color-accent-hover:     var(--accent-hover);
+  --color-accent-fg:        var(--accent-fg);
+  --color-accent-subtle:    var(--accent-subtle);
+  --color-accent-subtle-fg: var(--accent-subtle-fg);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base ─── */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
