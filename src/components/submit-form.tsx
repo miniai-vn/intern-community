@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitModuleSchema } from "@/lib/validations";
+import { toast } from "sonner";
 import type { Category } from "@/types";
 
 interface SubmitFormProps {
@@ -13,6 +14,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descLength, setDescLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,10 +38,13 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error?.fieldErrors ?? { _: ["Submission failed. Try again."] });
+        setError(
+          body.error?.fieldErrors ?? { _: ["Submission failed. Try again."] },
+        );
+        toast.error("Submission failed. Please check the form and try again.");
         return;
       }
-
+      toast.success("Module submitted successfully! Waiting for review.");
       router.push("/my-submissions");
       router.refresh();
     } finally {
@@ -59,22 +64,32 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field
+        label="Description"
+        name="description"
+        error={error.description}
+        hint={`${descLength}/500 characters`}
+        hintColor={descLength > 400 ? "red" : "gray"}
+      >
         <textarea
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          onChange={(e) => setDescLength(e.target.value.length)}
           className={inputClass}
         />
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
         <select name="categoryId" className={inputClass} defaultValue="">
-          <option value="" disabled>Select a category</option>
+          <option value="" disabled>
+            Select a category
+          </option>
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
           ))}
         </select>
       </Field>
@@ -97,9 +112,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      {error._ && (
-        <p className="text-sm text-red-600">{error._.join(", ")}</p>
-      )}
+      {error._ && <p className="text-sm text-red-600">{error._.join(", ")}</p>}
 
       <button
         type="submit"
@@ -120,12 +133,14 @@ function Field({
   name,
   error,
   hint,
+  hintColor = "gray",
   children,
 }: {
   label: string;
   name: string;
   error?: string[];
   hint?: string;
+  hintColor?: "gray" | "red";
   children: React.ReactNode;
 }) {
   return (
@@ -134,7 +149,13 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && (
+        <p
+          className={`text-xs ${hintColor === "red" ? "text-red-500" : "text-gray-400"}`}
+        >
+          {hint}
+        </p>
+      )}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { IframePreview } from "@/components/iframe-preview";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -86,14 +87,26 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Add Content-Security-Policy header for the iframe origin
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
-        </div>
-      )}
+{module.demoUrl && (
+  <div className="space-y-2">
+    <h2 className="text-sm font-medium text-gray-700">Live Preview</h2>
+    <IframePreview
+      demoUrl={module.demoUrl}
+      title={module.name}
+    />
+    <p className="text-xs text-gray-400">
+      Preview runs in a sandboxed iframe.{" "}
+      
+        href={module.demoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-500 hover:underline"
+      <a>
+        Open in new tab →
+      </a>
+    </p>
+  </div>
+)}
     </div>
   );
 }

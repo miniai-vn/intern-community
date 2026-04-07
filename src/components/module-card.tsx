@@ -23,6 +23,7 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`View demo for ${module.name}`}
             className="shrink-0 text-gray-400 hover:text-gray-600"
           >
             <ExternalLinkIcon />
@@ -56,3 +57,4 @@ function ExternalLinkIcon() {
     </svg>
   );
 }
+

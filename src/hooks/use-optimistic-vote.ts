@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
+
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -44,6 +46,12 @@ export function useOptimisticVote({
   // with the same moduleId (e.g. navigating away and back in the same session).
   // The stale `isMounted` from the previous render is reused.
   const isMounted = useRef(true);
+  useEffect(() => {
+  isMounted.current = true; 
+  return () => {
+    isMounted.current = false;  
+  };
+}, []);
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
@@ -56,20 +64,22 @@ export function useOptimisticVote({
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/votes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moduleId }),
-      });
+  const res = await fetch("/api/votes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleId }),
+  });
 
-      if (!res.ok) throw new Error("Vote failed");
-    } catch {
-      // Roll back — but only if still mounted (see edge case note above)
-      if (isMounted.current) {
-        setVoted(prevVoted);
-        setCount(prevCount);
-      }
-    } finally {
+  if (!res.ok) throw new Error("Vote failed");
+  toast.success(prevVoted ? "Vote removed." : "Voted successfully!");
+} catch {
+  if (isMounted.current) {
+    setVoted(prevVoted);
+    setCount(prevCount);
+    // ← thêm toast thất bại
+    toast.error("Failed to vote. Please try again.");
+  }
+} finally {
       if (isMounted.current) {
         setIsLoading(false);
       }
