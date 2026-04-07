@@ -55,6 +55,7 @@ export default async function HomePage({
 
   // Identify the initial cursor (which is the ID of the last element if there are 12).
   const initialCursor = modules.length === LIMIT ? modules[modules.length - 1].id : null;
+  const filterKey = `${category || 'all'}-${q || ''}`;
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -100,6 +101,7 @@ export default async function HomePage({
         </div>
       ) : (
         <ModuleList 
+          key={filterKey}
           initialModules={modules as any} 
           initialCursor={initialCursor}
           votedIds={votedIds}
