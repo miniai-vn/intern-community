@@ -112,6 +112,16 @@ model MiniApp {
   @@map("mini_apps")
 }
 
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  key       String   // Example: "vote-limit"
+  timestamp DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@map("rate_limit_events")
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String

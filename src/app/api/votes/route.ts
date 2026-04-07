@@ -2,36 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+// Max 10 votes per 60 seconds
+const LIMIT = 10;
+const WINDOW_MS = 60 * 1000;
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 10) return false;
-  entry.count++;
-  return true;
-}
-
-// POST /api/votes — toggle vote on a module
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRateLimit(session.user.id)) {
+  const userId = session.user.id;
+
+  // LOGIC RATE LIMITING (SLIDING WINDOW) 
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - WINDOW_MS);
+
+  // Count vote in 60 seconds from Database
+  const recentVoteCount = await db.rateLimitEvent.count({
+    where: {
+      userId,
+      key: "vote",
+      timestamp: { gte: windowStart },
+    },
+  });
+
+  if (recentVoteCount >= LIMIT) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
+      { error: "Too many votes. Please wait a minute before voting again." },
       { status: 429 }
     );
   }
+
+  // Record the new voting event in the rate limit log.
+  await db.rateLimitEvent.create({
+    data: { userId, key: "vote" },
+  });
 
   const { moduleId } = await req.json();
   if (!moduleId || typeof moduleId !== "string") {
@@ -39,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   const existing = await db.vote.findUnique({
-    where: { userId_moduleId: { userId: session.user.id, moduleId } },
+    where: { userId_moduleId: { userId, moduleId } },
   });
 
   if (existing) {
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Vote
     await db.$transaction([
       db.vote.create({
-        data: { userId: session.user.id, moduleId },
+        data: { userId, moduleId },
       }),
       db.miniApp.update({
         where: { id: moduleId },
