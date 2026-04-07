@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import DeleteButton from "@/components/ui/delete-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -32,14 +33,26 @@ export default async function MySubmissionsPage() {
       </div>
 
       {submissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No submissions yet.</p>
-          <Link
-            href="/submit"
-            className="mt-2 block text-sm text-blue-600 hover:underline"
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-16 text-center">
+          <svg
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="mb-4 size-10 text-gray-400"
           >
-            Submit your first module →
-          </Link>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+          <h3 className="text-sm font-medium text-gray-900">No submissions</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by creating a new module.</p>
+          <div className="mt-6">
+            <Link
+              href="/submit"
+              className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+            >
+              + New Submission
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
@@ -49,7 +62,16 @@ export default async function MySubmissionsPage() {
               className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
             >
               <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
+                {sub.status === "APPROVED" ? (
+                  <Link
+                    href={`/modules/${sub.slug}`}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {sub.name}
+                  </Link>
+                ) : (
+                  <p className="font-medium text-gray-900">{sub.name}</p>
+                )}
                 <p className="text-xs text-gray-400">
                   {sub.category.name} ·{" "}
                   {new Date(sub.createdAt).toLocaleDateString()}
@@ -60,13 +82,15 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusStyles[sub.status]
+                    }`}
+                >
+                  {sub.status}
+                </span>
+                {(sub.status === "PENDING") && <DeleteButton moduleId={sub.id} />}
+              </div>
             </div>
           ))}
         </div>
