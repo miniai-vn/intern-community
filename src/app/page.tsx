@@ -32,11 +32,11 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 3,
+    take: 13,
   });
 
-  const hasMore = modules.length > 2;
-  const items = hasMore ? modules.slice(0, 2) : modules;
+  const hasMore = modules.length > 12;
+  const items = hasMore ? modules.slice(0, 12) : modules;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
