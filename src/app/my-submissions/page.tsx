@@ -24,12 +24,14 @@ export default async function MySubmissionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
-        <Link
-          href="/submit"
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + New Submission
-        </Link>
+        {(submissions.length === 0) || (
+          <Link
+            href="/submit"
+            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + New Submission
+          </Link>
+        )}
       </div>
 
       {submissions.length === 0 ? (
