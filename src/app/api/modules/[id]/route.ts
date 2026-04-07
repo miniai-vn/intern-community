@@ -65,12 +65,37 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   const { id } = await params;
   const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  
+  if (!module) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await db.miniApp.delete({ where: { id } });
+  const isAdmin = session.user.isAdmin;
+  const isAuthor = module.authorId === session.user.id;
+
+  // Check must be either the author or an admin to proceed with deletion
+  if (!isAuthor && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden: You are not the author or an admin" }, { status: 403 });
+  }
+
+  // If the user is the author, they can only delete if the status is PENDING
+  if (!isAdmin && module.status !== "PENDING") {
+    return NextResponse.json(
+      { error: "Forbidden: Authors can only delete PENDING submissions. APPROVED or REJECTED status is locked." },
+      { status: 403 }
+    );
+  }
+
+  await db.$transaction([
+    // Delete all votes related to this module to maintain data integrity
+    db.vote.deleteMany({ where: { moduleId: id } }),
+    
+    // delete all notifications related to this module to prevent orphaned notifications
+    db.notification.deleteMany({ where: { moduleId: id } }),
+    
+    // finally delete the module itself
+    db.miniApp.delete({ where: { id } }),
+  ]);
+  
   return new NextResponse(null, { status: 204 });
 }
