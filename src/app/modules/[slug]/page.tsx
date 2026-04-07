@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { CommentSection } from "@/components/comment-section";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -51,9 +52,16 @@ export default async function ModuleDetailPage({ params }: Props) {
             initialCount={module.voteCount}
           />
         </div>
-        <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
-        </p>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          {module.author.image && (
+            <img
+              src={module.author.image}
+              alt={module.author.name || "Author"}
+              className="h-5 w-5 rounded-full object-cover"
+            />
+          )}
+          <span>by {module.author.name} · {module.category.name}</span>
+        </div>
       </div>
 
       <p className="text-gray-700">{module.description}</p>
@@ -79,13 +87,6 @@ export default async function ModuleDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* TODO [hard-challenge]: Implement sandboxed iframe preview here.
-          Requirements:
-          - Only show if module.demoUrl exists
-          - Use sandbox="allow-scripts allow-same-origin" at minimum
-          - Add Content-Security-Policy header for the iframe origin
-          - Show a loading skeleton while the iframe loads
-          See: ISSUES.md for full acceptance criteria */}
       {module.demoUrl && (
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
           Sandboxed preview coming soon. Contribute this feature! See{" "}
@@ -94,6 +95,9 @@ export default async function ModuleDetailPage({ params }: Props) {
           </Link>
         </div>
       )}
+
+      {/* Comment / Discussion Section */}
+      <CommentSection miniAppId={module.id} />
     </div>
   );
 }
