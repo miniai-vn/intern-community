@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
   const limit = 12;
+  const session = await auth();
 
   const modules = await db.miniApp.findMany({
     where: {
@@ -37,8 +38,25 @@ export async function GET(req: NextRequest) {
   });
 
   const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
+  const pageItems = hasMore ? modules.slice(0, limit) : modules;
+  const nextCursor = hasMore ? pageItems[pageItems.length - 1].id : null;
+
+  let voteIds = new Set<string>();
+  if (session?.user && pageItems.length > 0) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: pageItems.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    voteIds = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const items = pageItems.map((module) => ({
+    ...module,
+    hasVoted: voteIds.has(module.id),
+  }));
 
   return NextResponse.json({ items, nextCursor });
 }
@@ -55,7 +73,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.flatten() },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
@@ -63,11 +81,14 @@ export async function POST(req: NextRequest) {
 
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
-    .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
+    .findMany({
+      where: { slug: { startsWith: baseSlug } },
+      select: { slug: true },
+    })
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const createdModule = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +101,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(createdModule, { status: 201 });
 }
