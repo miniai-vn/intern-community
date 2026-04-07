@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  todos       Todo[]
 
   createdAt DateTime @default(now())
 
@@ -122,6 +123,18 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  title     String
+  isComplete Boolean @default(false)
+  createdAt DateTime @default(now())
+  
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  @@map("todos")
 }
 
 enum SubmissionStatus {
