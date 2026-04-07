@@ -51,39 +51,41 @@ export default async function HomePage({
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
-            Discover mini-apps built by the Intern developer community.
-          </p>
-        </div>
+    <div className="space-y-8">
+      {/* Hero */}
+      <div className="rounded-2xl border border-border bg-surface px-6 py-8 shadow-sm">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Community <span className="text-accent">Modules</span>
+        </h1>
+        <p className="mt-2 text-muted">
+          Discover mini-apps built by the Intern developer community.
+        </p>
 
-        <form className="flex gap-2">
+        {/* Search */}
+        <form className="mt-5 flex gap-2">
           <input
             name="q"
             defaultValue={q}
             placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="flex-1 rounded-xl border border-border bg-surface-2 px-4 py-2 text-sm text-foreground outline-none placeholder:text-muted transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
           <button
             type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition-colors hover:bg-accent-hover"
           >
             Search
           </button>
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
+      {/* Category filter */}
       <div className="flex flex-wrap gap-2">
         <a
           href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+          className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              ? "bg-accent text-accent-fg shadow-sm"
+              : "bg-surface-2 text-muted hover:bg-accent-subtle hover:text-accent-subtle-fg"
           }`}
         >
           All
@@ -92,10 +94,10 @@ export default async function HomePage({
           <a
             key={c.id}
             href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
               category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-accent text-accent-fg shadow-sm"
+                : "bg-surface-2 text-muted hover:bg-accent-subtle hover:text-accent-subtle-fg"
             }`}
           >
             {c.name}
@@ -103,11 +105,12 @@ export default async function HomePage({
         ))}
       </div>
 
+      {/* Module grid */}
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
+        <div className="rounded-2xl border border-dashed border-border p-14 text-center">
+          <p className="text-muted">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <a href="/" className="mt-3 block text-sm font-medium text-accent hover:underline">
               Clear search
             </a>
           )}

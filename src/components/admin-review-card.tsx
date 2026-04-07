@@ -12,38 +12,62 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   const router = useRouter();
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function review(status: "APPROVED" | "REJECTED") {
     setIsLoading(true);
+    setError(null);
     try {
-      await fetch(`/api/modules/${module.id}`, {
+      const res = await fetch(`/api/modules/${module.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, feedback: feedback || undefined }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body?.error ?? `Request failed (${res.status})`);
+        return;
+      }
       router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
-      <div>
-        <h3 className="font-semibold text-gray-900">{module.name}</h3>
-        <p className="text-xs text-gray-400">
-          by {module.author.name} · {module.category.name}
-        </p>
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="font-semibold text-foreground">{module.name}</h3>
+          <p className="mt-0.5 text-xs text-muted">
+            by {module.author.name} · {module.category.name}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-accent-subtle px-2.5 py-0.5 text-xs font-medium text-accent-subtle-fg">
+          {module.category.name}
+        </span>
       </div>
 
-      <p className="text-sm text-gray-600">{module.description}</p>
+      <p className="text-sm text-muted">{module.description}</p>
 
-      <div className="flex gap-2 text-xs">
-        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+      <div className="flex gap-3 text-xs">
+        <a
+          href={module.repoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-accent hover:underline"
+        >
           GitHub →
         </a>
         {module.demoUrl && (
-          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a
+            href={module.demoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-accent hover:underline"
+          >
             Demo →
           </a>
         )}
@@ -55,21 +79,25 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         placeholder="Feedback for the contributor (optional)"
         rows={2}
         maxLength={500}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
       />
+
+      {error && (
+        <p className="text-xs text-red-500">{error}</p>
+      )}
 
       <div className="flex gap-2">
         <button
           onClick={() => review("APPROVED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-600"
         >
           Approve
         </button>
         <button
           onClick={() => review("REJECTED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
         >
           Reject
         </button>

@@ -4,9 +4,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 const statusStyles: Record<string, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200",
+  PENDING:  "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900",
+  APPROVED: "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-900",
+  REJECTED: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900",
 };
 
 export default async function MySubmissionsPage() {
@@ -22,21 +22,26 @@ export default async function MySubmissionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            My <span className="text-accent">Submissions</span>
+          </h1>
+          <p className="mt-1 text-sm text-muted">{submissions.length} module{submissions.length !== 1 ? "s" : ""} submitted</p>
+        </div>
         <Link
           href="/submit"
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition-colors hover:bg-accent-hover"
         >
-          + New Submission
+          + New Module
         </Link>
       </div>
 
       {submissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No submissions yet.</p>
+        <div className="rounded-2xl border border-dashed border-border p-14 text-center">
+          <p className="text-muted">No submissions yet.</p>
           <Link
             href="/submit"
-            className="mt-2 block text-sm text-blue-600 hover:underline"
+            className="mt-3 block text-sm font-medium text-accent hover:underline"
           >
             Submit your first module →
           </Link>
@@ -46,24 +51,21 @@ export default async function MySubmissionsPage() {
           {submissions.map((sub) => (
             <div
               key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
+              className="flex items-start justify-between rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-accent/30"
             >
               <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
-                  {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
+                <p className="font-semibold text-foreground">{sub.name}</p>
+                <p className="text-xs text-muted">
+                  {sub.category.name} · {new Date(sub.createdAt).toLocaleDateString()}
                 </p>
                 {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                    Feedback: {sub.feedback}
+                  <p className="mt-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs text-muted">
+                    <span className="font-medium text-foreground">Feedback:</span> {sub.feedback}
                   </p>
                 )}
               </div>
               <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
+                className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusStyles[sub.status]}`}
               >
                 {sub.status}
               </span>

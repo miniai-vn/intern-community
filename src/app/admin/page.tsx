@@ -28,14 +28,24 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Admin <span className="text-accent">Review</span>
+        </h1>
+        <p className="mt-1 text-sm text-muted">Review and manage submitted modules.</p>
+      </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
-          Pending ({pending.length})
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-foreground">Pending</h2>
+          <span className="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-semibold text-accent-subtle-fg">
+            {pending.length}
+          </span>
+        </div>
         {pending.length === 0 ? (
-          <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <p className="text-sm text-muted">No pending submissions.</p>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {pending.map((module) => (
@@ -45,20 +55,20 @@ export default async function AdminPage() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-foreground">Recently Reviewed</h2>
         <div className="space-y-2">
           {recentlyReviewed.map((module) => (
             <div
               key={module.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
             >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
+              <span className="text-sm font-medium text-foreground">{module.name}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400"
                 }`}
               >
                 {module.status}

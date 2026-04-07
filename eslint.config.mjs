@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+
+  {
+    rules: {
+      "@typescript-eslint/no-assign-module-variable": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
