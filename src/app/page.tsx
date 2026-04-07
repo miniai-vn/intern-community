@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
 import { CategoryFilter } from "@/components/category-filter";
 import { Suspense } from "react";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -12,8 +13,10 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const params = await searchParams;
+  const { q, category } = params;
   const session = await auth();
+  const LIMIT = 12;
 
   const modules = await db.miniApp.findMany({
     where: {
@@ -34,7 +37,7 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: LIMIT,
   });
 
   // Fetch which modules the current user has voted on
@@ -49,6 +52,9 @@ export default async function HomePage({
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
+
+  // Identify the initial cursor (which is the ID of the last element if there are 12).
+  const initialCursor = modules.length === LIMIT ? modules[modules.length - 1].id : null;
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -93,15 +99,12 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModuleList 
+          initialModules={modules as any} 
+          initialCursor={initialCursor}
+          votedIds={votedIds}
+          searchParams={params}
+        />
       )}
     </div>
   );
