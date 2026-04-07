@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const navLinkClass = (href: string) =>
+    `text-sm transition-colors ${
+      pathname === href
+        ? "font-medium text-gray-900"
+        : "text-gray-600 hover:text-gray-900"
+    }`;
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -14,16 +23,27 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link href="/leaderboard" className={navLinkClass("/leaderboard")}>
+            Leaderboard
+          </Link>
+
           {session ? (
             <>
-              <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/submit" className={navLinkClass("/submit")}>
                 Submit Module
               </Link>
-              <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/my-submissions" className={navLinkClass("/my-submissions")}>
                 My Submissions
               </Link>
               {session.user.isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                <Link
+                  href="/admin"
+                  className={
+                    pathname === "/admin"
+                      ? "text-sm font-medium text-orange-700"
+                      : "text-sm font-medium text-orange-600 hover:text-orange-700"
+                  }
+                >
                   Admin
                 </Link>
               )}

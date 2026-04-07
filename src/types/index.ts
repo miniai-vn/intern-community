@@ -12,3 +12,4 @@ export type Module = MiniApp & {
 export type ModuleStatus = SubmissionStatus;
 
 export type { Category, User };
+export type { LeaderboardEntry, LeaderboardResult } from "./leaderboard";
