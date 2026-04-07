@@ -105,7 +105,9 @@ export default async function HomePage({
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
+          <div className="text-6xl">📦</div>
+          <h2 className="text-gray-500">No modules found.</h2>
+          
           {q && (
             <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search

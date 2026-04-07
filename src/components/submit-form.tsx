@@ -13,12 +13,12 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError({});
 
     const data = Object.fromEntries(new FormData(e.currentTarget));
+    console.log("form data:", data);
     const parsed = submitModuleSchema.safeParse(data);
 
     if (!parsed.success) {
@@ -77,7 +77,9 @@ export function SubmitForm({ categories }: SubmitFormProps) {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+
       </Field>
+      
 
       <Field label="GitHub repository URL" name="repoUrl" error={error.repoUrl}>
         <input
@@ -108,6 +110,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       >
         {isSubmitting ? "Submitting…" : "Submit Module"}
       </button>
+      
     </form>
   );
 }
