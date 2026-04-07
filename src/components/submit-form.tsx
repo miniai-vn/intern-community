@@ -14,6 +14,10 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // State to monitor descriptive content
+  const [description, setDescription] = useState("");
+  const MAX_CHARS = 500;
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError({});
@@ -65,9 +69,19 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
-          maxLength={500}
+          maxLength={MAX_CHARS}
           className={inputClass}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
+        {/* Live Character Counter */}
+        <div 
+          className={`mt-1 text-right text-xs transition-colors ${
+            description.length >= 450 ? "font-medium text-red-600" : "text-gray-400"
+          }`}
+        >
+          {description.length} / {MAX_CHARS}
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>

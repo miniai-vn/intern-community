@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { CategoryFilter } from "@/components/category-filter";
+import { Suspense } from "react";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -10,8 +13,10 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const params = await searchParams;
+  const { q, category } = params;
   const session = await auth();
+  const LIMIT = 12;
 
   const modules = await db.miniApp.findMany({
     where: {
@@ -32,7 +37,7 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: LIMIT,
   });
 
   // Fetch which modules the current user has voted on
@@ -47,6 +52,10 @@ export default async function HomePage({
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
+
+  // Identify the initial cursor (which is the ID of the last element if there are 12).
+  const initialCursor = modules.length === LIMIT ? modules[modules.length - 1].id : null;
+  const filterKey = `${category || 'all'}-${q || ''}`;
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -76,32 +85,10 @@ export default async function HomePage({
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      {/* Category filter optimization */}
+      <Suspense fallback={<div className="h-8 animate-pulse bg-gray-100 rounded-full w-full" />}>
+        <CategoryFilter categories={categories} activeCategory={category} />
+      </Suspense>
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
@@ -113,15 +100,13 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModuleList 
+          key={filterKey}
+          initialModules={modules as any} 
+          initialCursor={initialCursor}
+          votedIds={votedIds}
+          searchParams={params}
+        />
       )}
     </div>
   );
