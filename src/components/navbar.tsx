@@ -22,6 +22,9 @@ export function Navbar() {
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
+              <Link href="/todos" className="text-sm text-gray-600 hover:text-gray-900">
+                My Tasks
+              </Link>
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                   Admin
