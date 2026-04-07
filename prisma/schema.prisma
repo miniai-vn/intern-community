@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -98,6 +99,8 @@ model MiniApp {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
+  notifications Notification[]
+
   votes     Vote[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
@@ -107,6 +110,33 @@ model MiniApp {
   updatedAt DateTime @updatedAt
 
   @@map("mini_apps")
+}
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  key       String   // Example: "vote-limit"
+  timestamp DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@map("rate_limit_events")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  moduleId  String?  
+  module    MiniApp? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])         
+  @@index([userId, isRead])
+  @@map("notifications")
 }
 
 model Vote {
