@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  bookmarks   Bookmark[]
 
   createdAt DateTime @default(now())
 
@@ -103,6 +104,9 @@ model MiniApp {
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
 
+  bookmarks Bookmark[]
+  bookmarkCount Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -122,6 +126,21 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Bookmark {
+  id String @id @default(cuid())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  
+  moduleId String
+  module   MiniApp @relation(fields: [moduleId], references: [id])
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, moduleId])
+  @@map("bookmarks")
 }
 
 enum SubmissionStatus {

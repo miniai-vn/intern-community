@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
-// POST /api/votes — toggle vote on a module
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
@@ -12,14 +11,14 @@ export async function POST(req: NextRequest) {
 
   if (
     !rateLimit({
-      namespace: "votes",
+      namespace: "bookmarks",
       key: session.user.id,
       limit: 10,
       windowMs: 60_000,
     })
   ) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
+      { error: "Too many bookmark actions. Please wait a moment." },
       { status: 429 }
     );
   }
@@ -32,33 +31,44 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const existing = await db.vote.findUnique({
+  const existing = await db.bookmark.findUnique({
     where: { userId_moduleId: { userId: session.user.id, moduleId } },
   });
 
   if (existing) {
-    // Un-vote
-    await db.$transaction([
-      db.vote.delete({ where: { id: existing.id } }),
+    // !bookmark
+
+    const [_, updated] = await db.$transaction([
+      db.bookmark.delete({ where: { id: existing.id }, select: { id: true } }),
       db.miniApp.update({
         where: { id: moduleId },
-        data: { voteCount: { decrement: 1 } },
+        data: { bookmarkCount: { decrement: 1 } },
+        select: { bookmarkCount: true },
       }),
     ]);
 
-    return NextResponse.json({ voted: false });
+    return NextResponse.json({
+      bookmark: false,
+      bookmarkCount: updated.bookmarkCount,
+    });
   } else {
-    // Vote
-    await db.$transaction([
-      db.vote.create({
+    // bookmark
+
+    const [_, updated] = await db.$transaction([
+      db.bookmark.create({
         data: { userId: session.user.id, moduleId },
+        select: { id: true },
       }),
       db.miniApp.update({
         where: { id: moduleId },
-        data: { voteCount: { increment: 1 } },
+        data: { bookmarkCount: { increment: 1 } },
+        select: { bookmarkCount: true },
       }),
     ]);
 
-    return NextResponse.json({ voted: true });
+    return NextResponse.json({
+      bookmark: true,
+      bookmarkCount: updated.bookmarkCount,
+    });
   }
 }
