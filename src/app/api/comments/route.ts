@@ -5,28 +5,44 @@ import { db } from "@/lib/db";
 import { createCommentSchema } from "@/lib/validations";
 import { checkAndModerateComment } from "@/lib/moderation";
 
-// GET /api/comments?miniAppId=xxx — list comments for a module
+/**
+ * Hàm đệ quy để chuyển mảng phẳng các comment thành cấu trúc cây.
+ * @param allComments Danh sách toàn bộ comment (phẳng)
+ * @param parentId ID của comment cha (mặc định là null cho các comment gốc)
+ */
+function buildCommentTree(allComments: any[], parentId: string | null = null): any[] {
+  return allComments
+    .filter((c) => c.parentId === parentId)
+    .map((c) => ({
+      ...c,
+      // Đệ quy để tìm các phản hồi của comment hiện tại
+      replies: buildCommentTree(allComments, c.id),
+    }))
+    // Sắp xếp replies theo thời gian tăng dần (cũ trước mới sau)
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
+
+// GET /api/comments?miniAppId=xxx — list comments for a module (infinite nesting)
 export async function GET(req: NextRequest) {
   const miniAppId = req.nextUrl.searchParams.get("miniAppId");
   if (!miniAppId) {
     return NextResponse.json({ error: "miniAppId is required" }, { status: 400 });
   }
 
-  const comments = await db.comment.findMany({
-    where: { miniAppId, parentId: null },
+  // Lấy toàn bộ comment của module (không lọc parentId ở tầng DB)
+  const allComments = await db.comment.findMany({
+    where: { miniAppId },
     include: {
       author: { select: { id: true, name: true, image: true } },
-      replies: {
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-        },
-        orderBy: { createdAt: "asc" },
-      },
     },
+    // Sắp xếp gốc theo mới nhất (desc), các replies sẽ được sort lại trong hàm buildTree
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(comments);
+  // Xây dựng cây comment bằng đệ quy
+  const commentTree = buildCommentTree(allComments, null);
+
+  return NextResponse.json(commentTree);
 }
 
 // POST /api/comments — create a new comment
@@ -47,17 +63,12 @@ export async function POST(req: NextRequest) {
 
   const { text, miniAppId, parentId } = parsed.data;
 
-  // If replying, ensure parent exists and is a root comment (single-level nesting)
+  // Nếu là phản hồi, chỉ cần đảm bảo comment cha tồn tại.
+  // Đã bỏ giới hạn single-level nesting để hỗ trợ lồng nhau vô hạn.
   if (parentId) {
     const parent = await db.comment.findUnique({ where: { id: parentId } });
     if (!parent) {
       return NextResponse.json({ error: "Parent comment not found" }, { status: 404 });
-    }
-    if (parent.parentId) {
-      return NextResponse.json(
-        { error: "Cannot reply to a reply (single-level nesting only)" },
-        { status: 400 }
-      );
     }
   }
 
@@ -70,16 +81,11 @@ export async function POST(req: NextRequest) {
     },
     include: {
       author: { select: { id: true, name: true, image: true } },
-      replies: {
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-        },
-      },
+      replies: true,
     },
   });
 
   // Schedule background moderation using Next.js after()
-  // This ensures the task runs to completion even after response is sent
   after(async () => {
     await checkAndModerateComment(comment.id, comment.text, session.user.id);
   });

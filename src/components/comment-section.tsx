@@ -54,6 +54,21 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
     fetchComments();
   }, [miniAppId]);
 
+  // Helper function to update a comment deep in the tree (Recursive)
+  const updateCommentRecursive = (
+    list: CommentData[],
+    targetId: string,
+    updater: (c: CommentData) => CommentData
+  ): CommentData[] => {
+    return list.map((c) => {
+      if (c.id === targetId) return updater(c);
+      if (c.replies.length > 0) {
+        return { ...c, replies: updateCommentRecursive(c.replies, targetId, updater) };
+      }
+      return c;
+    });
+  };
+
   // ── Add comment (optimistic) ────────────────────────────────────────────
 
   const addComment = useCallback(
@@ -77,16 +92,13 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
         _optimistic: true,
       };
 
-      // Optimistic insert
+      // Optimistic insert (Recursive)
       setComments((prev) => {
-        if (parentId) {
-          return prev.map((c) =>
-            c.id === parentId
-              ? { ...c, replies: [...c.replies, optimisticComment] }
-              : c
-          );
-        }
-        return [optimisticComment, ...prev];
+        if (!parentId) return [optimisticComment, ...prev];
+        return updateCommentRecursive(prev, parentId, (c) => ({
+          ...c,
+          replies: [...c.replies, optimisticComment],
+        }));
       });
 
       try {
@@ -100,43 +112,15 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
 
         const realComment = await res.json();
 
-        // Replace optimistic comment with real one
-        setComments((prev) => {
-          if (parentId) {
-            return prev.map((c) =>
-              c.id === parentId
-                ? {
-                    ...c,
-                    replies: c.replies.map((r) =>
-                      r.id === tempId ? { ...realComment, _optimistic: false } : r
-                    ),
-                  }
-                : c
-            );
-          }
-          return prev.map((c) =>
-            c.id === tempId ? { ...realComment, _optimistic: false } : c
-          );
-        });
+        // Replace optimistic comment with real one (Recursive)
+        setComments((prev) =>
+          updateCommentRecursive(prev, tempId, () => ({ ...realComment, _optimistic: false }))
+        );
       } catch {
-        // Mark as error
-        setComments((prev) => {
-          if (parentId) {
-            return prev.map((c) =>
-              c.id === parentId
-                ? {
-                    ...c,
-                    replies: c.replies.map((r) =>
-                      r.id === tempId ? { ...r, _error: true, _optimistic: true } : r
-                    ),
-                  }
-                : c
-            );
-          }
-          return prev.map((c) =>
-            c.id === tempId ? { ...c, _error: true, _optimistic: true } : c
-          );
-        });
+        // Mark as error (Recursive)
+        setComments((prev) =>
+          updateCommentRecursive(prev, tempId, (c) => ({ ...c, _error: true, _optimistic: true }))
+        );
       }
     },
     [session, miniAppId]
@@ -156,15 +140,11 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
     const updated = await res.json();
 
     setComments((prev) =>
-      prev.map((c) => {
-        if (c.id === commentId) return { ...c, text: updated.text, updatedAt: updated.updatedAt };
-        return {
-          ...c,
-          replies: c.replies.map((r) =>
-            r.id === commentId ? { ...r, text: updated.text, updatedAt: updated.updatedAt } : r
-          ),
-        };
-      })
+      updateCommentRecursive(prev, commentId, (c) => ({
+        ...c,
+        text: updated.text,
+        updatedAt: updated.updatedAt,
+      }))
     );
   }, []);
 
@@ -174,31 +154,30 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
     const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
     if (!res.ok) throw new Error("Failed to delete");
 
-    setComments((prev) => {
-      if (parentId) {
-        return prev.map((c) =>
-          c.id === parentId
-            ? { ...c, replies: c.replies.filter((r) => r.id !== commentId) }
-            : c
-        );
-      }
-      return prev.filter((c) => c.id !== commentId);
-    });
+    const deleteRecursive = (list: CommentData[]): CommentData[] => {
+      return list
+        .filter((c) => c.id !== commentId)
+        .map((c) => ({
+          ...c,
+          replies: deleteRecursive(c.replies),
+        }));
+    };
+
+    setComments((prev) => deleteRecursive(prev));
   }, []);
 
   // ── Remove errored optimistic ───────────────────────────────────────────
 
-  const dismissError = useCallback((tempId: string, parentId?: string | null) => {
-    setComments((prev) => {
-      if (parentId) {
-        return prev.map((c) =>
-          c.id === parentId
-            ? { ...c, replies: c.replies.filter((r) => r.id !== tempId) }
-            : c
-        );
-      }
-      return prev.filter((c) => c.id !== tempId);
-    });
+  const dismissError = useCallback((tempId: string) => {
+    const deleteRecursive = (list: CommentData[]): CommentData[] => {
+      return list
+        .filter((c) => c.id !== tempId)
+        .map((c) => ({
+          ...c,
+          replies: deleteRecursive(c.replies),
+        }));
+    };
+    setComments((prev) => deleteRecursive(prev));
   }, []);
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -232,7 +211,7 @@ export function CommentSection({ miniAppId }: CommentSectionProps) {
               comment={comment}
               currentUserId={session?.user?.id}
               isAdmin={session?.user?.isAdmin ?? false}
-              onReply={(text) => addComment(text, comment.id)}
+              onReply={addComment}
               onEdit={editComment}
               onDelete={deleteComment}
               onDismissError={dismissError}
@@ -345,10 +324,10 @@ function CommentItem({
   comment: CommentData;
   currentUserId?: string;
   isAdmin: boolean;
-  onReply: (text: string) => void;
+  onReply: (text: string, parentId: string) => void;
   onEdit: (id: string, text: string) => Promise<void>;
   onDelete: (id: string, parentId?: string | null) => Promise<void>;
-  onDismissError: (id: string, parentId?: string | null) => void;
+  onDismissError: (id: string) => void;
   isReply?: boolean;
 }) {
   const [isReplying, setIsReplying] = useState(false);
@@ -381,7 +360,7 @@ function CommentItem({
       <div className="comment-item comment-error">
         <p className="comment-error-text">⚠ Failed to post comment</p>
         <button
-          onClick={() => onDismissError(comment.id, comment.parentId)}
+          onClick={() => onDismissError(comment.id)}
           className="comment-error-dismiss"
         >
           Dismiss
@@ -434,7 +413,7 @@ function CommentItem({
 
       {!isOptimistic && !isEditing && (
         <div className="comment-actions">
-          {!isReply && currentUserId && (
+          {currentUserId && (
             <button
               onClick={() => setIsReplying(!isReplying)}
               className="comment-action-btn"
@@ -465,7 +444,7 @@ function CommentItem({
         <div className="comment-reply-form-wrap">
           <CommentForm
             onSubmit={(text) => {
-              onReply(text);
+              onReply(text, comment.id);
               setIsReplying(false);
             }}
             onCancel={() => setIsReplying(false)}
