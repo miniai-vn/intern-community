@@ -48,7 +48,7 @@ export function VoteButton({
   );
 }
 
-function TriangleIcon({ filled = false }: { filled?: boolean }) {
+function TriangleIcon({ filled = false, className = "" }: { filled?: boolean; className?: string }) {
   return (
     <svg
       width="12"
@@ -58,6 +58,7 @@ function TriangleIcon({ filled = false }: { filled?: boolean }) {
       stroke="currentColor"
       strokeWidth="1.5"
       aria-hidden="true"
+      className={className}
     >
       <path d="M6 1 L11 10 L1 10 Z" />
     </svg>
