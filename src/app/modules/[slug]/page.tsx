@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import { ViewTracker } from "@/components/view-tracker";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -42,6 +43,8 @@ export default async function ModuleDetailPage({ params }: Props) {
         ← Back to modules
       </Link>
 
+      <ViewTracker moduleId={module.id} />
+
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
@@ -52,7 +55,8 @@ export default async function ModuleDetailPage({ params }: Props) {
           />
         </div>
         <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
+          by {module.author.name} · {module.category.name} ·{" "}
+          {module.viewCount} {module.viewCount === 1 ? "view" : "views"}
         </p>
       </div>
 
