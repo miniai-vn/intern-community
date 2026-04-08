@@ -124,6 +124,15 @@ model Vote {
   @@map("votes")
 }
 
+model RateLimitEvent{
+  id         String @id @default(cuid())
+  userId     String
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("rate_limit_events")
+}
+
 enum SubmissionStatus {
   PENDING
   APPROVED
