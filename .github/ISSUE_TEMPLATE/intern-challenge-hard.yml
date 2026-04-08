@@ -1,0 +1,54 @@
+name: "🔴 Intern Challenge — Hard"
+description: Design and implement a complete feature. Requires system thinking and clear communication. Estimated time: 1–3 days.
+labels:
+  - "intern-challenge"
+  - "difficulty: hard"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## TD Intern Challenge — Hard
+
+        This is a **design + implementation** task. There is intentionally no single
+        correct answer — we want to see how you think.
+
+        What we evaluate:
+        - **Design before you code**: open a discussion or draft PR with your approach first
+        - **Trade-offs**: show you understand why you chose your approach
+        - **Communication**: comment early, respond to feedback thoughtfully
+        - **Completeness**: edge cases, error states, and tests are part of the task
+
+        Setup: see [CONTRIBUTING.md](../CONTRIBUTING.md)
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & motivation
+      description: Why this feature matters
+    validations:
+      required: true
+
+  - type: textarea
+    id: task
+    attributes:
+      label: Task description
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints & non-goals
+      description: What is explicitly out of scope
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for reviewer

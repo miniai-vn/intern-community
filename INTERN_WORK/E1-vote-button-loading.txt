@@ -1,0 +1,71 @@
+# E1 — Loading State cho Vote Button
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/components/vote-button.tsx`
+
+---
+
+## Bài toán
+
+Khi user click vote, phải đợi API xử lý (vài trăm ms). Nếu không có loading state, user sẽ:
+- Không biết đang xử lý → click nhiều lần
+- Nghĩ app bị đơ → refresh trang
+
+## Giải pháp
+
+1. Dùng biến `isLoading` đã có sẵn trong `useOptimisticVote` hook
+2. Khi `isLoading = true` → thay icon tam giác bằng `SpinnerIcon` (icon xoay)
+3. Thêm CSS `animate-spin` để icon xoay
+4. Button có `disabled={isLoading}` → không click được khi đang xử lý
+
+## Code thay đổi
+
+```tsx
+// TRƯỚC:
+<TriangleIcon filled={voted} />
+{count}
+
+// SAU:
+{isLoading ? (
+  <SpinnerIcon />
+) : (
+  <TriangleIcon filled={voted} />
+)}
+{count}
+```
+
+Thêm SpinnerIcon:
+```tsx
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+      className="animate-spin"
+    >
+      <circle cx="6" cy="6" r="4.5" strokeOpacity="0.25" />
+      <path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" strokeOpacity="1" />
+    </svg>
+  );
+}
+```
+
+## Kết quả
+
+| Trạng thái | Giao diện |
+|---|---|
+| Bình thường | [ △ 41 ] |
+| Đang xử lý | [ ◌ 41 ] (xoay) + nút mờ |
+| Vote thành công | [ ▲ 42 ] (màu cam) |
+| Vote thất bại | [ △ 41 ] (rollback) |
+
+## Test
+
+1. Đăng nhập GitHub
+2. Click vote → thấy spinner xoay
+3. Chờ 2-3 giây → thấy kết quả

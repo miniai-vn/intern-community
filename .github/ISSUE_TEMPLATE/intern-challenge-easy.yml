@@ -1,0 +1,45 @@
+name: "🟢 Intern Challenge — Easy"
+description: A bite-sized task to get familiar with the codebase. Estimated time: 1–3 hours.
+labels:
+  - "intern-challenge"
+  - "difficulty: easy"
+  - "good first issue"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Welcome to the TD Intern Challenge!
+
+        This is an **easy** task — perfect if this is your first contribution.
+        Before you start:
+        1. Read [CONTRIBUTING.md](../CONTRIBUTING.md) for setup instructions
+        2. Comment `I'm working on this` so others know it's taken
+        3. Ask for clarification **before** writing code if anything is unclear
+
+  - type: textarea
+    id: task
+    attributes:
+      label: Task description
+      description: What needs to be done
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know the task is complete?
+    validations:
+      required: true
+
+  - type: textarea
+    id: hints
+    attributes:
+      label: Hints
+      description: Files to look at, useful docs, or tips
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for reviewer
+      description: What the reviewer should pay attention to when evaluating this PR

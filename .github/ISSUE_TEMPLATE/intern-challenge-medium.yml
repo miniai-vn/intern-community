@@ -1,0 +1,50 @@
+name: "🟡 Intern Challenge — Medium"
+description: A feature-level task that requires reading existing code and extending it. Estimated time: 4–8 hours.
+labels:
+  - "intern-challenge"
+  - "difficulty: medium"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## TD Intern Challenge — Medium
+
+        This task requires you to **read existing code** and extend it correctly.
+        A few things we'll be watching:
+        - Did you read the code before writing? (PRs that ignore existing patterns get rejected)
+        - Did you ask for clarification when the requirements were ambiguous?
+        - Are your commits small and descriptive?
+
+        Setup: see [CONTRIBUTING.md](../CONTRIBUTING.md)
+
+  - type: textarea
+    id: task
+    attributes:
+      label: Task description
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+
+  - type: textarea
+    id: hints
+    attributes:
+      label: Hints & relevant files
+
+  - type: textarea
+    id: ambiguity
+    attributes:
+      label: Intentional ambiguity
+      description: |
+        Some parts of this issue are left vague on purpose.
+        You are expected to ask a clarifying question in the comments before proceeding.
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for reviewer

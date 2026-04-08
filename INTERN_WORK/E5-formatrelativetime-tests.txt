@@ -1,0 +1,138 @@
+# E5 — Viết test cho hàm formatRelativeTime
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `__tests__/utils.test.ts`
+**Ngày làm:** 2026-04-07
+
+---
+
+## Bài toán
+
+Hàm `formatRelativeTime` chuyển ngày thành text tương đối.
+
+Ví dụ:
+```
+"Bạn post bài 30 phút trước"  → "30m ago"
+"Bạn post bài 5 ngày trước"  → "5d ago"
+```
+
+Cần test để đảm bảo mọi khoảng thời gian đều đúng.
+
+## 5 test đã viết
+
+```ts
+describe("formatRelativeTime", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it('returns "just now" for less than 1 minute ago', () => {
+    vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z"));
+    const past = new Date("2026-04-08T09:59:30.000Z"); // 30 sec ago
+    expect(formatRelativeTime(past)).toBe("just now");
+  });
+
+  it("returns minutes ago for 1–59 minutes", () => {
+    vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z"));
+    const past = new Date("2026-04-08T09:30:00.000Z"); // 30 min ago
+    expect(formatRelativeTime(past)).toBe("30m ago");
+  });
+
+  it("returns hours ago for 1–23 hours", () => {
+    vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z"));
+    const past = new Date("2026-04-08T03:00:00.000Z"); // 7 hours ago
+    expect(formatRelativeTime(past)).toBe("7h ago");
+  });
+
+  it("returns days ago for 1–29 days", () => {
+    vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z"));
+    const past = new Date("2026-04-01T10:00:00.000Z"); // 7 days ago
+    expect(formatRelativeTime(past)).toBe("7d ago");
+  });
+
+  it("returns toLocaleDateString for 30+ days ago", () => {
+    vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z"));
+    const past = new Date("2026-01-01T10:00:00.000Z"); // ~97 days ago
+    const result = formatRelativeTime(past);
+    expect(result).not.toMatch(/ago$/); // phải là date string, không phải "X ago"
+  });
+});
+```
+
+## Kết quả
+
+```
+Tests  18 passed ✅
+  generateSlug:      8 tests
+  makeUniqueSlug:    5 tests
+  formatRelativeTime: 5 tests  ← E5 thêm 5
+```
+
+---
+
+## 🎓 Những điều đã học được từ E5
+
+### 1. Fake Timers trong test là gì?
+
+**Vấn đề:** Test thời gian → nếu dùng `Date.now()` thật → kết quả thay đổi mỗi giây → test không deterministic.
+
+**Giải pháp:**
+```ts
+vi.useFakeTimers();   // Thay Date.now() bằng thời gian GIẢ
+vi.setSystemTime(new Date("2026-04-08T10:00:00.000Z")); // Đặt thời gian CỐ ĐỊNH
+// Test...
+vi.useRealTimers();   // Trả lại thời gian THẬT
+```
+
+### 2. Tại sao cần beforeEach và afterEach?
+
+```ts
+beforeEach(() => vi.useFakeTimers());  // Mỗi test bắt đầu → bật fake time
+afterEach(() => vi.useRealTimers());   // Mỗi test xong → tắt fake time
+```
+
+→ Đảm bảo test này không ảnh hưởng test khác.
+
+### 3. 5 khoảng thời gian cần test
+
+| Khoảng | Input | Output |
+|---|---|---|
+| < 1 phút | Date.now() - 30s | "just now" |
+| 1–59 phút | Date.now() - 30m | "30m ago" |
+| 1–23 giờ | Date.now() - 7h | "7h ago" |
+| 1–29 ngày | Date.now() - 7d | "7d ago" |
+| ≥ 30 ngày | Date.now() - 97d | date string (không "ago") |
+
+### 4. Test cuối dùng regex
+
+```ts
+expect(result).not.toMatch(/ago$/);
+// Tìm kết quả KHÔNG kết thúc bằng "ago"
+// → Đảm bảo ≥30 ngày trả về date string, không phải "97d ago"
+```
+
+### 5. Boundary testing
+
+| Boundary | Giá trị |
+|---|---|
+| 0 phút | "just now" |
+| 1 phút | "1m ago" |
+| 59 phút | "59m ago" |
+| 60 phút | "1h ago" |
+| 23 giờ | "23h ago" |
+| 24 giờ | "1d ago" |
+| 29 ngày | "29d ago" |
+| 30 ngày | date string |
+
+### 6. Bài học quan trọng
+
+> **Test không deterministic = Test vô giá trị.**
+> Fake timers cho phép ta kiểm soát thời gian → test LUÔN đúng, không phụ thuộc lúc chạy.
+
+### 7. Ứng dụng thực tế
+
+`formatRelativeTime` được dùng để hiển thị:
+- "Bài viết được post 5 phút trước"
+- "Comment được viết 2 ngày trước"
+- "Module được tạo 3 tháng trước"
+
+→ Cần đúng trong mọi khoảng thời gian, không chỉ "trường hợp hay dùng".

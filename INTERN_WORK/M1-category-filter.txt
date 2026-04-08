@@ -1,0 +1,121 @@
+# M1 — Category Filter với URL Persistence
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/app/page.tsx` + `src/components/category-filter.tsx` (mới)
+**Ngày làm:** 2026-04-08
+
+---
+
+## Bài toán
+
+Trang chủ có category pills — hiện tại mỗi lần click đều **reload toàn bộ trang** (`<a href="...">`).
+
+**Vấn đề:**
+- Chậm (reload toàn bộ page)
+- URL không thay đổi → refresh trang → mất filter
+- Không share được URL với filter đã chọn
+
+## Giải pháp
+
+Tạo `CategoryFilter` component — dùng `useRouter` + `useSearchParams`:
+
+```tsx
+function handleCategory(slug: string) {
+  const params = new URLSearchParams(searchParams.toString());
+  if (slug) {
+    params.set("category", slug);
+  } else {
+    params.delete("category");
+  }
+  router.push(`/?${params.toString()}`);  // ✅ Thay đổi URL
+  router.refresh();                        // ✅ Cập nhật data
+}
+```
+
+## Thay đổi trên web
+
+| Trước (dùng `<a>`) | Sau (dùng `useRouter`) |
+|---|---|
+| Click → reload cả trang | Click → chỉ thay đổi URL + refresh data |
+| Refresh → mất filter | Refresh → **giữ nguyên filter** |
+| Share URL → không có filter | Share URL → **có filter** |
+
+## Kết quả test
+
+```
+pnpm typecheck  ✅
+pnpm test      ✅ 18 passed
+```
+
+---
+
+## 🎓 Những điều đã học được từ M1
+
+### 1. useRouter vs useSearchParams
+
+| Hook | Tác dụng |
+|---|---|
+| `useSearchParams` | Đọc URL hiện tại (?category=game) |
+| `useRouter` | Thay đổi URL mà không reload trang |
+
+### 2. URLSearchParams là gì?
+
+```ts
+// Tạo params từ URL hiện tại
+const params = new URLSearchParams(searchParams.toString());
+
+// Thêm/sửa param
+params.set("category", "game");
+
+// Xóa param
+params.delete("category");
+
+// Chuyển thành string
+params.toString(); // "category=game" hoặc ""
+```
+
+### 3. Tại sao cần router.refresh()?
+
+```ts
+router.push("/?category=game");  // Thay đổi URL (client-side)
+// → Nhưng server component chưa re-render!
+
+router.refresh();               // → Trigger server re-render
+// → Data được cập nhật với filter mới
+```
+
+### 4. Client Component vs Server Component
+
+- `page.tsx` (server) → đọc DB, lấy modules
+- `CategoryFilter` (client) → xử lý click, thay đổi URL
+- Server lấy data từ `searchParams` → nhờ `router.refresh()` mới cập nhật
+
+### 5. Persistence qua URL
+
+```
+URL: /                     → Filter: All
+URL: /?category=game       → Filter: Game
+URL: /?category=finance    → Filter: Finance
+URL: /?q=pomodoro&category=productivity → Search + Filter
+```
+
+→ **Copy URL → gửi cho người khác → họ thấy cùng filter.**
+
+### 6. Single-select vs Multi-select
+
+Bài TODO không nói rõ → tôi chọn **single-select** (chỉ chọn 1 category):
+
+```ts
+if (slug) {
+  params.set("category", slug);  // Thay thế category mới
+} else {
+  params.delete("category");    // Xóa → về All
+}
+```
+
+→ Nếu muốn multi-select → cần dùng `params.getAll("category")` hoặc `Set`.
+
+### 7. Bài học quan trọng
+
+> **URL = State tốt nhất cho persistence.**
+> Thay vì dùng useState → lưu filter vào URL → refresh vẫn còn, share được, bookmark được.

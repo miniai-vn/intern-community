@@ -1,0 +1,126 @@
+# E6 — Thêm aria-label cho icon external link
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/components/module-card.tsx`
+**Ngày làm:** 2026-04-07
+
+---
+
+## Bài toán
+
+Icon 🔗 (mở demo bên ngoài) là **icon-only button** — không có text.
+
+**Vấn đề:**
+- Người dùng screen reader (người khuyết tật) không biết icon này làm gì
+- WCAG accessibility guidelines yêu cầu icon-only buttons phải có `aria-label`
+
+## Giải pháp
+
+Thêm `aria-label` vào thẻ `<a>`:
+
+```tsx
+// TRƯỚC:
+<a
+  href={module.demoUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="shrink-0 text-gray-400 hover:text-gray-600"
+>
+  <ExternalLinkIcon />
+</a>
+
+// SAU:
+<a
+  href={module.demoUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Open demo in new tab"
+  className="shrink-0 text-gray-400 hover:text-gray-600"
+>
+  <ExternalLinkIcon />
+</a>
+```
+
+## Kết quả trên web
+
+```
+┌─────────────────────────────────┐
+│ 2048 Game           ↗    △ 41  │  ← KHÔNG thay đổi gì NHÌN THẤY
+└─────────────────────────────────┘
+```
+
+**⚠️ QUAN TRỌNG:** Trên màn hình KHÔNG CÓ GÌ khác biệt cả. Icon ↗ vẫn y hệt.
+
+Khi dùng screen reader (VoiceOver, NVDA):
+- **Trước:** Nghe: "Link"
+- **Sau:** Nghe: **"Open demo in new tab, link"**
+
+Chỉ người dùng **screen reader** (người khiếm thị) mới được lợi từ thay đổi này.
+
+## Tại sao chọn text này?
+
+| Text | Tốt/Xấu | Lý do |
+|---|---|---|
+| `"Open demo in new tab"` | ✅ Tốt nhất | Mô tả rõ action + target |
+| `"Open demo"` | ⚠️ Chưa đủ | Thiếu "new tab" — user không biết sẽ mở tab mới |
+| `"Demo"` | ❌ Xấu | Không mô tả action gì cả |
+| `"Link"` | ❌ Xấu | Quá chung chung |
+
+## WCAG tiêu chuẩn
+
+- `aria-label` phải mô tả **action** chứ không phải element type
+- "Open demo in new tab" = mô tả rõ: action (open) + target (demo) + behavior (new tab)
+
+## Test
+
+1. Inspect icon 🔗 ở góc card module (2048 Game, Pomodoro Timer)
+2. Kiểm tra thẻ `<a>` có `aria-label="Open demo in new tab"`
+3. Hoặc dùng browser accessibility inspector
+
+## Ghi chú
+
+- `ExternalLinkIcon` có `aria-hidden="true"` — đúng vì icon chỉ là visual, không cần screen reader đọc icon
+- `aria-label` nằm trên thẻ `<a>` — đúng vì action là "mở link"
+- `rel="noopener noreferrer"` giữ nguyên — bảo mật khi mở tab mới
+
+---
+
+## 🎓 Những điều đã học được từ E6
+
+### 1. Accessibility (a11y) là gì?
+- **Accessibility** = thiết kế để người khuyết tật cũng dùng được
+- Screen reader đọc nội dung web cho người khiếm thị
+- Icon-only buttons = BÀI TOÁN LỚN vì không có text để đọc
+
+### 2. aria-label hoạt động thế nào?
+- `aria-label` = text thay thế để screen reader đọc
+- Không hiển thị trên màn hình (không nhìn thấy bằng mắt)
+- Có thể đặt trên button, a, input, và nhiều element khác
+
+### 3. Phân biệt aria-hidden vs aria-label
+| Thuộc tính | Tác dụng | Nhìn thấy? |
+|---|---|---|
+| `aria-hidden="true"` | ẨN element khỏi screen reader | ✅ Có (vẫn nhìn thấy) |
+| `aria-label="..."` | Thêm text để screen reader đọc | ❌ Không |
+
+### 4. Tại sao code có sẵn icon mà vẫn cần aria-label?
+- Icon SVG chỉ là hình ảnh, không có ngữ nghĩa
+- Screen reader bỏ qua SVG nếu có `aria-hidden` hoặc không có ngữ nghĩa
+- `<a>` không có text bên trong = screen reader không có gì để đọc
+- → Cần `aria-label` để mô tả action
+
+### 5. WCAG là gì?
+- **WCAG** = Web Content Accessibility Guidelines
+- Tiêu chuẩn quốc tế về accessibility cho web
+- Yêu cầu icon-only buttons phải có text alternative
+
+### 6. Bài học lớn nhất
+> **Không phải thay đổi nào cũng NHÌN THẤY. Những thay đổi tốt nhất đôi khi là những thứ người dùng không bao giờ biết — nhưng một nhóm người sẽ vô cùng biết ơn.**
+
+Đây gọi là **invisible accessibility** — accessibility không nhìn thấy nhưng cực kỳ quan trọng.
+
+### 7. Cách kiểm tra accessibility
+- DevTools → Inspect → tìm `aria-label`
+- Dùng browser accessibility inspector
+- Chrome: Audit tab → Accessibility check
+- Screen reader thật (VoiceOver trên Mac, NVDA trên Windows)

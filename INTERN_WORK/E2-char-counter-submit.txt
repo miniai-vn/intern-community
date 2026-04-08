@@ -1,0 +1,116 @@
+# E2 — Live Character Counter cho Submit Form
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/components/submit-form.tsx`
+**Ngày làm:** 2026-04-07
+
+---
+
+## Bài toán
+
+Trang Submit Module có textarea "Description" giới hạn **500 ký tự**.
+
+**Vấn đề:**
+- User không biết mình đã gõ bao nhiêu ký tự
+- Gõ đến 500 rồi → text bị cắt nhưng không thấy feedback gì
+- Không có cảnh báo khi sắp hết chỗ
+
+## Giải pháp
+
+1. Thêm `useState` để lưu số ký tự hiện tại
+2. Gắn `onChange` vào textarea để cập nhật state mỗi khi gõ
+3. Thêm `<p>` bên dưới textarea hiển thị `so_ky_tu / 500`
+4. Khi ≥450 ký tự → chuyển màu đỏ để cảnh báo
+
+## Code thay đổi
+
+### Bước 1: Thêm state đếm ký tự
+
+```tsx
+// Thêm dòng này vào đầu component
+const [description, setDescription] = useState("");
+```
+
+### Bước 2: Thêm onChange + counter vào textarea
+
+```tsx
+// TRƯỚC:
+<textarea
+  name="description"
+  rows={4}
+  placeholder="What does your module do? Who is it for?"
+  maxLength={500}
+  className={inputClass}
+/>
+
+// SAU:
+<textarea
+  name="description"
+  rows={4}
+  placeholder="What does your module do? Who is it for?"
+  maxLength={500}
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  className={inputClass}
+/>
+
+{/* Thêm dòng này bên dưới textarea */}
+<p className={`text-xs ${description.length >= 450 ? "text-red-500" : "text-gray-400"}`}>
+  {description.length} / 500
+</p>
+```
+
+## Logic hoạt động
+
+| Số ký tự | Màu hiển thị | Ý nghĩa |
+|---|---|---|
+| 0–449 | `text-gray-400` (xám) | Bình thường |
+| 450–499 | `text-red-500` (đỏ) | ⚠️ Sắp hết chỗ, cân nhắc rút gọn |
+| 500 | `text-red-500` (đỏ) + `maxLength={500}` | ❌ Không gõ thêm được nữa |
+
+## Kết quả trên web
+
+```
+┌─────────────────────────────────┐
+│ Description                     │
+│ ┌─────────────────────────────┐ │
+│ │ Type your description here │ │
+│ │ ...                        │ │
+│ └─────────────────────────────┘ │
+│ 342 / 500              ← xám    │  ← Bình thường
+│ Max 500 characters              │
+└─────────────────────────────────┘
+
+Khi gõ ≥450:
+│ 452 / 500              ← đỏ ⚠️  │  ← Cảnh báo!
+```
+
+## Test
+
+1. Vào `/submit`
+2. Click vào textarea "Description"
+3. Gõ thử vài ký tự → thấy số tăng: `12 / 500`
+4. Gõ đến 450+ → thấy chuyển đỏ
+5. Gõ đến 500 → không gõ thêm được nữa
+
+## Câu hỏi nhà tuyển dụng có thể hỏi
+
+**Q: Tại sao chọn 450 làm ngưỡng cảnh báo, không phải 480 hay 490?**
+
+A: 450 là mốc "sắp hết" — user còn 50 ký tự, đủ để nhắc nhở mà không quá muộn. Chọn 480 thì cảnh báo quá sớm, chọn 490 thì gần giới hạn quá. 450 là balance hợp lý.
+
+**Q: Tại sao dùng `useState` riêng thay vì đếm trực tiếp?**
+
+A: Vì textarea dùng `name="description"` (để gửi form), nhưng `value` + `onChange` để hiển thị counter. Cần state riêng để quản lý UI counter độc lập với form submission.
+
+**Q: Số ký tự có bị lệch giữa state và form submit không?**
+
+A: Không. Cả hai cùng dùng textarea này — `maxLength={500}` giới hạn input, state đếm cùng input đó. Khi submit, FormData lấy đúng giá trị từ textarea.
+
+---
+
+## Ghi chú thêm
+
+- `maxLength={500}` trên textarea là "hard limit" — browser tự chặn không cho gõ thêm
+- Counter chỉ là UI feedback, không ảnh hưởng logic
+- `type="submit"` vẫn dùng `FormData` như cũ — không cần sửa logic submit

@@ -1,0 +1,174 @@
+# E3 — Viết test cho hàm generateSlug
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `__tests__/utils.test.ts`
+**Ngày làm:** 2026-04-07
+
+---
+
+## Bài toán
+
+Hàm `generateSlug` có 4 test case đã viết sẵn, nhưng còn **4 test case còn thiếu** — phải tự viết.
+
+Trước khi viết test, phải **đọc implementation** trong `src/lib/utils.ts` để hiểu logic.
+
+## Đọc code trước — Logic của generateSlug
+
+```ts
+export function generateSlug(name: string): string {
+  return name
+    .toLowerCase()                      // 1. Viết thường
+    .trim()                              // 2. Xóa khoảng trắng đầu/cuối
+    .replace(/[^a-z0-9\s-]/g, "")         // 3. Xóa ký tự đặc biệt (giữ a-z, 0-9, space, -)
+    .replace(/[\s]+/g, "-")              // 4. Thay space bằng -
+    .replace(/-+/g, "-")                  // 5. Collapse nhiều - thành 1
+    .replace(/^-|-$/g, "");               // 6. Xóa - ở đầu và cuối
+}
+```
+
+---
+
+## 4 test case đã viết (sẵn)
+
+```ts
+it("lowercases and hyphenates words", () => {
+  expect(generateSlug("My Cool App")).toBe("my-cool-app");
+});
+
+it("strips special characters", () => {
+  expect(generateSlug("Hello, World!")).toBe("hello-world");
+});
+
+it("trims leading and trailing whitespace", () => {
+  expect(generateSlug("  Hello  World  ")).toBe("hello-world");
+});
+
+it("collapses multiple spaces into a single hyphen", () => {
+  expect(generateSlug("a   b   c")).toBe("a-b-c");
+});
+```
+
+---
+
+## 4 test case ĐÃ THÊM
+
+### Test 1: Tên đã là slug hợp lệ
+
+```ts
+it("returns a name that is already a valid slug unchanged", () => {
+  expect(generateSlug("my-cool-app")).toBe("my-cool-app");
+});
+```
+
+**Tư duy:** `my-cool-app` đã đúng format slug → không cần thay đổi gì.
+
+### Test 2: Tên có số (số được giữ nguyên)
+
+```ts
+it("preserves numbers in the slug", () => {
+  expect(generateSlug("App123")).toBe("app123");
+});
+```
+
+**Tư duy:** Regex `/[^a-z0-9\s-]/g` giữ số 0-9 → `App123` → `app123`.
+
+### Test 3: Chuỗi rỗng
+
+```ts
+it("returns empty string for empty input", () => {
+  expect(generateSlug("")).toBe("");
+});
+```
+
+**Tư duy:** `""` → `toLowerCase()` → `""` → `trim()` → `""` → `replace(/[^a-z0-9\s-]/g, "")` → `""` → cuối cùng `replace(/^-|-$/g, "")` → `""`.
+
+### Test 4: Tên có ký tự đặc biệt ở đầu/cuối
+
+```ts
+it("strips leading/trailing hyphens after special character removal", () => {
+  expect(generateSlug("!@#hello$%^")).toBe("hello");
+});
+```
+
+**Tư duy:**
+```
+"!@#hello$%^"
+  → lowercase: "!@#hello$%^"
+  → trim: "!@#hello$%^"
+  → xóa ký tự đặc biệt: "hello"      (các ký tự ở 2 đầu bị xóa)
+  → thay space bằng -: "hello"
+  → collapse -: "hello"
+  → xóa - đầu/cuối: "hello"          ✅
+```
+
+---
+
+## Kết quả chạy test
+
+```
+> pnpm test
+
+ RUN  v4.1.2
+  ✓  generateSlug (4 tests)
+  ✓  makeUniqueSlug (3 tests)
+  ✓  formatRelativeTime (4 tests)
+
+Test Files  1 passed (1)
+     Tests  11 passed (11)     ← Tất cả pass!
+Duration  339ms
+```
+
+---
+
+## 🎓 Những điều đã học được từ E3
+
+### 1. Test-Driven Development (TDD) là gì?
+- Viết test **TRƯỚC** rồi code **SAU** (không làm trong bài này nhưng là khái niệm)
+- Hoặc viết test **SAU** khi code đã có (đây là cách trong bài E3)
+- Test giúp **xác nhận code hoạt động đúng**
+
+### 2. Đọc code trước khi viết test
+- **QUAN TRỌNG:** Đừng viết test "mò" — phải đọc implementation trước
+- Hiểu logic → mới biết expect gì
+- Hint trong comment: "read `src/lib/utils.ts` to understand"
+
+### 3. Cách đọc code để viết test
+- Đọc từ TRÊN xuống DƯỚI, từng bước transform
+- Mỗi bước làm gì? → ghi ra giấy
+- Input → bước 1 → bước 2 → ... → output
+
+### 4. Edge cases là gì?
+- **Edge case** = trường hợp đặc biệt, không phải "bình thường"
+- Ví dụ: chuỗi rỗng `""`, ký tự đặc biệt, số, v.v.
+- Test tốt = test cả edge cases
+
+### 5. Regular Expression (Regex) trong JS
+- `/[^a-z0-9\s-]/g` = giữ lại a-z, 0-9, space, dấu `-`
+- `replace(/-+/g, "-")` = thay nhiều `-` thành 1 `-`
+- `replace(/^-|-$/g, "")` = xóa `-` ở đầu hoặc cuối
+
+### 6. Vitest syntax
+```ts
+describe("tên nhóm test", () => {
+  it("mô tả test này làm gì", () => {
+    expect(hàm_cần_test(param)).toBe(kết_quả_đúng);
+  });
+});
+```
+
+### 7. Bài học lớn nhất
+> **Viết test không phải "thử đoán" — mà là "hiểu code rồi xác nhận nó hoạt động đúng như mong đợi".**
+
+### 8. Quan trọng: Test phải PASS
+- Viết xong test → chạy `pnpm test` → phải pass hết
+- Test fail = code có bug HOẶC expect sai
+- CI sẽ fail nếu có test fail
+
+---
+
+## Ghi chú thêm
+
+- Tất cả 11 tests đều pass ✅
+- Không thay đổi code logic, chỉ thêm test cases
+- Mỗi test có comment mô tả tư duy đằng sau
+- Test file: `__tests__/utils.test.ts`
