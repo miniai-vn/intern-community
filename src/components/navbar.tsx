@@ -38,7 +38,7 @@ export function Navbar() {
                   </Link>
                   <Link
                     href="/admin/analytics"
-                    className="text-sm font-medium text-orange-600 hover:text-orange-700"
+                    className="text-sm text-gray-600 hover:text-gray-900"
                   >
                     Analytics
                   </Link>
