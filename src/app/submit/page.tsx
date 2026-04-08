@@ -12,8 +12,8 @@ export default async function SubmitPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Submit a Module</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submit a Module</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Share your mini-app with the TD community. Submissions are reviewed by
           maintainers before being listed publicly.
         </p>

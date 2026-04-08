@@ -1,47 +1,55 @@
 import Link from "next/link";
 import { VoteButton } from "@/components/vote-button";
+import { FavoriteButton } from "@/components/favorite-button";
 import type { Module } from "@/types";
 
 interface ModuleCardProps {
   module: Module;
   hasVoted?: boolean;
+  hasFavorited?: boolean;
 }
 
-export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
+export function ModuleCard({ module, hasVoted = false, hasFavorited = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline dark:text-white dark:hover:text-blue-400"
         >
           {module.name}
         </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
         {module.demoUrl && (
           <a
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label="View demo (opens in new tab)"
+            className="shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{module.description}</p>
 
       <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200">
           {module.category.name}
         </span>
 
-        <VoteButton
-          moduleId={module.id}
-          initialVoted={hasVoted}
-          initialCount={module.voteCount}
-        />
+        <div className="flex gap-2">
+          <FavoriteButton
+            moduleId={module.id}
+            initialFavorited={hasFavorited}
+          />
+          <VoteButton
+            moduleId={module.id}
+            initialVoted={hasVoted}
+            initialCount={module.voteCount}
+          />
+        </div>
       </div>
     </article>
   );
