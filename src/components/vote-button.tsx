@@ -9,11 +9,7 @@ interface VoteButtonProps {
   initialCount: number;
 }
 
-export function VoteButton({
-  moduleId,
-  initialVoted,
-  initialCount,
-}: VoteButtonProps) {
+export function VoteButton({ moduleId, initialVoted, initialCount }: VoteButtonProps) {
   const { data: session } = useSession();
   const { voted, count, isLoading, toggle } = useOptimisticVote({
     moduleId,
@@ -34,26 +30,52 @@ export function VoteButton({
     <button
       onClick={toggle}
       disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }
+      aria-label={isLoading ? "Processing vote..." : voted ? "Remove vote" : "Upvote this module"}
+      aria-busy={isLoading}
+      className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all
+            ${
+              voted
+                ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
+      {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
+      <span>{count}</span>
     </button>
+  );
+}
+
+/* ==================== Sub Components ==================== */
+
+function SpinnerIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" className="animate-spin" aria-hidden="true">
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="3"
+        className="opacity-25"
+        fill="none"
+      />
+      <path
+        d="M22 12a10 10 0 0 1-10 10"
+        stroke="currentColor"
+        strokeWidth="3"
+        className="opacity-90"
+        fill="none"
+      />
+    </svg>
   );
 }
 
 function TriangleIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg
-      width="12"
-      height="12"
+      width="14"
+      height="14"
       viewBox="0 0 12 12"
       fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
