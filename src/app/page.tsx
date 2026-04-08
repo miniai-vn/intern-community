@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import { ModuleList } from "@/components/module-list";
 import Link from "next/link";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
@@ -9,11 +9,13 @@ import Link from "next/link";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; cursor?: string }>;
 }) {
   const { q, category } = await searchParams;
   const session = await auth();
 
+  // Fetch initial modules using the same logic as the API
+  const limit = 12;
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
@@ -33,7 +35,7 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: limit,
   });
 
   // Fetch which modules the current user has voted on
@@ -52,78 +54,10 @@ export default async function HomePage({
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
-            Discover mini-apps built by the Intern developer community.
-          </p>
-        </div>
-
-        <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Search
-          </button>
-        </form>
-      </div>
-
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </Link>
-        {categories.map((c) => (
-          <Link
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </Link>
-        ))}
-      </div>
-
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <ModuleList
+      initialModules={modules}
+      initialVotedIds={votedIds}
+      categories={categories}
+    />
   );
 }
