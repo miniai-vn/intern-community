@@ -141,10 +141,72 @@ async function main() {
     });
   }
 
+  // ========== ADDITIONAL DATA FOR LEADERBOARD TESTING ==========
+  // Create extra users with varying numbers of approved submissions
+  const testUsers = [
+    { email: "alice@leaderboard.com", name: "Alice Chen" },
+    { email: "bob@leaderboard.com", name: "Bob Smith" },
+    { email: "charlie@leaderboard.com", name: "Charlie Brown" },
+    { email: "david@leaderboard.com", name: "David Kim" },
+    { email: "eve@leaderboard.com", name: "Eve Wong" },
+    { email: "frank@leaderboard.com", name: "Frank Miller" },
+    { email: "grace@leaderboard.com", name: "Grace Lee" },
+    { email: "henry@leaderboard.com", name: "Henry Zhang" },
+    { email: "ivy@leaderboard.com", name: "Ivy Patel" },
+    { email: "jack@leaderboard.com", name: "Jack White" },
+  ];
+
+  const createdTestUsers = [];
+  for (const u of testUsers) {
+    const created = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: {
+        name: u.name,
+        email: u.email,
+        isAdmin: false,
+      },
+    });
+    createdTestUsers.push(created);
+  }
+
+  // Number of approved submissions per user (order matches createdTestUsers)
+  const approvedCounts = [5, 5, 4, 3, 2, 1, 1, 0, 0, 0];
+  // Explanation: Alice=5, Bob=5 (tie for 1st), Charlie=4, David=3, Eve=2, Frank=1, Grace=1, others 0
+
+  const categoryIds = categories.map(c => c.id);
+  const getRandomCategoryId = () => categoryIds[Math.floor(Math.random() * categoryIds.length)];
+
+  let moduleCounter = 1;
+  for (let i = 0; i < createdTestUsers.length; i++) {
+    const user = createdTestUsers[i];
+    const count = approvedCounts[i];
+    for (let j = 0; j < count; j++) {
+      const slug = `leaderboard-module-${moduleCounter++}`;
+      await prisma.miniApp.upsert({
+        where: { slug },
+        update: {},
+        create: {
+          slug,
+          name: `${user.name}'s Module ${j+1}`,
+          description: `Demo module for leaderboard testing. Created for ${user.name}.`,
+          repoUrl: `https://github.com/example/${slug}`,
+          demoUrl: null,
+          status: SubmissionStatus.APPROVED,
+          categoryId: getRandomCategoryId(),
+          authorId: user.id,
+          voteCount: Math.floor(Math.random() * 100),
+        },
+      });
+    }
+  }
+
   console.log("✅ Seed complete");
   console.log(`   ${categories.length} categories`);
-  console.log(`   ${approvedModules.length} approved modules`);
+  console.log(`   ${approvedModules.length} approved modules (original)`);
   console.log(`   ${pendingModules.length} pending modules`);
+  console.log(`   ${moduleCounter - 1} extra approved modules for leaderboard testing`);
+  console.log(`   Total test users: ${createdTestUsers.length}`);
 }
 
 main()
