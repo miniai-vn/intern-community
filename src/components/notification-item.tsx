@@ -1,5 +1,12 @@
 import { cn, formatRelativeTime } from "@/lib/utils";
-import type { NotificationItem as Notification } from "@/lib/mock-notifications";
+
+export type Notification = {
+  id: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string | Date;
+};
 
 type NotificationItemProps = {
   notification: Notification;

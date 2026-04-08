@@ -1,10 +1,66 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUnreadCount() {
+      if (!session?.user) {
+        setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/notifications/unread-count", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+
+        const data = (await res.json()) as { unreadCount: number };
+        if (!cancelled) setUnreadCount(data.unreadCount ?? 0);
+      } catch {
+        if (!cancelled) setUnreadCount(0);
+      }
+    }
+
+    void loadUnreadCount();
+
+    function handleNotificationsUpdated() {
+      void loadUnreadCount();
+    }
+
+    window.addEventListener(
+      "notifications-updated",
+      handleNotificationsUpdated,
+    );
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        "notifications-updated",
+        handleNotificationsUpdated,
+      );
+    };
+  }, [session?.user, pathname]);
+
+  const navItemClass = (href: string) =>
+    `text-sm ${
+      pathname === href
+        ? "font-medium text-gray-900"
+        : "text-gray-600 hover:text-gray-900"
+    }`;
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -16,14 +72,31 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/submit" className={navItemClass("/submit")}>
                 Submit Module
               </Link>
-              <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/my-submissions"
+                className={navItemClass("/my-submissions")}
+              >
                 My Submissions
               </Link>
+              <Link
+                href="/notifications"
+                className={`${navItemClass("/notifications")} inline-flex items-center gap-1.5`}
+              >
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
               {session.user.isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                <Link
+                  href="/admin"
+                  className={`text-sm ${pathname === "/admin" ? "font-semibold text-orange-700" : "font-medium text-orange-600 hover:text-orange-700"}`}
+                >
                   Admin
                 </Link>
               )}
