@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -56,16 +56,46 @@ describe("makeUniqueSlug", () => {
 });
 
 // ============================================================
-// formatRelativeTime — NOT yet tested, candidate must write all tests
+// formatRelativeTime — Testing time-based logic
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  // Thiết lập thời gian giả định: Wednesday, April 8, 2026, 10:00:00 AM
+  const MOCK_NOW = new Date("2026-04-08T10:00:00Z");
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(MOCK_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns 'just now' for dates less than 1 minute ago", () => {
+    const thirtySecondsAgo = new Date(MOCK_NOW.getTime() - 30 * 1000);
+    expect(formatRelativeTime(thirtySecondsAgo)).toBe("just now");
+  });
+
+  it("returns '{n}m ago' for dates 1–59 minutes ago", () => {
+    const tenMinutesAgo = new Date(MOCK_NOW.getTime() - 10 * 60 * 1000);
+    expect(formatRelativeTime(tenMinutesAgo)).toBe("10m ago");
+  });
+
+  it("returns '{n}h ago' for dates 1–23 hours ago", () => {
+    const fiveHoursAgo = new Date(MOCK_NOW.getTime() - 5 * 60 * 60 * 1000);
+    expect(formatRelativeTime(fiveHoursAgo)).toBe("5h ago");
+  });
+
+  it("returns '{n}d ago' for dates 1–29 days ago", () => {
+    const threeDaysAgo = new Date(MOCK_NOW.getTime() - 3 * 24 * 60 * 60 * 1000);
+    expect(formatRelativeTime(threeDaysAgo)).toBe("3d ago");
+  });
+
+  it("returns locale date string for dates 30+ days ago", () => {
+    const fortyDaysAgo = new Date(MOCK_NOW.getTime() - 40 * 24 * 60 * 60 * 1000);
+    const result = formatRelativeTime(fortyDaysAgo);
+    expect(result).not.toContain("ago");
+    expect(result).toBe(fortyDaysAgo.toLocaleDateString());
+  });
+});
