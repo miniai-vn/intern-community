@@ -69,7 +69,7 @@ export function AnalyticsDashboard() {
 
       {/* Daily views bar chart */}
       <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-sm font-semibold text-gray-700">
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">
           Views — Last 7 Days
         </h2>
         {data.dailyViews.length === 0 ? (
@@ -78,7 +78,7 @@ export function AnalyticsDashboard() {
           <div className="flex items-end gap-2" style={{ height: 160 }}>
             {data.dailyViews.map((d) => (
               <div key={d.day} className="flex flex-1 flex-col items-center">
-                <span className="mb-1 text-xs font-medium text-gray-600">
+                <span className="mb-1 text-xs font-semibold text-gray-800">
                   {d.count}
                 </span>
                 <div
@@ -88,7 +88,7 @@ export function AnalyticsDashboard() {
                     minHeight: d.count > 0 ? 4 : 0,
                   }}
                 />
-                <span className="mt-1 text-[10px] text-gray-400">
+                <span className="mt-1 text-xs text-gray-600">
                   {d.day.slice(5)}
                 </span>
               </div>
@@ -99,19 +99,19 @@ export function AnalyticsDashboard() {
 
       {/* Top modules table */}
       <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-sm font-semibold text-gray-700">
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">
           Top Modules by Views
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm text-gray-900">
             <thead>
-              <tr className="border-b border-gray-100 text-xs text-gray-500">
-                <th className="pb-2 font-medium">#</th>
-                <th className="pb-2 font-medium">Module</th>
-                <th className="pb-2 text-right font-medium">Views</th>
-                <th className="pb-2 text-right font-medium">7d Views</th>
-                <th className="pb-2 text-right font-medium">Votes</th>
-                <th className="pb-2 text-right font-medium">Engagement</th>
+              <tr className="border-b border-gray-200 text-xs text-gray-900">
+                <th className="pb-2 font-semibold">#</th>
+                <th className="pb-2 font-semibold">Module</th>
+                <th className="pb-2 text-right font-semibold">Views</th>
+                <th className="pb-2 text-right font-semibold">7d Views</th>
+                <th className="pb-2 text-right font-semibold">Votes</th>
+                <th className="pb-2 text-right font-semibold">Engagement</th>
               </tr>
             </thead>
             <tbody>
@@ -120,13 +120,15 @@ export function AnalyticsDashboard() {
                   key={m.id}
                   className="border-b border-gray-50 last:border-0"
                 >
-                  <td className="py-2 text-gray-400">{i + 1}</td>
-                  <td className="py-2 font-medium text-gray-800">{m.name}</td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-2 font-medium text-gray-700">{i + 1}</td>
+                  <td className="py-2 font-semibold text-gray-900">{m.name}</td>
+                  <td className="py-2 text-right font-medium tabular-nums text-gray-900">
                     {m.viewCount}
                   </td>
-                  <td className="py-2 text-right tabular-nums">{m.views7d}</td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-2 text-right font-medium tabular-nums text-gray-900">
+                    {m.views7d}
+                  </td>
+                  <td className="py-2 text-right font-medium tabular-nums text-gray-900">
                     {m.voteCount}
                   </td>
                   <td className="py-2 text-right">
@@ -167,7 +169,7 @@ function StatCard({
         highlight ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-white"
       }`}
     >
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-xs font-medium text-gray-700">{label}</p>
       <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">
         {value.toLocaleString()}
       </p>
