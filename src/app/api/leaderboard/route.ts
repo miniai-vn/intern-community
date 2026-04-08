@@ -10,11 +10,34 @@ export type LeaderboardEntry = {
   };
 };
 
-export async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
+export type LeaderboardResult = {
+  data: LeaderboardEntry[];
+  totalPages: number;
+  currentPage: number;
+};
+
+const ITEMS_PER_PAGE = 10;
+
+export async function getLeaderboardData(
+  page: number = 1,
+): Promise<LeaderboardResult> {
   const now = new Date();
   const startOfMonthUTC = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0),
   );
+
+  const totalGroups = await db.miniApp.groupBy({
+    by: ["authorId"],
+    where: {
+      status: "APPROVED",
+      createdAt: { gte: startOfMonthUTC },
+    },
+  });
+
+  const totalAuthors = totalGroups.length;
+  const totalPages = Math.ceil(totalAuthors / ITEMS_PER_PAGE) || 1;
+
+  const skip = (page - 1) * ITEMS_PER_PAGE;
 
   const topContributors = await db.miniApp.groupBy({
     by: ["authorId"],
@@ -24,10 +47,13 @@ export async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
       createdAt: { gte: startOfMonthUTC },
     },
     orderBy: { _count: { id: "desc" } },
-    take: 10,
+    skip: skip,
+    take: ITEMS_PER_PAGE,
   });
 
-  if (topContributors.length === 0) return [];
+  if (topContributors.length === 0) {
+    return { data: [], totalPages, currentPage: page };
+  }
 
   const userIds = topContributors.map((c) => c.authorId);
   const users = await db.user.findMany({
@@ -35,10 +61,10 @@ export async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
     select: { id: true, name: true, image: true },
   });
 
-  return topContributors.map((contributor, index) => {
+  const mappedData = topContributors.map((contributor, index) => {
     const user = users.find((u) => u.id === contributor.authorId);
     return {
-      rank: index + 1,
+      rank: skip + index + 1,
       count: contributor._count.id,
       user: user || {
         id: contributor.authorId,
@@ -47,4 +73,10 @@ export async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
       },
     };
   });
+
+  return {
+    data: mappedData,
+    totalPages,
+    currentPage: page,
+  };
 }

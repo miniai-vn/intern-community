@@ -1,10 +1,20 @@
 import Image from "next/image";
-import { getLeaderboardData } from "@/app/api/leaderboard/route";
+import { getLeaderboardData } from "../api/leaderboard/route";
+import { Pagination } from "@/components/pagination";
 
 export const revalidate = 600;
 
-export default async function LeaderboardPage() {
-  const leaderboard = await getLeaderboardData();
+export default async function LeaderboardPage(props: {
+  searchParams?: Promise<{ page?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const page = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+
+  const {
+    data: leaderboard,
+    totalPages,
+    currentPage,
+  } = await getLeaderboardData(page);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -82,6 +92,8 @@ export default async function LeaderboardPage() {
             )}
           </tbody>
         </table>
+
+        <Pagination currentPage={currentPage} totalPages={totalPages} />
       </div>
     </div>
   );
