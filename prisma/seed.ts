@@ -35,10 +35,10 @@ async function main() {
     }),
   ]);
 
-  // Seed demo admin user
-  const admin = await prisma.user.upsert({
+  // Seed admin + contributors
+  await prisma.user.upsert({
     where: { email: "admin@td.com" },
-    update: {},
+    update: { name: "TD Admin", isAdmin: true },
     create: {
       name: "TD Admin",
       email: "admin@td.com",
@@ -46,105 +46,161 @@ async function main() {
     },
   });
 
-  // Seed demo contributor
-  const contributor = await prisma.user.upsert({
-    where: { email: "dev@example.com" },
-    update: {},
-    create: {
-      name: "Demo Dev",
-      email: "dev@example.com",
-      isAdmin: false,
-    },
+  const contributorSeeds = [
+    { name: "Alice Nguyen", email: "alice@example.com" },
+    { name: "Bao Tran", email: "bao@example.com" },
+    { name: "Chi Le", email: "chi@example.com" },
+    { name: "Dung Pham", email: "dung@example.com" },
+    { name: "Emi Hoang", email: "emi@example.com" },
+    { name: "Finn Vo", email: "finn@example.com" },
+    { name: "Giang Do", email: "giang@example.com" },
+    { name: "Huy Bui", email: "huy@example.com" },
+    { name: "Iris Vu", email: "iris@example.com" },
+    { name: "Jack Dang", email: "jack@example.com" },
+    { name: "Khanh Mai", email: "khanh@example.com" },
+    { name: "Linh Truong", email: "linh@example.com" },
+  ];
+
+  const contributors = await Promise.all(
+    contributorSeeds.map((user) =>
+      prisma.user.upsert({
+        where: { email: user.email },
+        update: { name: user.name, isAdmin: false },
+        create: {
+          name: user.name,
+          email: user.email,
+          isAdmin: false,
+        },
+      })
+    )
+  );
+
+  const categoryBySlug = new Map(categories.map((c) => [c.slug, c]));
+
+  // Build UTC month boundaries for leaderboard testing.
+  const now = new Date();
+  const thisMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+  );
+  const prevMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1, 0, 0, 0, 0)
+  );
+
+  const makeUtcDateInCurrentMonth = (dayOfMonth: number) =>
+    new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), Math.min(dayOfMonth, 28), 12, 0, 0, 0)
+    );
+
+  const makeUtcDateInPreviousMonth = (dayOfMonth: number) =>
+    new Date(
+      Date.UTC(
+        prevMonthStart.getUTCFullYear(),
+        prevMonthStart.getUTCMonth(),
+        Math.min(dayOfMonth, 28),
+        12,
+        0,
+        0,
+        0
+      )
+    );
+
+  // Reset mini-app demo records to keep seed deterministic.
+  await prisma.miniApp.deleteMany({ where: { slug: { startsWith: "lb-" } } });
+
+  // Number of APPROVED submissions in current UTC month per contributor.
+  // Exactly 12 contributors so UI should show only top 10.
+  const monthlyApprovedCounts = [7, 6, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1];
+
+  const approvedModules: Parameters<typeof prisma.miniApp.create>[0]["data"][] = [];
+
+  contributors.forEach((user, index) => {
+    const approvedCount = monthlyApprovedCounts[index] ?? 1;
+    for (let i = 1; i <= approvedCount; i++) {
+      const slug = `lb-${index + 1}-${i}-approved-current`;
+      approvedModules.push({
+        slug,
+        name: `Leaderboard Module ${index + 1}-${i}`,
+        description: `Approved module ${i} by ${user.name} in current UTC month.`,
+        repoUrl: `https://github.com/example/${slug}`,
+        demoUrl: i % 2 === 0 ? `https://${slug}.example.com` : null,
+        status: SubmissionStatus.APPROVED,
+        categoryId:
+          categoryBySlug.get(i % 2 === 0 ? "productivity" : "utility")?.id ??
+          categories[0].id,
+        authorId: user.id,
+        voteCount: (approvedCount - i + 1) * 3,
+        createdAt: makeUtcDateInCurrentMonth(2 + i),
+      });
+    }
   });
 
-  // Seed approved mini-apps (displayed as "Modules" in the UI)
-  const approvedModules = [
+  // Should NOT appear on leaderboard: approved but in previous month.
+  const previousMonthApproved = [
     {
-      slug: "pomodoro-timer",
-      name: "Pomodoro Timer",
-      description:
-        "A simple Pomodoro timer to help you stay focused. Built with vanilla JS. Supports custom work/break intervals.",
-      repoUrl: "https://github.com/example/pomodoro-timer",
-      demoUrl: "https://pomodoro.example.com",
-      status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "productivity")!.id,
-      authorId: contributor.id,
-      voteCount: 24,
-    },
-    {
-      slug: "expense-tracker",
-      name: "Expense Tracker",
-      description:
-        "Track your daily expenses with categories and monthly summaries. Supports CSV export.",
-      repoUrl: "https://github.com/example/expense-tracker",
+      slug: "lb-prev-month-approved-1",
+      name: "Previous Month Approved 1",
+      description: "Approved in previous month only.",
+      repoUrl: "https://github.com/example/lb-prev-month-approved-1",
       demoUrl: null,
       status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "finance")!.id,
-      authorId: contributor.id,
-      voteCount: 18,
+      categoryId: categoryBySlug.get("finance")?.id ?? categories[0].id,
+      authorId: contributors[0].id,
+      voteCount: 9,
+      createdAt: makeUtcDateInPreviousMonth(10),
     },
     {
-      slug: "2048-game",
-      name: "2048 Game",
-      description:
-        "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
-      repoUrl: "https://github.com/example/2048",
-      demoUrl: "https://2048.example.com",
+      slug: "lb-prev-month-approved-2",
+      name: "Previous Month Approved 2",
+      description: "Approved in previous month only.",
+      repoUrl: "https://github.com/example/lb-prev-month-approved-2",
+      demoUrl: null,
       status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "game")!.id,
-      authorId: contributor.id,
-      voteCount: 41,
+      categoryId: categoryBySlug.get("game")?.id ?? categories[0].id,
+      authorId: contributors[1].id,
+      voteCount: 11,
+      createdAt: makeUtcDateInPreviousMonth(20),
     },
   ];
 
-  for (const mod of approvedModules) {
-    await prisma.miniApp.upsert({
-      where: { slug: mod.slug },
-      update: {},
-      create: mod,
-    });
-  }
-
-  // Seed pending submissions (for admin panel demo)
-  const pendingModules = [
+  // Should NOT appear on leaderboard: not approved in current month.
+  const nonApprovedCurrentMonth = [
     {
-      slug: "markdown-editor",
-      name: "Markdown Editor",
-      description:
-        "Live-preview markdown editor with syntax highlighting. Based on CodeMirror.",
-      repoUrl: "https://github.com/example/md-editor",
+      slug: "lb-pending-current-month",
+      name: "Pending Current Month",
+      description: "Pending module in current month.",
+      repoUrl: "https://github.com/example/lb-pending-current-month",
       demoUrl: null,
       status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "utility")!.id,
-      authorId: contributor.id,
+      categoryId: categoryBySlug.get("social")?.id ?? categories[0].id,
+      authorId: contributors[2].id,
       voteCount: 0,
+      createdAt: new Date(thisMonthStart.getTime() + 24 * 60 * 60 * 1000),
     },
     {
-      slug: "habit-tracker",
-      name: "Habit Tracker",
-      description:
-        "Build and track daily habits with streak visualization. Sends browser notifications.",
-      repoUrl: "https://github.com/example/habit-tracker",
-      demoUrl: "https://habits.example.com",
-      status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "productivity")!.id,
-      authorId: contributor.id,
+      slug: "lb-rejected-current-month",
+      name: "Rejected Current Month",
+      description: "Rejected module in current month.",
+      repoUrl: "https://github.com/example/lb-rejected-current-month",
+      demoUrl: null,
+      status: SubmissionStatus.REJECTED,
+      categoryId: categoryBySlug.get("social")?.id ?? categories[0].id,
+      authorId: contributors[3].id,
       voteCount: 0,
+      createdAt: new Date(thisMonthStart.getTime() + 2 * 24 * 60 * 60 * 1000),
     },
   ];
 
-  for (const mod of pendingModules) {
-    await prisma.miniApp.upsert({
-      where: { slug: mod.slug },
-      update: {},
-      create: mod,
-    });
+  const allModules = [...approvedModules, ...previousMonthApproved, ...nonApprovedCurrentMonth];
+  for (const mod of allModules) {
+    await prisma.miniApp.create({ data: mod });
   }
 
   console.log("✅ Seed complete");
   console.log(`   ${categories.length} categories`);
-  console.log(`   ${approvedModules.length} approved modules`);
-  console.log(`   ${pendingModules.length} pending modules`);
+  console.log(`   ${contributors.length} contributors`);
+  console.log(`   ${approvedModules.length} approved modules (current UTC month)`);
+  console.log(`   ${previousMonthApproved.length} approved modules (previous month)`);
+  console.log(`   ${nonApprovedCurrentMonth.length} non-approved modules (current month)`);
 }
 
 main()
