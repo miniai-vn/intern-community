@@ -70,6 +70,7 @@ async function main() {
       categoryId: categories.find((c) => c.slug === "productivity")!.id,
       authorId: contributor.id,
       voteCount: 24,
+      viewCount: 150,
     },
     {
       slug: "expense-tracker",
@@ -82,6 +83,7 @@ async function main() {
       categoryId: categories.find((c) => c.slug === "finance")!.id,
       authorId: contributor.id,
       voteCount: 18,
+      viewCount: 89,
     },
     {
       slug: "2048-game",
@@ -94,6 +96,7 @@ async function main() {
       categoryId: categories.find((c) => c.slug === "game")!.id,
       authorId: contributor.id,
       voteCount: 41,
+      viewCount: 312,
     },
   ];
 
@@ -139,6 +142,29 @@ async function main() {
       update: {},
       create: mod,
     });
+  }
+
+  // Seed demo module views (spread across last 7 days for trending demo)
+  const approvedApps = await prisma.miniApp.findMany({
+    where: { status: SubmissionStatus.APPROVED },
+    select: { id: true, slug: true },
+  });
+
+  for (const app of approvedApps) {
+    const existingViews = await prisma.moduleView.count({
+      where: { moduleId: app.id },
+    });
+    if (existingViews > 0) continue; // Skip if already seeded
+
+    const viewCount = app.slug === "2048-game" ? 15 : app.slug === "pomodoro-timer" ? 8 : 4;
+    const views = [];
+    for (let i = 0; i < viewCount; i++) {
+      const daysAgo = Math.floor(Math.random() * 7);
+      const viewedAt = new Date();
+      viewedAt.setDate(viewedAt.getDate() - daysAgo);
+      views.push({ moduleId: app.id, userId: contributor.id, viewedAt });
+    }
+    await prisma.moduleView.createMany({ data: views });
   }
 
   console.log("✅ Seed complete");
