@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitModuleSchema } from "@/lib/validations";
 import type { Category } from "@/types";
+import { useToast } from "@/components/toast-provider";
 
 interface SubmitFormProps {
   categories: Category[];
@@ -11,8 +12,10 @@ interface SubmitFormProps {
 
 export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,9 +40,11 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       if (!res.ok) {
         const body = await res.json();
         setError(body.error?.fieldErrors ?? { _: ["Submission failed. Try again."] });
+        showToast("Submission failed. Please try again.", "error");
         return;
       }
 
+      showToast("Module submitted successfully! Waiting for admin review.", "success");
       router.push("/my-submissions");
       router.refresh();
     } finally {
@@ -60,14 +65,18 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
         <textarea
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           className={inputClass}
         />
+        <p className={`text-xs ${description.length >= 450 ? "text-red-500" : "text-gray-400"}`}>
+          {description.length} / 500
+        </p>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
