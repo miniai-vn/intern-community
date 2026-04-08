@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,9 +16,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module)
+  if (!miniApp)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  return NextResponse.json(miniApp);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -86,11 +86,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module)
+  const miniApp = await db.miniApp.findUnique({ where: { id } });
+  if (!miniApp)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (miniApp.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
