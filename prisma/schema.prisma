@@ -136,12 +136,17 @@ model ModuleView {
   module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String
 
+  // SHA-256 hash of IP + User-Agent for anonymous dedup (never stores raw IP).
+  ipHash String?
+
   viewedAt DateTime @default(now())
 
   // Index for trending queries: count views in last 7 days per module.
   @@index([moduleId, viewedAt])
-  // Index for deduplication: one tracked view per user per module per day.
+  // Index for deduplication: logged-in users.
   @@index([userId, moduleId, viewedAt])
+  // Index for deduplication: anonymous visitors by IP fingerprint.
+  @@index([ipHash, moduleId, viewedAt])
   @@map("module_views")
 }
 
