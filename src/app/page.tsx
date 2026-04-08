@@ -1,6 +1,7 @@
-import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { ModuleCard } from "@/components/module-card";
+import { db } from "@/lib/db";
+import { ModuleListing } from "@/components/module-listing";
+import { listModulesPage } from "@/lib/module-listing.server";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -13,40 +14,11 @@ export default async function HomePage({
   const { q, category } = await searchParams;
   const session = await auth();
 
-  const modules = await db.miniApp.findMany({
-    where: {
-      status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    // DO NOT remove include — avoids N+1 on category/author fields.
-    include: {
-      category: true,
-      author: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { voteCount: "desc" },
-    take: 12,
+  const { items: modules, nextCursor } = await listModulesPage({
+    q,
+    category,
+    userId: session?.user?.id,
   });
-
-  // Fetch which modules the current user has voted on
-  let votedIds = new Set<string>();
-  if (session?.user) {
-    const votes = await db.vote.findMany({
-      where: {
-        userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
-      },
-      select: { moduleId: true },
-    });
-    votedIds = new Set(votes.map((v) => v.moduleId));
-  }
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -103,26 +75,13 @@ export default async function HomePage({
         ))}
       </div>
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+      <ModuleListing
+        key={`${q ?? ""}:${category ?? ""}`}
+        initialItems={modules}
+        initialNextCursor={nextCursor}
+        q={q}
+        category={category}
+      />
     </div>
   );
 }
