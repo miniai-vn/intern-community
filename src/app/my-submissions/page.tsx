@@ -3,10 +3,18 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+import DeleteButton from "@/components/delete-button";
+
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   APPROVED: "bg-green-50 text-green-700 border-green-200",
   REJECTED: "bg-red-50 text-red-700 border-red-200",
+};
+
+const statusText: Record<string, string> = {
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
 };
 
 export default async function MySubmissionsPage() {
@@ -49,7 +57,16 @@ export default async function MySubmissionsPage() {
               className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
             >
               <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
+                {sub.status === "APPROVED" ? (
+                  <Link
+                    href={`/modules/${sub.slug}`}
+                    className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                  >
+                    {sub.name}
+                  </Link>
+                ) : (
+                  <p className="font-medium text-gray-900">{sub.name}</p>
+                )}
                 <p className="text-xs text-gray-400">
                   {sub.category.name} ·{" "}
                   {new Date(sub.createdAt).toLocaleDateString()}
@@ -60,13 +77,18 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+              <div className="flex flex-col items-center gap-2">
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    statusStyles[sub.status]
+                  }`}
+                >
+                  {statusText[sub.status]}
+                </span>
+                {sub.status === "PENDING" && (
+                  <DeleteButton subId={sub.id} subName={sub.name} />
+                )}
+              </div>
             </div>
           ))}
         </div>
