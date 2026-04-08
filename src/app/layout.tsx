@@ -17,10 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col bg-gray-50 font-sans">
         <AuthSessionProvider>
-          <Navbar />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-            {children}
-          </main>
+          <div className="mx-auto w-full max-w-6xl px-4 py-4">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <Navbar />
+              <main className="p-8">
+                {children}
+              </main>
+            </div>
+          </div>
         </AuthSessionProvider>
       </body>
     </html>

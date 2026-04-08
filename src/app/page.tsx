@@ -15,7 +15,7 @@ export default async function HomePage({
   const session = await auth();
 
   // Fetch initial modules using the same logic as the API
-  const limit = 12;
+  const limit = 3; // Changed from 12 to 3 for initial display
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
