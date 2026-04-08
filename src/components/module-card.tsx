@@ -17,16 +17,24 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
         >
           {module.name}
         </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
         {module.demoUrl && (
-          <a
-            href={module.demoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
-          >
-            <ExternalLinkIcon />
-          </a>
+          <div className="group relative shrink-0">
+            <a
+              href={module.demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open demo for ${module.name}`}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <ExternalLinkIcon />
+            </a>
+            {/* Tooltip */}
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1.5 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+              Open demo
+              {/* Tooltip arrow */}
+              <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+            </span>
+          </div>
         )}
       </div>
 

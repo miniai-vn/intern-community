@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
-// GET /api/modules — list approved modules (with optional category filter + search)
+// GET /api/modules — list modules with optional filters (status, category, search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
+  const status = (searchParams.get("status") || "APPROVED") as "APPROVED" | "PENDING" | "REJECTED";
   const category = searchParams.get("category");
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const modules = await db.miniApp.findMany({
     where: {
-      status: "APPROVED",
+      status,
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+    orderBy: status === "PENDING" ? { createdAt: "asc" } : { voteCount: "desc" },
     take: limit + 1,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const miniApp = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +81,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(miniApp, { status: 201 });
 }

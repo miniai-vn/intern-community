@@ -19,6 +19,32 @@
   }
 }
 
+/* Custom Scrollbar Styling - Premium Look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-color: #d1d5db transparent;
+  scrollbar-width: thin;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

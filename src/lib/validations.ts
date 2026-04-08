@@ -23,7 +23,7 @@ export const submitModuleSchema = z.object({
 });
 
 export const adminReviewSchema = z.object({
-  status: z.enum(["APPROVED", "REJECTED"]),
+  status: z.enum(["APPROVED", "REJECTED", "PENDING"]),
   feedback: z.string().max(500).optional(),
 });
 
