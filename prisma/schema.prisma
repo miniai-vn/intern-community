@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -128,4 +129,20 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+  @@map("notifications")
 }
