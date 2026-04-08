@@ -60,10 +60,11 @@ model User {
   // Our custom fields
   isAdmin       Boolean   @default(false)
 
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
+  accounts      Account[]
+  sessions      Session[]
+  submissions   MiniApp[]
+  votes         Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -98,7 +99,8 @@ model MiniApp {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
-  votes     Vote[]
+  votes         Vote[]
+  notifications Notification[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -122,6 +124,46 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  // Recipient is the module author
+  recipient   User   @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+
+  // The module that was approved/rejected
+  module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  // Type: "APPROVED" or "REJECTED"
+  type   NotificationType
+  isRead Boolean            @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([recipientId, isRead])
+  @@map("notifications")
+}
+
+// Rate limit events for vote API
+// Used for sliding window rate limiting: max 10 votes per 60-second window per user
+model RateLimitEvent {
+  id String @id @default(cuid())
+
+  userId String
+  action String @default("vote") // e.g. "vote", for future extensibility
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("rate_limit_events")
+}
+
+enum NotificationType {
+  APPROVED
+  REJECTED
 }
 
 enum SubmissionStatus {

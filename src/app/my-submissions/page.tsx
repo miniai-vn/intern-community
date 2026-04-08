@@ -2,12 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200",
-};
+import { SubmissionsPageClient } from "@/components/submissions-page-client";
 
 export default async function MySubmissionsPage() {
   const session = await auth();
@@ -32,44 +27,18 @@ export default async function MySubmissionsPage() {
       </div>
 
       {submissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No submissions yet.</p>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 p-12 text-center">
+          <p className="text-lg font-medium text-gray-700">No submissions yet</p>
+          <p className="mt-1 text-sm text-gray-500">Ready to share your mini-app?</p>
           <Link
             href="/submit"
-            className="mt-2 block text-sm text-blue-600 hover:underline"
+            className="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            Submit your first module →
+            Submit your first module
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {submissions.map((sub) => (
-            <div
-              key={sub.id}
-              className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4"
-            >
-              <div className="space-y-1">
-                <p className="font-medium text-gray-900">{sub.name}</p>
-                <p className="text-xs text-gray-400">
-                  {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
-                </p>
-                {sub.feedback && (
-                  <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
-                    Feedback: {sub.feedback}
-                  </p>
-                )}
-              </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
-            </div>
-          ))}
-        </div>
+        <SubmissionsPageClient initialSubmissions={submissions} />
       )}
     </div>
   );

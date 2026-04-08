@@ -40,6 +40,54 @@ export function makeUniqueSlug(base: string, existing: string[]): string {
   return `${base}-${i}`;
 }
 
+/**
+ * Format date consistently across the app.
+ * Format: "07 Apr 2026" or "07/04/2026 (DD/MM/YYYY)"
+ * @example
+ * formatDate(new Date('2026-04-07')) // "07 Apr 2026"
+ */
+export function formatDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "N/A";
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Format date with month abbreviation.
+ * Format: "07 Apr 2026"
+ * @example
+ * formatDateLong(new Date('2026-04-07')) // "07 Apr 2026"
+ */
+export function formatDateLong(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "N/A";
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+
+  return `${day} ${month} ${year}`;
+}
+
 export function formatRelativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const minutes = Math.floor(diff / 60_000);
@@ -49,5 +97,5 @@ export function formatRelativeTime(date: Date): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
-  return date.toLocaleDateString();
+  return formatDateLong(date);
 }

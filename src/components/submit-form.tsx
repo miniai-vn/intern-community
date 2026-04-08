@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descriptionLength, setDescriptionLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,29 +50,33 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <Field label="Module name" name="name" error={error.name}>
+      <Field label="Module name" name="name" error={error.name} required>
         <input
           name="name"
           type="text"
           placeholder="e.g. Pomodoro Timer"
           maxLength={60}
           className={inputClass}
+          required
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field label="Description" name="description" error={error.description} hint={`${descriptionLength} / 500 characters`} required>
         <textarea
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
-          className={inputClass}
+          onChange={(e) => setDescriptionLength(e.target.value.length)}
+          className={`${inputClass} ${
+            descriptionLength >= 450 ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+          }`}
+          required
         />
       </Field>
 
-      <Field label="Category" name="categoryId" error={error.categoryId}>
-        <select name="categoryId" className={inputClass} defaultValue="">
+      <Field label="Category" name="categoryId" error={error.categoryId} required>
+        <select name="categoryId" className={inputClass} defaultValue="" required>
           <option value="" disabled>Select a category</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
@@ -79,12 +84,13 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         </select>
       </Field>
 
-      <Field label="GitHub repository URL" name="repoUrl" error={error.repoUrl}>
+      <Field label="GitHub repository URL" name="repoUrl" error={error.repoUrl} required>
         <input
           name="repoUrl"
           type="url"
           placeholder="https://github.com/your-username/your-repo"
           className={inputClass}
+          required
         />
       </Field>
 
@@ -104,7 +110,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Submitting…" : "Submit Module"}
       </button>
@@ -120,18 +126,21 @@ function Field({
   name,
   error,
   hint,
+  required,
   children,
 }: {
   label: string;
   name: string;
   error?: string[];
   hint?: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={name} className="block text-sm font-medium text-gray-700">
         {label}
+        {required && <span className="text-red-600 ml-1">*</span>}
       </label>
       {children}
       {hint && <p className="text-xs text-gray-400">{hint}</p>}
