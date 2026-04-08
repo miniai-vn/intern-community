@@ -2,20 +2,25 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Navbar() {
   const { data: session } = useSession();
 
   return (
     <nav className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-base font-bold text-gray-900">
           Intern Community Hub
         </Link>
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
+
           {session ? (
             <>
+              <NotificationBell />
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
               </Link>
@@ -33,7 +38,15 @@ export function Navbar() {
               >
                 Sign out
               </button>
-              <span className="text-sm text-gray-700">{session.user.name}</span>
+              {session.user.image ? (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-sm text-gray-700">{session.user.name}</span>
+              )}
             </>
           ) : (
             <button

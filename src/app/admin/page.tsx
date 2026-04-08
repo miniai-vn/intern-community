@@ -55,11 +55,10 @@ export default async function AdminPage() {
             >
               <span className="text-sm font-medium text-gray-800">{module.name}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${module.status === "APPROVED"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
+                  }`}
               >
                 {module.status}
               </span>

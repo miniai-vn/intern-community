@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // NOTE: Always include category and author to avoid N+1 on listing pages.
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
     .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+    .then((r: any) => r.map((m: any) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
   const module = await db.miniApp.create({
