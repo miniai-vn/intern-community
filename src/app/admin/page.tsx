@@ -28,14 +28,24 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+      <div className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white shadow-lg">
+        <h1 className="text-2xl font-bold">Admin Panel</h1>
+        <p className="mt-1 text-amber-100">Review and manage module submissions</p>
+      </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
-          Pending ({pending.length})
+        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900">
+            {pending.length}
+          </span>
+          Pending Review
         </h2>
         {pending.length === 0 ? (
-          <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+            <div className="text-4xl">🎉</div>
+            <p className="mt-3 font-medium text-gray-700">All caught up!</p>
+            <p className="text-sm text-gray-500">No pending submissions to review</p>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {pending.map((module) => (
@@ -46,19 +56,21 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+          <span className="text-sm font-normal text-gray-500">Recently reviewed</span>
+        </h2>
         <div className="space-y-2">
           {recentlyReviewed.map((module) => (
             <div
               key={module.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm"
             >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
+              <span className="font-medium text-gray-800">{module.name}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
                   module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
                 }`}
               >
                 {module.status}

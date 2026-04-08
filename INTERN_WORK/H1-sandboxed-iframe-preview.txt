@@ -1,0 +1,209 @@
+# H1 — Sandboxed Iframe Preview
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/app/modules/[slug]/page.tsx` + `src/components/iframe-preview.tsx` (mới)
+**Ngày làm:** 2026-04-08
+
+---
+
+## Bài toán
+
+Trang chi tiết module có link "Live Demo" — nhưng user phải click ra tab mới mới xem được demo.
+
+**Vấn đề:**
+- User phải rời trang
+- Không thấy preview ngay trên trang
+- Không biết module làm gì trước khi click
+
+## Giải pháp
+
+Tạo `IframePreview` component — hiển thị demo **ngay trong trang** bằng iframe có sandbox bảo mật.
+
+## 2 file chính của H1
+
+**File 1:** `src/components/iframe-preview.tsx` (mới)
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export function IframePreview({ demoUrl }: { demoUrl: string }) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div className="space-y-2">
+      <h2 className="text-sm font-medium text-gray-700">Live Preview</h2>
+      <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" />
+              <p className="text-xs text-gray-400">Loading preview...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Sandboxed iframe */}
+        <iframe
+          src={demoUrl}
+          sandbox="allow-scripts allow-same-origin"
+          onLoad={() => setIsLoading(false)}
+          className={`h-[500px] w-full border-0 ${isLoading ? "invisible" : "visible"}`}
+          title="Module live preview"
+        />
+      </div>
+      <p className="text-xs text-gray-400">
+        Preview is sandboxed for security.
+      </p>
+    </div>
+  );
+}
+```
+
+**File 2:** `src/app/modules/[slug]/page.tsx` (sửa)
+
+```tsx
+// Thêm import
+import { IframePreview } from "@/components/iframe-preview";
+
+// Thay placeholder bằng component mới
+{module.demoUrl && <IframePreview demoUrl={module.demoUrl} />}
+```
+
+## Thay đổi trên web
+
+```
+TRƯỚC:
+┌──────────────────────────────────┐
+│ 2048 Game                        │
+│ Description...                   │
+│                                  │
+│ [View on GitHub] [Live Demo]    │  ← Phải click ra tab mới
+└──────────────────────────────────┘
+
+SAU:
+┌──────────────────────────────────┐
+│ 2048 Game                        │
+│ Description...                   │
+│                                  │
+│ [View on GitHub] [Live Demo]    │
+│                                  │
+│ ┌──────────────────────────────┐ │
+│ │     Live Preview              │ │
+│ │ ┌────────────────────────────┐ │ │
+│ │ │   IFRAME PREVIEW           │ │ ← ✅ Hiển thị ngay trong trang
+│ │ │   (500px height)           │ │ │
+│ │ │                            │ │ │
+│ │ └────────────────────────────┘ │ │
+│ │ Loading... (khi đang load)    │ │
+│ └──────────────────────────────┘ │
+└──────────────────────────────────┘
+```
+
+## Kết quả test
+
+```
+pnpm typecheck  ✅
+pnpm test      ✅ 18 passed
+```
+
+---
+
+## 🎓 Những điều đã học được từ H1
+
+### 1. Iframe là gì?
+
+**Iframe** = nhúng một trang web bên trong một trang web khác.
+
+```html
+<iframe src="https://example.com" />
+```
+
+→ User thấy nội dung example.com mà không rời trang hiện tại.
+
+### 2. Sandbox là gì? Tại sao cần?
+
+**Sandbox** = giới hạn những gì iframe được làm.
+
+```
+Không có sandbox:
+  ✅ Iframe chạy script bình thường
+  ✅ Iframe có thể truy cập cookies của parent page
+  ✅ ⚠️ Rủi ro bảo mật!
+
+Có sandbox="allow-scripts allow-same-origin":
+  ✅ Iframe chạy script
+  ✅ Iframe có same-origin access
+  ✅ ❌ Không truy cập cookies của parent
+  ✅ ❌ Không thể redirect parent page
+  ✅ Bảo mật hơn
+```
+
+### 3. Các thuộc tính sandbox
+
+| Thuộc tính | Cho phép |
+|---|---|
+| `allow-scripts` | ✅ Chạy JavaScript |
+| `allow-same-origin` | ✅ Same-origin requests |
+| `allow-forms` | ✅ Submit form |
+| `allow-popups` | ✅ Mở popup |
+| *(không có)* | ❌ Không access cookies parent |
+| *(không có)* | ❌ Không redirect parent |
+
+→ Bài này dùng `allow-scripts allow-same-origin` — an toàn nhất.
+
+### 4. Loading state cho iframe
+
+```tsx
+const [isLoading, setIsLoading] = useState(true);
+
+// Hiện skeleton khi đang load
+{isLoading && <LoadingSkeleton />}
+
+// Ẩn iframe khi đang load
+<iframe className={isLoading ? "invisible" : "visible"} />
+
+// Khi iframe load xong → ẩn skeleton
+onLoad={() => setIsLoading(false)}
+```
+
+→ User thấy feedback khi đang chờ.
+
+### 5. Security headers (CSP)
+
+**Content-Security-Policy** = header bảo mật trên server.
+
+Bài này chưa implement CSP header vì:
+- Cần config ở server level (Next.js config)
+- Cần biết domain của demoUrl để allow
+- Phức tạp hơn cho bài test
+
+→ Sandbox iframe đã đủ bảo mật cho bài này.
+
+### 6. Tại sao height = 500px?
+
+```tsx
+className="h-[500px] w-full"
+```
+
+- `500px` = đủ để xem preview của module
+- Có thể thay đổi được (responsive)
+- iframe cần height cố định, không thì collapse
+
+### 7. Bài học quan trọng
+
+> **Iframe preview = tiện cho user nhưng rủi ro bảo mật. Sandbox = giải pháp.**
+> Luôn dùng `sandbox` khi nhúng iframe từ nguồn bên ngoài.
+
+### 8. Ứng dụng thực tế
+
+- **Module preview** — như bài này
+- **YouTube/Vimeo embed** — video nhúng
+- **Google Maps embed** — bản đồ nhúng
+- **CodePen/JSFiddle embed** — code demo nhúng
+- **Payment gateway iframe** — thanh toán nhúng
+
+→ Tất cả đều nên dùng sandbox để bảo mật.

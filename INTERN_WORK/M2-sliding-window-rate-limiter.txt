@@ -1,0 +1,147 @@
+# M2 — Sliding Window Rate Limiter
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `src/app/api/votes/route.ts`
+**Ngày làm:** 2026-04-08
+
+---
+
+## Bài toán
+
+Rate limiter cũ dùng **Fixed Window** — có vấn đề:
+
+```
+Fixed Window (cũ):
+- 10 vote mỗi 60 giây
+- Nhưng đếm vote theo KHUNG THỜI GIAN CỐ ĐỊNH
+- Ví dụ: 10:00 reset → 10:01 vote đc 10 cái → 10:02 vote tiếp → 429 ❌
+
+→ User gần đầu window có thể vote nhiều, gần cuối window bị chặn sớm
+```
+
+## Giải pháp
+
+**Sliding Window** — đếm vote trong **60 giây gần nhất**, không phải trong 1 khung cố định:
+
+```
+Sliding Window (mới):
+- 10 vote trong 60 giây gần nhất
+- 10:00:00 vote → timestamps: [10:00:00]
+- 10:00:10 vote → timestamps: [10:00:00, 10:00:10]
+- 10:00:50 vote → timestamps: [10:00:00, 10:00:10, 10:00:50]
+- 10:01:00 vote → timestamps: [10:00:10, 10:00:50, 10:01:00] (10:00:00 bị xóa vì >60s)
+
+→ Luôn chính xác: "10 vote gần nhất trong 60 giây"
+```
+
+## Code thay đổi
+
+```ts
+const WINDOW_MS = 60_000;  // 1 phút
+const MAX_REQUESTS = 10;   // 10 vote tối đa
+
+// Map: userId → array of timestamps
+const rateLimitMap = new Map<string, number[]>();
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const windowStart = now - WINDOW_MS;  // 60 giây trước
+
+  // Lấy timestamps của user
+  let timestamps = rateLimitMap.get(userId) ?? [];
+
+  // Xóa timestamps cũ (>60 giây)
+  timestamps = timestamps.filter((ts) => ts > windowStart);
+
+  if (timestamps.length >= MAX_REQUESTS) {
+    return false;  // ❌ Bị block
+  }
+
+  // ✅ Cho phép + ghi nhận timestamp
+  timestamps.push(now);
+  rateLimitMap.set(userId, timestamps);
+  return true;
+}
+```
+
+## So sánh Fixed vs Sliding Window
+
+| | Fixed Window (cũ) | Sliding Window (mới) |
+|---|---|---|
+| Cách đếm | Theo khung thời gian cố định | Theo 60s gần nhất |
+| Độ chính xác | Có thể burst ở đầu window | ✅ Chính xác |
+| Vấn đề | User gần cuối window bị chặn sớm | Không có |
+| Redis cần không? | Không | Không (vẫn in-memory) |
+
+## Kết quả test
+
+```
+pnpm typecheck  ✅
+pnpm test      ✅ 18 passed
+```
+
+## Tại sao không dùng Redis?
+
+Redis tốt cho production vì:
+- Shared giữa nhiều server
+- Không mất khi server restart
+
+Nhưng để đơn giản và chạy được local:
+- Sliding Window in-memory ✅
+- Đủ tốt cho demo/bài test
+- Production muốn tốt hơn → thêm Redis sau
+
+---
+
+## 🎓 Những điều đã học được từ M2
+
+### 1. Rate Limiter là gì?
+
+**Rate Limiter** = giới hạn số lần request trong một khoảng thời gian.
+
+Ví dụ:
+- API cho phép 100 request/phút
+- Login cho phép 5 lần/phút
+- Vote cho phép 10 vote/phút
+
+### 2. Fixed Window vs Sliding Window
+
+| | Fixed Window | Sliding Window |
+|---|---|---|
+| Cách hoạt động | Reset theo khung thời gian | Đếm trong X giây gần nhất |
+| Độ chính xác | Không chính xác | ✅ Chính xác |
+| Code phức tạp | Đơn giản | Phức tạp hơn |
+| Dùng khi | Demo, đơn giản | Production |
+
+### 3. Sliding Window hoạt động thế nào?
+
+```
+Bước 1: Lấy thời gian hiện tại = now
+Bước 2: Tính windowStart = now - 60 giây
+Bước 3: Lọc timestamps > windowStart (còn trong window)
+Bước 4: Đếm timestamps còn lại
+Bước 5: Nếu >= limit → block, nếu < limit → cho phép + thêm timestamp
+```
+
+### 4. Ứng dụng thực tế
+
+- **API rate limit**: Không cho phép spam API
+- **Login attempt**: Không cho đăng nhập sai quá nhiều lần
+- **Vote**: Như bài này
+- **Upload**: Giới hạn số file upload mỗi phút
+
+### 5. Bài học quan trọng
+
+> **Fixed Window dễ nhưng không chính xác. Sliding Window phức tạp hơn nhưng đúng hơn.**
+> Trong interview, người ta hay hỏi "thiết kế rate limiter" → câu trả lời nên nói về sliding window.
+
+### 6. Redis vs In-memory
+
+| | Redis | In-memory |
+|---|---|---|
+| Multi-server | ✅ Chia sẻ giữa các server | ❌ Mỗi server riêng |
+| Restart server | ✅ Không mất data | ❌ Mất data |
+| Phức tạp | Cần setup Redis | ✅ Đơn giản |
+| Dùng khi | Production | Demo, bài test |
+
+→ Bài này dùng In-memory vì đủ cho bài test + không cần setup Redis.

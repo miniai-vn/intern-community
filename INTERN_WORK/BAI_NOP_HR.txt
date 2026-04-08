@@ -1,0 +1,164 @@
+# 📋 Hướng dẫn nộp bài — Pull Request
+Test PR by Hoang
+**Ngày nộp:** 2026-04-08
+
+---
+
+## 1. Fork repo trên GitHub
+
+1. Vào: https://github.com/miniai-vn/intern-community
+2. Nhấn **Fork** (góc trên phải, màu xanh)
+3. Tạo fork xong
+
+---
+
+## 2. Thêm remote và push code
+
+Mở terminal:
+
+```bash
+cd "d:\bai test cong ty\intern-community"
+
+git remote add origin https://github.com/[TÊN_GITHUB_CỦA_BẠN]/intern-community.git
+
+git checkout -b feature/intern-community-improvements
+
+git add .
+
+git commit -m "feat: complete intern challenge - 9 tasks + 3 improvements"
+
+git push origin feature/intern-community-improvements
+```
+
+---
+
+## 3. Tạo Pull Request
+
+1. Vào repo fork của bạn trên GitHub
+2. Nhấn **"Compare & pull request"** (nút màu xanh)
+3. Điền thông tin:
+
+### PR Title:
+```
+feat: Hoàn thành 9 bài test + 3 cải tiến UX
+```
+
+### PR Description:
+```markdown
+## Mục tiêu
+Hoàn thành bài test intern và cải tiến dự án Intern Community Hub theo yêu cầu HR.
+
+## 9 bài test đã hoàn thành
+
+### 🔵 Easy (6 bài)
+- **E1**: Thêm spinner loading cho vote button (`src/components/vote-button.tsx`)
+- **E2**: Thêm character counter cho form submit (`src/components/submit-form.tsx`)
+- **E3**: Viết 4 test case cho `generateSlug` (`__tests__/utils.test.ts`)
+- **E4**: Viết 2 test case cho `makeUniqueSlug` (`__tests__/utils.test.ts`)
+- **E5**: Viết 5 test case cho `formatRelativeTime` (`__tests__/utils.test.ts`)
+- **E6**: Thêm aria-label cho accessibility (`src/components/module-card.tsx`)
+
+### 🟡 Medium (2 bài)
+- **M1**: Category filter với URL persistence (`src/components/category-filter.tsx`)
+- **M2**: Sliding window rate limiter (`src/app/api/votes/route.ts`)
+
+### 🔴 Hard (1 bài)
+- **H1**: Sandboxed iframe preview (`src/components/iframe-preview.tsx`)
+
+## 3 cải tiến UX thêm
+
+### ✨ Toast Notification
+- Hiện thông báo khi submit thành công/thất bại
+- File: `src/components/toast-provider.tsx`
+
+### 🗑️ Confirmation Dialog
+- Hỏi xác nhận trước khi xóa submission
+- File: `src/components/confirm-dialog.tsx`
+
+### 📦 UI/UX Improvements
+- Gradient header trang chủ
+- Card hover effects
+- Category pills đẹp hơn
+- Empty state với icon
+- Background gradient
+
+## Cách kiểm thử
+
+```bash
+pnpm typecheck   # ✅ Pass
+pnpm test        # ✅ 18 passed
+pnpm build       # ✅ Build success
+```
+
+## AI hỗ trợ
+Sử dụng Claude (Anthropic) trong quá trình làm bài:
+- Phân tích codebase và cấu trúc dự án
+- Hướng dẫn từng bước triển khai từng bài
+- Giải thích các khái niệm (rate limiter, sandbox, accessibility, sliding window)
+- Review code và fix lỗi TypeScript
+- Kiểm chứng kết quả sau khi viết
+
+## Checklist
+- [x] Tất cả 9 bài test hoàn thành
+- [x] 3 cải tiến UX thêm
+- [x] CI pass (typecheck, test, build)
+- [x] Code clean, có comment giải thích
+```
+
+4. Nhấn **"Create pull request"**
+
+---
+
+## 4. Gửi PR cho HR
+
+Sau khi tạo PR xong:
+1. Copy link PR (vd: `https://github.com/[TÊN]/intern-community/pull/1`)
+2. Gửi cho HR (Thanh Thảo) kèm message:
+
+```
+Chào Thanh Thảo,
+
+Mình đã hoàn thành bài test. Đây là link PR:
+[LINK_PR]
+
+Trong PR có:
+- 9 bài test (Easy, Medium, Hard)
+- 3 cải tiến UX (Toast, Confirm Dialog, UI Improvements)
+
+Mình sử dụng Claude AI để hỗ trợ trong quá trình làm bài.
+
+Cảm ơn bạn đã xem xét!
+```
+
+---
+
+## Tổng kết files đã thay đổi
+
+### Files mới:
+```
+src/components/toast-provider.tsx         ← Toast notification
+src/components/confirm-dialog.tsx         ← Confirmation dialog
+src/components/skeleton-cards.tsx         ← Skeleton loading
+src/components/module-grid.tsx            ← Grid với Suspense
+src/components/my-submissions-list.tsx   ← List có nút xóa
+src/components/category-filter.tsx       ← Category filter
+src/components/iframe-preview.tsx         ← Sandboxed iframe
+src/app/dev/set-admin/page.tsx           ← Dev tool set admin
+src/app/api/dev/set-admin/route.ts       ← API set admin
+```
+
+### Files sửa:
+```
+src/components/vote-button.tsx            ← E1: Spinner loading
+src/components/submit-form.tsx           ← E2: Character counter
+src/components/module-card.tsx           ← E6: aria-label + UI
+src/app/page.tsx                        ← M1: Category filter + UI
+src/app/submit/page.tsx                 ← UI improvements
+src/app/admin/page.tsx                 ← UI improvements
+src/app/api/votes/route.ts              ← M2: Sliding window
+src/app/modules/[slug]/page.tsx         ← H1: iframe preview
+src/app/my-submissions/page.tsx         ← Confirm dialog
+src/app/layout.tsx                     ← Toast provider
+src/app/globals.css                    ← Animations + gradient
+__tests__/utils.test.ts               ← E3, E4, E5: Tests
+```

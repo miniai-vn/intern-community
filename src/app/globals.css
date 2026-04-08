@@ -24,3 +24,48 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Gradient background for main */
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Card hover effect */
+.module-card {
+  transition: all 0.2s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover */
+.btn-primary {
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: scale(1.02);
+}
+
+/* Category pill active glow */
+.category-active {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}

@@ -1,0 +1,91 @@
+# E4 — Viết test cho hàm makeUniqueSlug
+
+**Trạng thái:** ✅ Hoàn thành
+**File:** `__tests__/utils.test.ts`
+**Ngày làm:** 2026-04-07
+
+---
+
+## Bài toán
+
+Khi nhiều người submit cùng tên module → hệ thống cần tạo slug **không trùng nhau**.
+
+`makeUniqueSlug` là hàm đảm bảo điều này.
+
+## 2 test đã thêm
+
+```ts
+it("finds the next available number when many versions exist", () => {
+  expect(makeUniqueSlug("my-app", [
+    "my-app",
+    "my-app-1",
+    "my-app-2",
+    "my-app-3",
+    "my-app-4",
+    "my-app-5",
+  ])).toBe("my-app-6");
+});
+
+it("does not block base slug when similar but non-conflicting slugs exist", () => {
+  expect(makeUniqueSlug("my-app", ["my-app-tool", "my-app-maker"])).toBe("my-app");
+});
+```
+
+## Test 1 — Nhiều phiên bản
+
+**Input:** base = "my-app", existing = ["my-app", "my-app-1"... "my-app-5"]
+**Output:** "my-app-6"
+
+**Logic:**
+- "my-app" đã tồn tại → thử "-1"
+- "my-app-1" đã tồn tại → thử "-2"
+- ...thử đến "-6" → OK
+
+## Test 2 — Slug tương tự nhưng không trùng
+
+**Input:** base = "my-app", existing = ["my-app-tool", "my-app-maker"]
+**Output:** "my-app"
+
+**Logic:**
+- "my-app" không có trong danh sách → trả về luôn "my-app"
+- "my-app-tool" khác với "my-app" → không chặn
+
+## Kết quả test
+
+```
+Tests  13 passed ✅
+  generateSlug:  8 tests
+  makeUniqueSlug: 5 tests
+```
+
+---
+
+## 🎓 Những điều đã học được từ E4
+
+### 1. Hàm makeUniqueSlug hoạt động thế nào?
+- B1: Kiểm tra base slug có trong danh sách không
+- B2: Nếu không có → trả về base
+- B3: Nếu có → thử "-1", "-2", "-3"... đến khi không trùng
+
+### 2. Tại sao test 2 quan trọng?
+- ["my-app-tool"] ≠ ["my-app"]
+- Thuật toán chỉ kiểm tra TRÙNG KHỚP, không kiểm tra "tương tự"
+- → "my-app" vẫn an toàn dù "my-app-tool" tồn tại
+
+### 3. Test tránh được bug gì?
+- Bug: Người ta nghĩ "my-app-tool" sẽ chặn "my-app"
+- Thực tế: Không chặn → test xác nhận đúng
+- Nếu sau này ai sửa code sai logic → test fail → phát hiện
+
+### 4. Đệm (buffer) trong edge cases
+- Khi code phức tạp, cần test nhiều trường hợp
+- Test thường có 3 case: happy path + 1 edge + 1 boundary
+- E4 có: happy path (sẵn) + nhiều phiên bản (edge) + tương tự nhưng khác (boundary)
+
+### 5. Cách viết test tốt
+```ts
+it("mô tả HÀNH VI thay vì kỹ thuật", () => {
+  // ✅ "finds the next available number"
+  // ❌ "loops from 1 to N"
+});
+```
