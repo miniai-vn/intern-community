@@ -65,7 +65,7 @@ async function main() {
       description:
         "A simple Pomodoro timer to help you stay focused. Built with vanilla JS. Supports custom work/break intervals.",
       repoUrl: "https://github.com/example/pomodoro-timer",
-      demoUrl: "https://pomodoro.example.com",
+      demoUrl: "https://www.wikipedia.org/",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "productivity")!.id,
       authorId: contributor.id,
@@ -89,7 +89,7 @@ async function main() {
       description:
         "Classic 2048 puzzle game. Keyboard and touch support. Saves high score to localStorage.",
       repoUrl: "https://github.com/example/2048",
-      demoUrl: "https://2048.example.com",
+      demoUrl: "https://codesandbox.io/embed/new",
       status: SubmissionStatus.APPROVED,
       categoryId: categories.find((c) => c.slug === "game")!.id,
       authorId: contributor.id,
@@ -100,7 +100,9 @@ async function main() {
   for (const mod of approvedModules) {
     await prisma.miniApp.upsert({
       where: { slug: mod.slug },
-      update: {},
+      update: {
+        demoUrl: mod.demoUrl,
+      },
       create: mod,
     });
   }
@@ -136,7 +138,9 @@ async function main() {
   for (const mod of pendingModules) {
     await prisma.miniApp.upsert({
       where: { slug: mod.slug },
-      update: {},
+      update: {
+        demoUrl: mod.demoUrl, 
+      },
       create: mod,
     });
   }
