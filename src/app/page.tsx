@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { AIMatcher } from "@/components/ai-matcher";
+import type { Category, Module } from "@/types";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -13,7 +16,7 @@ export default async function HomePage({
   const { q, category } = await searchParams;
   const session = await auth();
 
-  const modules = await db.miniApp.findMany({
+  const modules: Module[] = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
       ...(category ? { category: { slug: category } } : {}),
@@ -38,7 +41,7 @@ export default async function HomePage({
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
   if (session?.user) {
-    const votes = await db.vote.findMany({
+    const votes: Array<{ moduleId: string }> = await db.vote.findMany({
       where: {
         userId: session.user.id,
         moduleId: { in: modules.map((m) => m.id) },
@@ -48,7 +51,17 @@ export default async function HomePage({
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
 
-  const categories = await db.category.findMany({ orderBy: { name: "asc" } });
+  const categories: Category[] = await db.category.findMany({
+    orderBy: { name: "asc" },
+  });
+  const jobs = modules.map((module) => ({
+    id: module.id,
+    title: module.name,
+    description: module.description,
+    category: module.category.name,
+    votes: module.voteCount,
+    author: module.author.name,
+  }));
 
   return (
     <div className="space-y-6">
@@ -78,7 +91,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
           className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !category
@@ -87,7 +100,7 @@ export default async function HomePage({
           }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
           <a
             key={c.id}
@@ -103,13 +116,15 @@ export default async function HomePage({
         ))}
       </div>
 
+      <AIMatcher jobs={jobs} />
+
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
