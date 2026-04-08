@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { TrendingModules } from "@/components/trending-modules";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -31,7 +32,7 @@ export default async function HomePage({
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: sort === "views" ? { viewCount: "desc" } : { voteCount: "desc" },
+    orderBy: { voteCount: "desc" },
     take: 12,
   });
 
@@ -111,7 +112,7 @@ export default async function HomePage({
         <a
           href={`/?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}) }).toString()}`}
           className={`rounded-full px-3 py-1 font-medium transition-colors ${
-            sort !== "views"
+            !sort
               ? "bg-gray-800 text-white"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
@@ -119,18 +120,20 @@ export default async function HomePage({
           Most Voted
         </a>
         <a
-          href={`/?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}), sort: "views" }).toString()}`}
+          href={`/?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}), sort: "trending" }).toString()}`}
           className={`rounded-full px-3 py-1 font-medium transition-colors ${
-            sort === "views"
+            sort === "trending"
               ? "bg-gray-800 text-white"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
-          Most Viewed
+          🔥 Trending
         </a>
       </div>
 
-      {modules.length === 0 ? (
+      {sort === "trending" ? (
+        <TrendingModules />
+      ) : modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
