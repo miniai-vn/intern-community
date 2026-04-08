@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descriptionLength, setDescriptionLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,13 +60,31 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field
+        label="Description"
+        name="description"
+        error={error.description}
+        hint={
+          <div className="flex items-center justify-between gap-3">
+            <span>Max 500 characters</span>
+            <span
+              id="description-counter"
+              aria-live="polite"
+              className={`tabular-nums ${descriptionLength >= 450 ? "text-red-600" : "text-gray-400"}`}
+            >
+              {descriptionLength} / 500
+            </span>
+          </div>
+        }
+      >
         <textarea
+          id="description"
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          aria-describedby="description-counter"
+          onChange={(e) => setDescriptionLength(e.currentTarget.value.length)}
           className={inputClass}
         />
       </Field>
@@ -125,7 +144,7 @@ function Field({
   label: string;
   name: string;
   error?: string[];
-  hint?: string;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -134,7 +153,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <div className="text-xs text-gray-400">{hint}</div>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
