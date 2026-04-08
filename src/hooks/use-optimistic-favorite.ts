@@ -2,34 +2,28 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 
-interface UseOptimisticVoteOptions {
+interface UseOptimisticFavoriteOptions {
   moduleId: string;
-  initialVoted: boolean;
-  initialCount: number;
+  initialFavorited: boolean;
 }
 
-interface UseOptimisticVoteReturn {
-  voted: boolean;
-  count: number;
+interface UseOptimisticFavoriteReturn {
+  isFavorited: boolean;
   isLoading: boolean;
   toggle: () => Promise<void>;
 }
 
 /**
- * Manages optimistic vote state for a module.
+ * Manages optimistic favorite state for a module.
  *
  * Optimistically updates the UI immediately, then syncs with the server.
  * Rolls back on error.
- *
- * See: https://react.dev/learn/synchronizing-with-effects#fetching-data
  */
-export function useOptimisticVote({
+export function useOptimisticFavorite({
   moduleId,
-  initialVoted,
-  initialCount,
-}: UseOptimisticVoteOptions): UseOptimisticVoteReturn {
-  const [voted, setVoted] = useState(initialVoted);
-  const [count, setCount] = useState(initialCount);
+  initialFavorited,
+}: UseOptimisticFavoriteOptions): UseOptimisticFavoriteReturn {
+  const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [isLoading, setIsLoading] = useState(false);
 
   // Track if component is mounted using useEffect cleanup
@@ -46,32 +40,29 @@ export function useOptimisticVote({
     if (isLoading) return;
 
     // Optimistic update
-    const prevVoted = voted;
-    const prevCount = count;
-    setVoted(!prevVoted);
-    setCount(prevVoted ? count - 1 : count + 1);
+    const prevFavorited = isFavorited;
+    setIsFavorited(!prevFavorited);
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/votes", {
+      const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ moduleId }),
       });
 
-      if (!res.ok) throw new Error("Vote failed");
+      if (!res.ok) throw new Error("Favorite toggle failed");
     } catch {
-      // Roll back — but only if still mounted (see edge case note above)
+      // Roll back — but only if still mounted
       if (isMounted.current) {
-        setVoted(prevVoted);
-        setCount(prevCount);
+        setIsFavorited(prevFavorited);
       }
     } finally {
       if (isMounted.current) {
         setIsLoading(false);
       }
     }
-  }, [moduleId, voted, count, isLoading]);
+  }, [moduleId, isFavorited, isLoading]);
 
-  return { voted, count, isLoading, toggle };
+  return { isFavorited, isLoading, toggle };
 }

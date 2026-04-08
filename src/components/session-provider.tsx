@@ -3,5 +3,10 @@
 import { SessionProvider } from "next-auth/react";
 
 export function AuthSessionProvider({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  // Wrap children so theme text color can inherit via `text-current`
+  return (
+    <SessionProvider>
+      <div className="min-h-full text-current">{children}</div>
+    </SessionProvider>
+  );
 }

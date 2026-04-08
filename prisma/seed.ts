@@ -35,7 +35,8 @@ async function main() {
     }),
   ]);
 
-  // Seed demo admin user
+  // Seed demo admin user (development only)
+  // In production, create admin through proper onboarding flow
   const admin = await prisma.user.upsert({
     where: { email: "admin@td.com" },
     update: {},
@@ -67,7 +68,7 @@ async function main() {
       repoUrl: "https://github.com/example/pomodoro-timer",
       demoUrl: "https://pomodoro.example.com",
       status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "productivity")!.id,
+      categoryId: categories.find((c: typeof categories[number]) => c.slug === "productivity")!.id,
       authorId: contributor.id,
       voteCount: 24,
     },
@@ -79,7 +80,7 @@ async function main() {
       repoUrl: "https://github.com/example/expense-tracker",
       demoUrl: null,
       status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "finance")!.id,
+      categoryId: categories.find((c: typeof categories[number]) => c.slug === "finance")!.id,
       authorId: contributor.id,
       voteCount: 18,
     },
@@ -91,7 +92,7 @@ async function main() {
       repoUrl: "https://github.com/example/2048",
       demoUrl: "https://2048.example.com",
       status: SubmissionStatus.APPROVED,
-      categoryId: categories.find((c) => c.slug === "game")!.id,
+      categoryId: categories.find((c: typeof categories[number]) => c.slug === "game")!.id,
       authorId: contributor.id,
       voteCount: 41,
     },
@@ -115,7 +116,7 @@ async function main() {
       repoUrl: "https://github.com/example/md-editor",
       demoUrl: null,
       status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      categoryId: categories.find((c: typeof categories[number]) => c.slug === "utility")!.id,
       authorId: contributor.id,
       voteCount: 0,
     },
@@ -127,7 +128,7 @@ async function main() {
       repoUrl: "https://github.com/example/habit-tracker",
       demoUrl: "https://habits.example.com",
       status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "productivity")!.id,
+      categoryId: categories.find((c: typeof categories[number]) => c.slug === "productivity")!.id,
       authorId: contributor.id,
       voteCount: 0,
     },

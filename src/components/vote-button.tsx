@@ -35,15 +35,22 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+      aria-busy={isLoading}
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors cursor-pointer
+        ${
+          voted
+            ? "bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-500 dark:hover:bg-orange-800"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? (
+        <span className="inline-block animate-spin">
+          <TriangleIcon filled={false} />
+        </span>
+      ) : (
+        <TriangleIcon filled={voted} />
+      )}
       {count}
     </button>
   );

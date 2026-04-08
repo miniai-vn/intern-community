@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
+// Simple in-memory rate limit: max 5 favorites per minute per user
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(userId: string): boolean {
@@ -14,9 +12,9 @@ function checkRateLimit(userId: string): boolean {
     rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
     return true;
   }
-  if (entry.count >= 10) return false;
+  if (entry.count >= 5) return false;
   entry.count++;
-  
+
   // Cleanup old entries to prevent unbounded memory growth
   if (rateLimitMap.size > 10000) {
     for (const [key, val] of rateLimitMap.entries()) {
@@ -25,11 +23,11 @@ function checkRateLimit(userId: string): boolean {
       }
     }
   }
-  
+
   return true;
 }
 
-// POST /api/votes — toggle vote on a module
+// POST /api/favorites — toggle favorite on a module
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
@@ -38,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   if (!checkRateLimit(session.user.id)) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
+      { error: "Too many requests. Please wait a moment." },
       { status: 429 }
     );
   }
@@ -51,7 +49,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Validate that moduleId exists and is APPROVED before allowing vote
+  // Validate that moduleId exists and is APPROVED before allowing favorite
   const miniApp = await db.miniApp.findUnique({
     where: { id: moduleId },
   });
@@ -62,31 +60,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const existing = await db.vote.findUnique({
+  const existing = await db.favorite.findUnique({
     where: { userId_moduleId: { userId: session.user.id, moduleId } },
   });
 
   if (existing) {
-    // Un-vote
-    await db.$transaction([
-      db.vote.delete({ where: { id: existing.id } }),
-      db.miniApp.update({
-        where: { id: moduleId },
-        data: { voteCount: { decrement: 1 } },
-      }),
-    ]);
-    return NextResponse.json({ voted: false });
+    // Un-favorite
+    await db.favorite.delete({ where: { id: existing.id } });
+    return NextResponse.json({ favorited: false });
   } else {
-    // Vote
-    await db.$transaction([
-      db.vote.create({
-        data: { userId: session.user.id, moduleId },
-      }),
-      db.miniApp.update({
-        where: { id: moduleId },
-        data: { voteCount: { increment: 1 } },
-      }),
-    ]);
-    return NextResponse.json({ voted: true });
+    // Favorite
+    await db.favorite.create({
+      data: { userId: session.user.id, moduleId },
+    });
+    return NextResponse.json({ favorited: true });
   }
 }

@@ -1,3 +1,4 @@
+@custom-variant dark (&:where(.dark, .dark *));
 @import "tailwindcss";
 
 :root {
@@ -12,8 +13,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode support for class-based toggle (next-themes) */
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     --background: #0a0a0a;
     --foreground: #ededed;
   }
@@ -23,4 +31,70 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Icon animation support */
+svg {
+  transition-property: transform, opacity;
+  transition-timing-function: ease-in-out;
+  transition-duration: 300ms;
+}
+
+/* Ensure strokes and fills inherit color */
+.theme-toggle svg path {
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+/* Theme toggle icon animations */
+.theme-toggle svg {
+  pointer-events: none;
+}
+
+.theme-toggle .rotate-0 {
+  transform: rotate(0deg);
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.theme-toggle .rotate-90 {
+  transform: rotate(90deg);
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.theme-toggle .scale-100 {
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1),
+    opacity 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.theme-toggle .scale-0 {
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1),
+    opacity 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.dark .theme-toggle .-rotate-90 {
+  transform: rotate(-90deg);
+}
+
+.dark .theme-toggle .dark\:-rotate-90 {
+  transform: rotate(-90deg);
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.dark .theme-toggle .dark\:scale-100 {
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1),
+    opacity 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.dark .theme-toggle .dark\:scale-0 {
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1),
+    opacity 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
 }
