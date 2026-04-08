@@ -106,6 +106,8 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Supports leaderboard query: WHERE status + createdAt range, GROUP BY authorId.
+  @@index([status, createdAt, authorId])
   @@map("mini_apps")
 }
 
