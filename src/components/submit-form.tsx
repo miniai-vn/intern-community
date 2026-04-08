@@ -113,7 +113,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
 function Field({
   label,

@@ -1,158 +1,196 @@
-# Intern Community Hub
+# Intern Community Hub – Enhancements by Quang Vinh
 
-> An open platform for the TD developer community to submit and discover mini-app modules — and an open-source hiring challenge for aspiring interns.
-
-[![CI](https://github.com/your-org/intern-community/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/intern-community/actions/workflows/ci.yml)
+This repository contains my contributions to the Intern Community Hub project, focusing on performance, security, and user experience improvements.
 
 ---
 
-## What is this?
+## Overview
 
-**Intern Community Hub** is a web platform where developers can:
-- Browse approved mini-app modules built by the community
-- Submit their own mini-apps for review
-- Upvote modules they find useful
-- (Admins) Review and approve/reject submissions
+This contribution aims to improve the system with a production-oriented mindset:
 
-This repo also doubles as an **open-source internship challenge**. Instead of a theory-only interview, candidates demonstrate their skills by contributing real PRs to this real codebase.
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router) + TypeScript |
-| Database | PostgreSQL via Prisma ORM |
-| Auth | NextAuth.js v5 (GitHub OAuth) |
-| Styling | Tailwind CSS |
-| Testing | Vitest |
-| Local DB | Docker Compose |
-| CI | GitHub Actions |
+- Optimize performance at both frontend and database levels
+- Strengthen security using a layered approach
+- Improve UI/UX consistency and navigation
+- Maintain clean, scalable, and readable code
 
 ---
 
-## Local setup
+## Demo
 
-**Prerequisites:** Node.js 20+, pnpm, Docker
+### Homepage
+![Homepage](image.png)
 
-```bash
-# 1. Clone
-git clone https://github.com/your-org/intern-community.git
-cd intern-community
+### Admin Search (Optimized)
+![Admin Search](image-1.png)
 
-# 2. Install dependencies
-pnpm install
+### Dark Mode UI
+![Dark Mode](image-2.png)
 
-# 3. Copy env
-cp .env.example .env
-# Edit .env — add your GitHub OAuth credentials
-# (see "GitHub OAuth setup" below)
+### Comment System
+![Comment 1](image-3.png)
+![Comment 2](image-4.png)
 
-# 4. Start the database
-docker compose up -d
+---
 
-# 5. Apply schema and seed demo data
-pnpm db:push
-pnpm db:seed
+## Key Contributions
 
-# 6. Start the dev server
-pnpm dev
+---
+
+### 1. Optimized Admin Search (Performance)
+
+#### Implementation
+- Added database indexing:
+  ```prisma
+  @@index([name])
+  @@index([authorId])
+````
+
+* Applied debounce using `use-debounce` to limit API calls
+
+#### Impact
+
+* Eliminated full table scans
+* Reduced unnecessary API requests during typing
+* Improved scalability for large datasets
+
+---
+
+### 2. Defense-in-Depth Security Pipeline
+
+Designed and implemented a multi-layer security system for module submission.
+
+#### Architecture
+
+| Layer             | Purpose                                  |
+| ----------------- | ---------------------------------------- |
+| Authentication    | Secure access with NextAuth              |
+| Validation        | Zod schema validation + rate limiting    |
+| External Security | Google Safe Browsing API                 |
+| Persistence       | Slug generation + DB constraint handling |
+
+---
+
+#### Key Decisions
+
+* Early validation reduces server load
+* External API avoids heavy local processing
+* Database constraints ensure data integrity
+
+#### Impact
+
+* Prevents spam submissions
+* Detects malicious links automatically
+* Ensures safe and consistent data storage
+
+---
+
+### 3. UI/UX Improvements
+
+#### Implementation
+
+* Replaced `<a>` with Next.js `<Link>` for client-side navigation
+* Standardized dark mode UI
+* Improved form input visibility and consistency
+
+#### Impact
+
+* Faster page transitions
+* Better user experience
+* Consistent design across the application
+
+---
+
+### 4. Comment System (Extended Feature)
+
+#### Features
+
+* Nested comments (1-level replies)
+* Activity tracking system
+* Real-time UI updates via revalidation
+
+#### Backend Logic
+
+* Authentication + validation (Zod)
+* Rate limiting (10 seconds per comment)
+* Transaction-based operations:
+
+```ts
+db.$transaction([...])
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### GitHub OAuth setup
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App:
-   - **Application name:** Intern Community Hub (local)
-   - **Homepage URL:** `http://localhost:3000`
-   - **Callback URL:** `http://localhost:3000/api/auth/callback/github`
-3. Copy the Client ID and Secret into your `.env`
+Ensures data consistency between comment creation and activity logging.
 
 ---
 
-## Available scripts
+## Issues Fixed
 
-```bash
-pnpm dev          # Start dev server
-pnpm build        # Production build
-pnpm lint         # ESLint
-pnpm typecheck    # TypeScript check
-pnpm test         # Run tests
-pnpm db:push      # Apply schema to DB (dev, no migration file)
-pnpm db:migrate   # Create and apply a named migration
-pnpm db:seed      # Seed demo data
-pnpm db:studio    # Open Prisma Studio
-```
+* Missing input validation in submission forms
+* Spam vulnerability (resolved with rate limiting)
+* Slow search queries (fixed with indexing)
+* Inefficient navigation using `<a>` tags
+* Inconsistent UI across forms
+* Duplicate data risk (handled via Prisma constraints)
 
 ---
 
-## Intern Challenge — How to contribute
+## Testing
 
-> See [open issues](https://github.com/your-org/intern-community/issues?q=label%3Aintern-challenge+is%3Aopen) for available tasks.
+Manually tested:
 
-### Workflow
-
-```
-1. Fork this repo
-2. Pick an open issue tagged `intern-challenge`
-3. Comment "I'm working on this" on the issue
-4. Create a branch: feat/issue-{number}-short-description
-5. Write your code, commit using Conventional Commits
-6. Open a PR — fill in the PR template completely
-7. A maintainer will leave 1-2 review comments
-8. Respond to feedback and revise if needed
-9. Strong PRs → invited to a short follow-up chat
-```
-
-### Challenge levels (you guys can pick the issue here or can just bring any updates/feature you want to the project)
-
-| Level | Tag | Description | Est. time |
-|---|---|---|---|
-| 🟢 Easy | `difficulty: easy` | Fix a bug, add validation, write tests | 1–3 h |
-| 🟡 Medium | `difficulty: medium` | Add a feature (API endpoint or UI component) | 4–8 h |
-| 🔴 Hard | `difficulty: hard` | Design and implement a complete module | 1–3 days |
-
-### What we look for in PRs
-
-| Criteria | How we observe it |
-|---|---|
-| Reads code before writing | PR is consistent with existing patterns |
-| Uses AI responsibly | Code is specific, not boilerplate; can explain every line |
-| Technical reasoning | Commit messages, structure, edge cases handled |
-| Communication | PR description quality, asks clarifying questions on vague issues |
-| Speed + quality balance | Feels considered, not rushed |
-
-**Transparency note:** We may ask "why did you choose this approach?" in a review comment. We want to distinguish candidates who understand their code from those who don't.
+* Search performance improvements
+* Rate limiting behavior
+* Validation edge cases
+* Safe Browsing API responses
+* UI navigation and dark mode consistency
 
 ---
 
-## Project structure
+## AI Usage
 
-```
-src/
-├── app/              # Next.js App Router pages + API routes
-├── components/       # React components
-├── hooks/            # Custom React hooks
-├── lib/              # Prisma client, auth config, utils, validations
-└── types/            # Shared TypeScript types
-prisma/
-├── schema.prisma     # Database schema
-└── seed.ts           # Demo data seeder
-__tests__/            # Vitest tests
-.github/              # CI workflow + issue/PR templates
-```
+AI tools were used to:
+
+* Understand project structure and documentation
+* Analyze existing source code
+* Support UI/UX implementation
+* Assist with parts of business logic
+
+All generated code was carefully reviewed, tested, and refined to ensure correctness, consistency, and maintainability.
+
+I ensured full understanding of all implemented logic and can explain all technical decisions.
 
 ---
 
-## Naming note
+## Technical Decisions
 
-`MiniApp` in the database, `Module` in the UI — this naming drift is intentional (mirrors real-world legacy systems). **Do not rename** one to match the other without an issue discussion first.
+Debounce
+Reduce unnecessary API calls and improve responsiveness
+
+Indexing
+Optimize database query performance and scalability
+
+Defense-in-Depth
+Apply multiple layers of protection instead of relying on a single point
+
+External Security API
+Leverage reliable third-party security without high system overhead
 
 ---
 
-## License
+## Conclusion
 
-MIT
+This contribution focuses on building a scalable and production-ready system by combining:
+
+* Efficient backend optimization
+* Strong security practices
+* Clean and consistent UI/UX
+
+---
+
+## Author
+
+Quang Vinh
+GitHub: [https://github.com/QuangVinh-Dev](https://github.com/QuangVinh-Dev)
+
+````
+
+---

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+const suspiciousLinkRegex = /(bit\.ly|tinyurl\.com|free-money|malware-site)\./i;
 export const submitModuleSchema = z.object({
   name: z
     .string()
@@ -22,6 +23,18 @@ export const submitModuleSchema = z.object({
     .or(z.literal("").transform(() => undefined)),
 });
 
+export const commentSchema = z.object({
+  content: z
+    .string()
+    .min(1, "Comment cannot be empty")
+    .max(1000, "Comment is too long (max 1000 characters)")
+    .refine((val) => !suspiciousLinkRegex.test(val), {
+      message: "Links are not allowed in comments for security reasons",
+    }),
+  miniAppId: z.string().cuid(),
+  parentId: z.string().cuid().optional(), 
+});
+
 export const adminReviewSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED"]),
   feedback: z.string().max(500).optional(),
@@ -29,3 +42,4 @@ export const adminReviewSchema = z.object({
 
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;
 export type AdminReviewInput = z.infer<typeof adminReviewSchema>;
+export type CommentInput = z.infer<typeof commentSchema>;

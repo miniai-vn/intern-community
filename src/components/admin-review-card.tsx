@@ -55,7 +55,7 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         placeholder="Feedback for the contributor (optional)"
         rows={2}
         maxLength={500}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
       />
 
       <div className="flex gap-2">

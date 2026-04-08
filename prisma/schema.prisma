@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -64,6 +65,8 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  comments   Comment[]
+  activities Activity[]
 
   createdAt DateTime @default(now())
 
@@ -99,6 +102,7 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  comments   Comment[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
@@ -106,6 +110,8 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([name])
+  @@index([authorId])
   @@map("mini_apps")
 }
 
@@ -128,4 +134,42 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+// --- Social Features Models ---
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  miniAppId String
+  miniApp   MiniApp  @relation(fields: [miniAppId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment?  @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentToReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([miniAppId])
+  @@index([authorId])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  type      String   
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetId  String
+  
+
+  content   String?  @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)]) 
 }

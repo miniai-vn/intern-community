@@ -2,11 +2,18 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AdminReviewCard } from "@/components/admin-review-card";
+import { AdminSearch } from "@/components/admin-search";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.isAdmin) redirect("/");
 
+  const { q } = await searchParams;
+  const safeSearch = q?.trim();
   const pending = await db.miniApp.findMany({
     where: { status: "PENDING" },
     include: {
@@ -17,21 +24,36 @@ export default async function AdminPage() {
   });
 
   const recentlyReviewed = await db.miniApp.findMany({
-    where: { status: { in: ["APPROVED", "REJECTED"] } },
+    where: {
+      status: { in: ["APPROVED", "REJECTED"] },
+      
+      ...(safeSearch ? {
+        OR: [
+          { name: { contains: safeSearch, mode: 'insensitive' } }, 
+          { author: { name: { contains: safeSearch, mode: 'insensitive' } } } 
+        ]
+      } : {})
+    },
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { updatedAt: "desc" },
-    take: 5,
+   
+    take: safeSearch ? 20 : 5,
   });
+
+
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-white-900">Admin — Module Review</h1>
+        <AdminSearch />
+      </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
+        <h2 className="text-lg font-semibold text-White-700">
           Pending ({pending.length})
         </h2>
         {pending.length === 0 ? (
@@ -46,7 +68,7 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
+        <h2 className="text-lg font-semibold text-white-700">Recently Reviewed</h2>
         <div className="space-y-2">
           {recentlyReviewed.map((module) => (
             <div
