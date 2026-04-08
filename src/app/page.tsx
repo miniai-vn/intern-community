@@ -1,9 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
-
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+import Link from "next/link";
 
 export default async function HomePage({
   searchParams,
@@ -19,14 +17,13 @@ export default async function HomePage({
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
-    // DO NOT remove include — avoids N+1 on category/author fields.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
@@ -35,7 +32,6 @@ export default async function HomePage({
     take: 12,
   });
 
-  // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
   if (session?.user) {
     const votes = await db.vote.findMany({
@@ -76,30 +72,27 @@ export default async function HomePage({
         </form>
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
+          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${!category
               ? "bg-blue-600 text-white"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
+            }`}
         >
           All
-        </a>
+        </Link>
         {categories.map((c) => (
-          <a
+          <Link
             key={c.id}
             href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${category === c.slug
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+              }`}
           >
             {c.name}
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -107,18 +100,18 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
+          {modules.map((item) => (
             <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
+              key={item.id}
+              module={item}
+              hasVoted={votedIds.has(item.id)}
             />
           ))}
         </div>

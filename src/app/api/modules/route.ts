@@ -12,17 +12,17 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor");
   const limit = 12;
 
-  const modules = await db.miniApp.findMany({
+  const miniApp = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // NOTE: Always include category and author to avoid N+1 on listing pages.
@@ -36,8 +36,8 @@ export async function GET(req: NextRequest) {
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
 
-  const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
+  const hasMore = miniApp.length > limit;
+  const items = hasMore ? miniApp.slice(0, limit) : miniApp;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   return NextResponse.json({ items, nextCursor });
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const createdMiniApp = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +80,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(createdMiniApp, { status: 201 });
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { VoteButton } from "@/components/vote-button";
 import type { Module } from "@/types";
 
@@ -31,6 +32,27 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
       </div>
 
       <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+
+      {/* Author link — click to view profile */}
+      <Link
+        href={`/profile/${module.author.id}`}
+        className="flex items-center gap-1.5 w-fit text-xs text-gray-400 hover:text-blue-600 transition-colors"
+      >
+        {module.author.image ? (
+          <Image
+            src={module.author.image}
+            alt={module.author.name ?? ""}
+            width={16}
+            height={16}
+            className="rounded-full"
+          />
+        ) : (
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-600">
+            {module.author.name?.[0]?.toUpperCase() ?? "?"}
+          </span>
+        )}
+        <span>{module.author.name}</span>
+      </Link>
 
       <div className="mt-auto flex items-center justify-between">
         <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
