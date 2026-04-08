@@ -48,7 +48,7 @@ export function VoteButton({
   );
 }
 
-function TriangleIcon({ filled = false, className = "" }: { filled?: boolean; className?: string }) {
+function TriangleIcon({ filled = false, className }: { filled?: boolean; className?: string }) {
   return (
     <svg
       width="12"
