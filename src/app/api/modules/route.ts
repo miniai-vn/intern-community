@@ -1,44 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { listModulesPage } from "@/lib/module-listing.server";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
+  const session = await auth();
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
-  const limit = 12;
 
-  const modules = await db.miniApp.findMany({
-    where: {
-      status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
-      ...(search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    // NOTE: Always include category and author to avoid N+1 on listing pages.
-    // DO NOT remove the include without running EXPLAIN ANALYZE on the query.
-    include: {
-      category: true,
-      author: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { voteCount: "desc" },
-    take: limit + 1,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+  const { items, nextCursor } = await listModulesPage({
+    q: search ?? undefined,
+    category: category ?? undefined,
+    cursor,
+    userId: session?.user?.id,
   });
-
-  const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   return NextResponse.json({ items, nextCursor });
 }
