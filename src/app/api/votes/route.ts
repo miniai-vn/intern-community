@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 // In production, replace with Redis-backed sliding window (e.g. Upstash).
 // TODO [medium-challenge]: Replace this with a proper rate limiter
 async function checkRateLimit(userId: string): Promise<boolean> {
-  const windowStart = new Date(Date.now() - 60_0000); // 1 minute ago
+  const windowStart = new Date(Date.now() - 60 * 1000); // 1 minute ago
 
   const voteCount = await db.rateLimitEvent.count({
     where: {
@@ -21,7 +21,11 @@ async function checkRateLimit(userId: string): Promise<boolean> {
   }
   // Not Reach Limit -> Allow + Record Event
   await db.rateLimitEvent.create({
-    data: { userId: userId },
+    data: { 
+      userId: userId,
+      createdAt: new Date(),
+    },
+    
   });
   
   return true;
