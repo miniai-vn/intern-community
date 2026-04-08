@@ -32,9 +32,17 @@ export function VoteButton({
 
   return (
     <button
+      type="button"
       onClick={toggle}
       disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
+      aria-busy={isLoading}
+      aria-label={
+        isLoading
+          ? "Saving vote…"
+          : voted
+            ? "Remove vote"
+            : "Upvote this module"
+      }
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
           ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
@@ -42,10 +50,34 @@ export function VoteButton({
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <LoadingSpinner /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <svg
+      className="size-3 shrink-0 animate-spin text-current"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
   );
 }
 
