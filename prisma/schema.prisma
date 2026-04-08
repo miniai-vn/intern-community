@@ -65,7 +65,8 @@ model User {
   submissions MiniApp[]
   votes       Vote[]
 
-  createdAt DateTime @default(now())
+  createdAt     DateTime       @default(now())
+  notifications Notification[]
 
   @@map("users")
 }
@@ -107,6 +108,7 @@ model MiniApp {
   updatedAt DateTime @updatedAt
 
   @@map("mini_apps")
+  @@index([status, createdAt])
 }
 
 model Vote {
@@ -128,4 +130,16 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
 }
