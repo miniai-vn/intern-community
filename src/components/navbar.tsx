@@ -15,6 +15,12 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link
+            href="/leaderboard"
+            className="text-sm font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+          >
+            Leaderboard
+          </Link>
           {session ? (
             <>
               <Link

@@ -108,6 +108,7 @@ model MiniApp {
   updatedAt DateTime @updatedAt
 
   @@map("mini_apps")
+  @@index([status, createdAt])
 }
 
 model Vote {
