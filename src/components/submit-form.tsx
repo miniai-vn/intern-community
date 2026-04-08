@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -64,10 +65,17 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         <textarea
           name="description"
           rows={4}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
           className={inputClass}
         />
+        <div className="mt-1 flex justify-end">
+          <span className={`text-xs ${description.length >= 500 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+            {description.length}/500
+          </span>
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
@@ -113,7 +121,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-lg border bg-black border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
 function Field({
   label,

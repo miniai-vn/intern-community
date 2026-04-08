@@ -2,6 +2,7 @@
 
 import { useOptimisticVote } from "@/hooks/use-optimistic-vote";
 import { useSession } from "next-auth/react";
+import LoadingIcon from "./LoadingIcon"
 
 interface VoteButtonProps {
   moduleId: string;
@@ -42,8 +43,7 @@ export function VoteButton({
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <LoadingIcon /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
   );

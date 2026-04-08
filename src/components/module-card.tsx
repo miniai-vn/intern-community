@@ -22,8 +22,9 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
           <a
             href={module.demoUrl}
             target="_blank"
+            aria-label="View Demo"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-200"
           >
             <ExternalLinkIcon />
           </a>
