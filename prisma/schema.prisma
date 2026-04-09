@@ -106,6 +106,9 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  //cannot be deleted
+  isDeleted   Boolean  @default(false)
+
   @@map("mini_apps")
 }
 

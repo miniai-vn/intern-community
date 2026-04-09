@@ -60,6 +60,26 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await db.miniApp.delete({ where: { id } });
+  // await db.miniApp.delete({ where: { id } });
+  // return new NextResponse(null, { status: 204 });
+  const result = await db.miniApp.updateMany({
+    where: {
+      id: id,
+      authorId: session.user.id,
+      status: "PENDING",
+      isDeleted: false, 
+    },
+    data: {
+      isDeleted: true,
+    },
+  });
+
+  if (result.count === 0) {
+    return NextResponse.json(
+      { error: "Forbidden or Not Found. You can only delete your own pending submissions." },
+      { status: 403 }
+    );
+  }
+
   return new NextResponse(null, { status: 204 });
 }
