@@ -15,7 +15,7 @@ export function VoteButton({
   initialCount,
 }: VoteButtonProps) {
   const { data: session } = useSession();
-  const { voted, count, isLoading, toggle } = useOptimisticVote({
+  const { voted, count, isLoading, cooldownSec, toggle } = useOptimisticVote({
     moduleId,
     initialVoted,
     initialCount,
@@ -30,21 +30,38 @@ export function VoteButton({
     );
   }
 
+  const isCooldown = cooldownSec > 0;
+
   return (
     <button
       onClick={toggle}
-      disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
+      disabled={isLoading || isCooldown}
+      aria-label={
+        isCooldown
+          ? `Rate limited. Try again in ${cooldownSec} seconds`
+          : voted
+            ? "Remove vote"
+            : "Upvote this module"
+      }
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        ${
+          isCooldown
+            ? "bg-red-100 text-red-500"
+            : voted
+              ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
+      {isCooldown ? (
+        <span className="tabular-nums">{cooldownSec}s</span>
+      ) : (
+        <>
+          <TriangleIcon filled={voted} />
+          {count}
+        </>
+      )}
     </button>
   );
 }

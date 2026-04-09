@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -12,6 +12,7 @@ interface UseOptimisticVoteReturn {
   voted: boolean;
   count: number;
   isLoading: boolean;
+  cooldownSec: number;
   toggle: () => Promise<void>;
 }
 
@@ -39,14 +40,29 @@ export function useOptimisticVote({
   const [voted, setVoted] = useState(initialVoted);
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
+  const [cooldownSec, setCooldownSec] = useState(0);
 
   // BUG: this ref is never reset when the component unmounts and remounts
   // with the same moduleId (e.g. navigating away and back in the same session).
   // The stale `isMounted` from the previous render is reused.
   const isMounted = useRef(true);
 
+  useEffect(() => {
+    if (cooldownSec <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSec((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSec]);
+
   const toggle = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || cooldownSec > 0) return;
 
     // Optimistic update
     const prevVoted = voted;
@@ -62,7 +78,15 @@ export function useOptimisticVote({
         body: JSON.stringify({ moduleId }),
       });
 
-      if (!res.ok) throw new Error("Vote failed");
+      if (!res.ok) {
+        if (res.status === 429) {
+          const retryAfter = parseInt(res.headers.get("Retry-After") ?? "", 10);
+          if (retryAfter > 0 && isMounted.current) {
+            setCooldownSec(retryAfter);
+          }
+        }
+        throw new Error("Vote failed");
+      }
     } catch {
       // Roll back — but only if still mounted (see edge case note above)
       if (isMounted.current) {
@@ -74,7 +98,7 @@ export function useOptimisticVote({
         setIsLoading(false);
       }
     }
-  }, [moduleId, voted, count, isLoading]);
+  }, [moduleId, voted, count, isLoading, cooldownSec]);
 
-  return { voted, count, isLoading, toggle };
+  return { voted, count, isLoading, cooldownSec, toggle };
 }
