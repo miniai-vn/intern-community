@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Cube, Code, SignOut, User, PlusCircle, FolderOpen, Shield } from "@phosphor-icons/react";
+import { Cube, Code, SignOut, User, PlusCircle, FolderOpen, Shield, Trophy } from "@phosphor-icons/react";
 import { NotificationDropdown } from "./notification-dropdown";
 import { useNotifications } from "./notification-provider";
 
@@ -23,6 +23,15 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-3">
+          {/* Public links */}
+          <Link 
+            href="/leaderboard" 
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+          >
+            <Trophy weight="regular" className="w-4 h-4" />
+            <span className="hidden sm:inline">Leaderboard</span>
+          </Link>
+          
           {session ? (
             <>
               <Link 
