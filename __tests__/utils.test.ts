@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -22,14 +22,22 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  it("keeps valid slug unchanged", () => {
+    expect(generateSlug("my-cool-app")).toBe("my-cool-app");
+  });
+
+  it("preserves numbers", () => {
+    expect(generateSlug("My App 2.0")).toBe("my-app-20");
+  });
+
+  it("handles empty string", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  it("removes leading and trailing hyphens", () => {
+    expect(generateSlug("!Hello!")).toBe("hello");
+    expect(generateSlug("World!")).toBe("world");
+  });
 });
 
 // ============================================================
@@ -49,23 +57,71 @@ describe("makeUniqueSlug", () => {
     expect(makeUniqueSlug("my-app", ["my-app", "my-app-1"])).toBe("my-app-2");
   });
 
-  // TODO [easy-challenge]: Add test cases for:
-  // 1. When many suffixed versions already exist (e.g. -1 through -5)
-  // 2. When the existing list contains similar but non-conflicting slugs
-  //    e.g. existing = ["my-app-tool"] should NOT block "my-app"
+  it("handles many existing suffixed versions", () => {
+    const existing = ["my-app", "my-app-1", "my-app-2", "my-app-3", "my-app-4", "my-app-5"];
+    expect(makeUniqueSlug("my-app", existing)).toBe("my-app-6");
+  });
+
+  it("ignores similar but non-conflicting slugs", () => {
+    const existing = ["my-app-tool", "my-app-helper", "my-awesome-app"];
+    expect(makeUniqueSlug("my-app", existing)).toBe("my-app");
+  });
 });
 
 // ============================================================
 // formatRelativeTime — NOT yet tested, candidate must write all tests
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+import { vi } from "vitest";
+
+describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns "just now" for dates less than 1 minute ago', () => {
+    const now = new Date("2024-01-01T12:00:00Z");
+    vi.setSystemTime(now);
+    
+    const date = new Date("2024-01-01T11:59:30Z"); // 30 seconds ago
+    expect(formatRelativeTime(date)).toBe("just now");
+  });
+
+  it('returns "{n}m ago" for dates 1-59 minutes ago', () => {
+    const now = new Date("2024-01-01T12:00:00Z");
+    vi.setSystemTime(now);
+    
+    expect(formatRelativeTime(new Date("2024-01-01T11:58:00Z"))).toBe("2m ago");
+    expect(formatRelativeTime(new Date("2024-01-01T11:30:00Z"))).toBe("30m ago");
+    expect(formatRelativeTime(new Date("2024-01-01T11:01:00Z"))).toBe("59m ago");
+  });
+
+  it('returns "{n}h ago" for dates 1-23 hours ago', () => {
+    const now = new Date("2024-01-01T12:00:00Z");
+    vi.setSystemTime(now);
+    
+    expect(formatRelativeTime(new Date("2024-01-01T10:00:00Z"))).toBe("2h ago");
+    expect(formatRelativeTime(new Date("2023-12-31T13:00:00Z"))).toBe("23h ago");
+  });
+
+  it('returns "{n}d ago" for dates 1-29 days ago', () => {
+    const now = new Date("2024-01-15T12:00:00Z");
+    vi.setSystemTime(now);
+    
+    expect(formatRelativeTime(new Date("2024-01-13T12:00:00Z"))).toBe("2d ago");
+    expect(formatRelativeTime(new Date("2023-12-17T12:00:00Z"))).toBe("29d ago");
+  });
+
+  it('returns toLocaleDateString() format for dates 30+ days ago', () => {
+    const now = new Date("2024-01-15T12:00:00Z");
+    vi.setSystemTime(now);
+    
+    const oldDate = new Date("2023-12-10T12:00:00Z"); // 36 days ago
+    const result = formatRelativeTime(oldDate);
+    expect(result).toBe(oldDate.toLocaleDateString());
+  });
+});

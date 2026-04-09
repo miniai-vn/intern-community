@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Module } from "@/types";
+import { useNotifications } from "./notification-provider";
 
 interface AdminReviewCardProps {
   module: Module;
@@ -10,6 +11,7 @@ interface AdminReviewCardProps {
 
 export function AdminReviewCard({ module }: AdminReviewCardProps) {
   const router = useRouter();
+  const { refreshNotifications } = useNotifications();
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,6 +24,8 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         body: JSON.stringify({ status, feedback: feedback || undefined }),
       });
       router.refresh();
+      // Immediately refresh notifications for real-time updates
+      refreshNotifications();
     } finally {
       setIsLoading(false);
     }
