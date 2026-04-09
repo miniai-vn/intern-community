@@ -12,10 +12,16 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor");
   const limit = 12;
 
+  // Parse categories for multi-select support
+  const categories = category ? category.split(',').filter(Boolean) : [];
+
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categories.length > 0 
+        ? { category: { slug: { in: categories } } }
+        : {}
+      ),
       ...(search
         ? {
             OR: [

@@ -28,11 +28,21 @@ export function ModuleList({
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
 
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const category = searchParams.get("category");
   const search = searchParams.get("q");
+  const category = searchParams.get("category");
+  
+  // Initialize selected categories from URL
+  useEffect(() => {
+    if (category) {
+      setSelectedCategories(category.split(','));
+    } else {
+      setSelectedCategories([]);
+    }
+  }, [category]);
 
   // Load initial data and determine if there are more items
   useEffect(() => {
@@ -48,7 +58,7 @@ export function ModuleList({
       setNextCursor(initialModules[initialModules.length - 1].id);
       console.log("Set nextCursor to:", initialModules[initialModules.length - 1].id);
     }
-  }, [initialModules, search, category]);
+  }, [initialModules, search]);
 
   // Re-fetch data when search or category changes
   useEffect(() => {
@@ -127,6 +137,27 @@ export function ModuleList({
     }
   };
 
+  const toggleCategory = (categorySlug: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    const currentCategories = category ? category.split(',') : [];
+    
+    if (currentCategories.includes(categorySlug)) {
+      // Remove category if already selected
+      const updatedCategories = currentCategories.filter(c => c !== categorySlug);
+      if (updatedCategories.length > 0) {
+        newParams.set("category", updatedCategories.join(','));
+      } else {
+        newParams.delete("category");
+      }
+    } else {
+      // Add category if not selected
+      const updatedCategories = [...currentCategories, categorySlug];
+      newParams.set("category", updatedCategories.join(','));
+    }
+    
+    router.push(`/?${newParams}`);
+  };
+
   const clearFilters = () => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("q");
@@ -175,13 +206,9 @@ export function ModuleList({
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => {
-            const newParams = new URLSearchParams(searchParams);
-            newParams.delete("category");
-            router.push(`/?${newParams}`);
-          }}
+          onClick={() => toggleCategory("")}
           className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-            !category
+            selectedCategories.length === 0
               ? "bg-blue-600 text-white shadow-sm"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
@@ -191,23 +218,15 @@ export function ModuleList({
         {categories.map((c) => (
           <button
             key={c.id}
-            onClick={() => {
-              const newParams = new URLSearchParams(searchParams);
-              if (category === c.slug) {
-                newParams.delete("category");
-              } else {
-                newParams.set("category", c.slug);
-              }
-              router.push(`/?${newParams}`);
-            }}
+            onClick={() => toggleCategory(c.slug)}
             className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-              category === c.slug
+              selectedCategories.includes(c.slug)
                 ? "bg-blue-600 text-white shadow-sm"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             {c.name}
-            {category === c.slug && (
+            {selectedCategories.includes(c.slug) && (
               <X weight="bold" className="w-3 h-3" />
             )}
           </button>
@@ -215,11 +234,14 @@ export function ModuleList({
       </div>
 
       {/* Active Filters */}
-      {(search || category) && (
+      {(search || selectedCategories.length > 0) && (
         <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <Funnel weight="regular" className="w-4 h-4 text-blue-600" />
           <span className="text-sm text-blue-800">
-            Active filters: {search && `"${search}"`} {search && category && " + "} {category && category}
+            Active filters: {search && `"${search}"`} {search && selectedCategories.length > 0 && " + "} {selectedCategories.map(cat => {
+              const category = categories.find(c => c.slug === cat);
+              return category?.name || cat;
+            }).join(", ")}
           </span>
           <button
             onClick={clearFilters}
@@ -241,7 +263,7 @@ export function ModuleList({
           <p className="text-gray-500 text-sm mt-1">
             Try adjusting your search or filters.
           </p>
-          {(search || category) && (
+          {(search || selectedCategories.length > 0) && (
             <button
               onClick={clearFilters}
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
