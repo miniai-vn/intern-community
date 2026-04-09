@@ -1,4 +1,10 @@
-import type { MiniApp, Category, User, SubmissionStatus } from "@prisma/client";
+import type {
+  MiniApp,
+  Category,
+  User,
+  SubmissionStatus,
+  Notification,
+} from "@prisma/client";
 
 // "Module" is the UI-facing term for a MiniApp DB record.
 // The naming difference is intentional — keep it consistent.
@@ -10,5 +16,9 @@ export type Module = MiniApp & {
 };
 
 export type ModuleStatus = SubmissionStatus;
+
+export type UserNotification = Notification & {
+  module: Pick<MiniApp, "id" | "slug" | "name" | "status"> | null;
+};
 
 export type { Category, User };

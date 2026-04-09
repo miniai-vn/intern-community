@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { NotificationLink } from "@/components/notification-link";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -22,6 +23,7 @@ export function Navbar() {
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
+              <NotificationLink />
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
                   Admin
