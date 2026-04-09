@@ -42,14 +42,13 @@ export function VoteButton({
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      <TriangleIcon filled={voted} className={isLoading ? "animate-pulse" : ""} />
       {count}
     </button>
   );
 }
 
-function TriangleIcon({ filled = false }: { filled?: boolean }) {
+function TriangleIcon({ filled = false, className }: { filled?: boolean; className?: string }) {
   return (
     <svg
       width="12"
@@ -59,6 +58,7 @@ function TriangleIcon({ filled = false }: { filled?: boolean }) {
       stroke="currentColor"
       strokeWidth="1.5"
       aria-hidden="true"
+      className={className}
     >
       <path d="M6 1 L11 10 L1 10 Z" />
     </svg>
