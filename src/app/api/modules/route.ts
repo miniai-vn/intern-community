@@ -12,10 +12,16 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor");
   const limit = 12;
 
+  // Parse categories for multi-select support
+  const categories = category ? category.split(',').filter(Boolean) : [];
+
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categories.length > 0 
+        ? { category: { slug: { in: categories } } }
+        : {}
+      ),
       ...(search
         ? {
             OR: [
@@ -67,7 +73,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const moduleRecord = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +86,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(moduleRecord, { status: 201 });
 }
