@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ items, nextCursor });
 }
 
+
 // POST /api/modules — submit a new module (authenticated)
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const miniAppItem = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +81,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(miniAppItem, { status: 201 });
 }

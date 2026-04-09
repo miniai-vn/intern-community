@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/modules/[id]
 export async function GET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const module = await db.miniApp.findUnique({
+  const miniAppItem = await db.miniApp.findUnique({
     where: { id },
     include: {
       category: true,
@@ -16,8 +16,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
       _count: { select: { votes: true } },
     },
   });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(module);
+  if (!miniAppItem)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(miniAppItem);
 }
 
 // PATCH /api/modules/[id] — admin approve/reject
@@ -34,7 +35,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
+  const updatedMiniApp = await db.miniApp.update({
     where: { id },
     data: {
       status: parsed.data.status,
@@ -42,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
-  return NextResponse.json(updated);
+  return NextResponse.json(updatedMiniApp);
 }
 
 // DELETE /api/modules/[id] — author or admin can delete their own submission
@@ -53,10 +54,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const module = await db.miniApp.findUnique({ where: { id } });
-  if (!module) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const miniAppItem = await db.miniApp.findUnique({ where: { id } });
+  if (!miniAppItem)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (module.authorId !== session.user.id && !session.user.isAdmin) {
+  if (miniAppItem.authorId !== session.user.id && !session.user.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

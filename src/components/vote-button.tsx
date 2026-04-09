@@ -2,6 +2,7 @@
 
 import { useOptimisticVote } from "@/hooks/use-optimistic-vote";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 interface VoteButtonProps {
   moduleId: string;
@@ -15,7 +16,7 @@ export function VoteButton({
   initialCount,
 }: VoteButtonProps) {
   const { data: session } = useSession();
-  const { voted, count, isLoading, toggle } = useOptimisticVote({
+  const { voted, count, isLoading, toggle, error } = useOptimisticVote({
     moduleId,
     initialVoted,
     initialCount,
@@ -31,21 +32,30 @@ export function VoteButton({
   }
 
   return (
-    <button
-      onClick={toggle}
-      disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
-    >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
-    </button>
+    <div className="flex flex-col items-start">
+      <button
+        onClick={toggle}
+        disabled={isLoading}
+        aria-label={voted ? "Remove vote" : "Upvote this module"}
+        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
+          ${voted
+            ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }
+          disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {/* Loading indicator */}
+        {isLoading && (
+          <span className="animate-spin border-2 border-gray-300 border-t-gray-500 rounded-full w-3 h-3"></span>
+        )}
+        <TriangleIcon filled={voted} />
+        {count}
+      </button>
+      {/* Error message */}
+      {error && (
+        <span className="text-red-600 text-xs mt-1 block">{error}</span>
+      )}
+    </div>
   );
 }
 
