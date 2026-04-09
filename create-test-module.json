@@ -1,0 +1,7 @@
+{
+  "name": "Live Preview Test",
+  "description": "A working demo for iframe preview testing",
+  "repoUrl": "https://github.com/example/live-preview",
+  "demoUrl": "http://localhost:3001/demo.html",
+  "categoryId": "cmnqx6bjc000hn8ve5z14utqx"
+}
