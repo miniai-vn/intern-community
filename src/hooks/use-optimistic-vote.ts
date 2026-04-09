@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseOptimisticVoteOptions {
   moduleId: string;
@@ -40,10 +40,16 @@ export function useOptimisticVote({
   const [count, setCount] = useState(initialCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  // BUG: this ref is never reset when the component unmounts and remounts
-  // with the same moduleId (e.g. navigating away and back in the same session).
-  // The stale `isMounted` from the previous render is reused.
   const isMounted = useRef(true);
+
+  // FIX: This effect ties the ref to the actual component lifecycle
+  useEffect(() => {
+    isMounted.current = true; // Component just mounted
+
+    return () => {
+      isMounted.current = false; // Component is unmounting
+    };
+  }, []); // Empty dependency array means this only runs on mount/unmount
 
   const toggle = useCallback(async () => {
     if (isLoading) return;
@@ -64,7 +70,7 @@ export function useOptimisticVote({
 
       if (!res.ok) throw new Error("Vote failed");
     } catch {
-      // Roll back — but only if still mounted (see edge case note above)
+      // Roll back — safe now because isMounted updates properly!
       if (isMounted.current) {
         setVoted(prevVoted);
         setCount(prevCount);

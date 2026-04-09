@@ -65,6 +65,9 @@ model User {
   submissions MiniApp[]
   votes       Vote[]
 
+  //
+  comments Comment[]
+  //
   createdAt DateTime @default(now())
 
   @@map("users")
@@ -102,7 +105,9 @@ model MiniApp {
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
-
+  //
+  comments Comment[]  
+  //
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -123,6 +128,24 @@ model Vote {
   @@unique([userId, moduleId])
   @@map("votes")
 }
+// Nghia
+// Add this new model at the bottom of the file
+model Comment {
+  id          String   @id @default(cuid())
+  content     String
+  authorName  String?  // Stored if the user is anonymous
+  createdAt   DateTime @default(now())
+  
+  // Link to the MiniApp (Module)
+  miniAppId   String
+  miniApp     MiniApp  @relation(fields: [miniAppId], references: [id], onDelete: Cascade)
+  
+  // Link to the User (Optional / Nullable for anonymous comments)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+
 
 enum SubmissionStatus {
   PENDING

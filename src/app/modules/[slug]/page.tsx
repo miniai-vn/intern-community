@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { VoteButton } from "@/components/vote-button";
+import  CommentSection  from "@/components/CommentSection";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -16,13 +17,17 @@ export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const module = await db.miniApp.findUnique({
-    where: { slug, status: "APPROVED" },
-    include: {
-      category: true,
-      author: { select: { id: true, name: true, image: true } },
+ const module = await db.miniApp.findUnique({
+  where: { slug, status: "APPROVED" },
+  include: {
+    category: true,
+    author: { select: { id: true, name: true, image: true } },
+    comments: {
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
     },
-  });
+  },
+});
 
   if (!module) notFound();
 
@@ -94,6 +99,7 @@ export default async function ModuleDetailPage({ params }: Props) {
           </Link>
         </div>
       )}
+      <CommentSection miniAppId={module.id} initialComments={module.comments} />
     </div>
   );
 }

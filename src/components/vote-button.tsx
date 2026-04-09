@@ -32,20 +32,20 @@ export function VoteButton({
 
   return (
     <button
-      onClick={toggle}
-      disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
-        ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
-    >
-      {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
-      {count}
-    </button>
+  onClick={toggle}
+  disabled={isLoading}
+  aria-label={voted ? "Remove vote" : "Upvote this module"}
+  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
+    ${voted
+      ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+    }
+    ${isLoading ? "animate-pulse" : ""}
+    disabled:opacity-50 disabled:cursor-not-allowed`}
+>
+  <TriangleIcon filled={voted} />
+  {count}
+</button>
   );
 }
 
