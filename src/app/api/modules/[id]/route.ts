@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminReviewSchema } from "@/lib/validations";
+import {
+  getSubmissionStatusNotificationData,
+  isNotifiableSubmissionStatus,
+} from "@/lib/notifications";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -34,12 +38,37 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const updated = await db.miniApp.update({
-    where: { id },
-    data: {
-      status: parsed.data.status,
-      feedback: parsed.data.feedback,
-    },
+  const existing = await db.miniApp.findUnique({ where: { id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const shouldNotify =
+    existing.status !== parsed.data.status &&
+    isNotifiableSubmissionStatus(parsed.data.status);
+
+  const updated = await db.$transaction(async (tx) => {
+    const nextModule = await tx.miniApp.update({
+      where: { id },
+      data: {
+        status: parsed.data.status,
+        feedback: parsed.data.feedback,
+      },
+    });
+
+    if (shouldNotify) {
+      const notification = getSubmissionStatusNotificationData(parsed.data.status);
+      await tx.notification.create({
+        data: {
+          userId: existing.authorId,
+          moduleId: existing.id,
+          type: notification.type,
+          message: `${existing.name} was ${notification.verb}`,
+        },
+      });
+    }
+
+    return nextModule;
   });
 
   return NextResponse.json(updated);
