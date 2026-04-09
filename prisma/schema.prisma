@@ -115,7 +115,7 @@ model Vote {
   user   User   @relation(fields: [userId], references: [id])
   userId String
 
-  module   MiniApp @relation(fields: [moduleId], references: [id])
+  module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   moduleId String
 
   createdAt DateTime @default(now())
