@@ -58,7 +58,7 @@ export function ModuleList({
       setNextCursor(initialModules[initialModules.length - 1].id);
       console.log("Set nextCursor to:", initialModules[initialModules.length - 1].id);
     }
-  }, [initialModules, search]);
+  }, [initialModules, search, category]);
 
   // Re-fetch data when search or category changes
   useEffect(() => {
@@ -276,9 +276,9 @@ export function ModuleList({
       ) : (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {modules.map((module) => (
+            {modules.map((module, index) => (
               <ModuleCard
-                key={module.id}
+                key={`${module.id}-${index}`}
                 module={module}
                 hasVoted={votedIds.has(module.id)}
               />
