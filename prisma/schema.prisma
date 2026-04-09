@@ -60,10 +60,11 @@ model User {
   // Our custom fields
   isAdmin       Boolean   @default(false)
 
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
+  accounts      Account[]
+  sessions      Session[]
+  submissions   MiniApp[]
+  votes         Vote[]
+  searchHistory SearchHistory[]
 
   createdAt DateTime @default(now())
 
@@ -122,6 +123,18 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("search_history")
 }
 
 enum SubmissionStatus {
