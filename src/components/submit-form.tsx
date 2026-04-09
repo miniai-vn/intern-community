@@ -9,6 +9,11 @@ interface SubmitFormProps {
   categories: Category[];
 }
 
+
+const [descLength, setDescLength] = useState(0);
+const MAX_CHARS = 500;
+const WARNING_THRESHOLD = 450;
+
 export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
@@ -59,16 +64,30 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
-        <textarea
-          name="description"
-          rows={4}
-          placeholder="What does your module do? Who is it for?"
-          maxLength={500}
-          className={inputClass}
-        />
-      </Field>
+      <Field 
+  label="Description" 
+  name="description" 
+  error={error.description} 
+  hint={
+    <div className="flex justify-between w-full">
+      <span>Max 500 characters</span>
+      <span className={`font-medium transition-colors ${
+        descLength >= WARNING_THRESHOLD ? "text-red-500" : "text-inherit"
+      }`}>
+        {descLength} / {MAX_CHARS}
+      </span>
+    </div>
+  }
+>
+  <textarea
+    name="description"
+    rows={4}
+    placeholder="What does your module do? Who is it for?"
+    maxLength={MAX_CHARS}
+    className={inputClass}
+    onChange={(e) => setDescLength(e.target.value.length)}
+  />
+</Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
         <select name="categoryId" className={inputClass} defaultValue="">

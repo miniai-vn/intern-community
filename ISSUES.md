@@ -6,7 +6,7 @@ Copy each section into a new issue using the matching issue template.
 ---
 
 ## 🟢 Easy Issues
-
+"I'm working on this"
 ### [easy] Fix: vote button shows no loading state
 
 **Template:** intern-challenge-easy  
@@ -35,7 +35,7 @@ There is a `// TODO` comment in `vote-button.tsx` marking exactly where this nee
 ---
 
 ### [easy] Add character counter to description textarea
-
+"I'm working on this"
 **Template:** intern-challenge-easy  
 **Files:** `src/components/submit-form.tsx`
 
