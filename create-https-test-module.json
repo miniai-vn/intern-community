@@ -1,0 +1,7 @@
+{
+  "name": "HTTPS Iframe Test",
+  "description": "Test module with working HTTPS demo URL for iframe preview",
+  "repoUrl": "https://github.com/example/https-test",
+  "demoUrl": "https://jsfiddle.net/boilerplate/bootstrap/embedded/result/",
+  "categoryId": "cmnqx6bjc000hn8ve5z14utqx"
+}

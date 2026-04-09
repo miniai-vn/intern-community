@@ -11,9 +11,11 @@ export function IframePreview({ demoUrl, title }: IframePreviewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Validate demoUrl - only accept HTTPS URLs per requirements
+  // Validate demoUrl - accept HTTPS URLs and localhost for testing
   const isValidUrl = demoUrl && 
-    demoUrl.startsWith('https://') && 
+    (demoUrl.startsWith('https://') || 
+     demoUrl.startsWith('https://localhost:3000') || 
+     demoUrl.startsWith('https://localhost:3001')) && 
     demoUrl.length > 10;
 
   if (!isValidUrl) {
@@ -125,7 +127,7 @@ export function IframePreview({ demoUrl, title }: IframePreviewProps) {
             src={demoUrl}
             title={`${title} Live Preview`}
             className="w-full h-96 border-0"
-            sandbox="allow-scripts allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
+            sandbox="allow-scripts allow-same-origin allow-forms"
             onLoad={handleIframeLoad}
             onError={handleIframeError}
             loading="lazy"

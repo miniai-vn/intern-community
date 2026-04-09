@@ -1,0 +1,151 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  // Serve a simple demo that works with iframe
+  const demoHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Demo - Iframe Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .counter {
+            font-size: 2em;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            min-width: 150px;
+        }
+        .demo-button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        .demo-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            font-size: 16px;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Demo - Iframe Preview</h1>
+        <p style="font-size: 1.2em; margin-bottom: 30px;">
+            This is a working demo for iframe preview testing
+        </p>
+        
+        <div class="counter" id="counter">
+            Clicks: <span id="clickCount">0</span>
+        </div>
+        
+        <button class="demo-button" onclick="incrementCounter()">
+            Click Me!
+        </button>
+        
+        <button class="demo-button" onclick="resetCounter()">
+            Reset
+        </button>
+        
+        <div class="info">
+            <h3>Demo Features:</h3>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>Interactive counter</li>
+                <li>Responsive design</li>
+                <li>Smooth animations</li>
+                <li>Modern CSS styling</li>
+                <li>JavaScript functionality</li>
+            </ul>
+        </div>
+        
+        <div class="success">
+            IFrame Preview Working Successfully! 
+        </div>
+    </div>
+
+    <script>
+        let count = 0;
+        
+        function incrementCounter() {
+            count++;
+            document.getElementById('clickCount').textContent = count;
+            
+            // Add animation effect
+            const counter = document.getElementById('counter');
+            counter.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                counter.style.transform = 'scale(1)';
+            }, 200);
+        }
+        
+        function resetCounter() {
+            count = 0;
+            document.getElementById('clickCount').textContent = count;
+        }
+        
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Demo loaded successfully!');
+        });
+    </script>
+</body>
+</html>
+  `;
+
+  return new NextResponse(demoHtml, {
+    headers: {
+      'Content-Type': 'text/html',
+      'X-Frame-Options': 'ALLOWALL',
+      'Content-Security-Policy': 'frame-ancestors *',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
