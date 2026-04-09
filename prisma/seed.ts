@@ -95,42 +95,90 @@ async function main() {
       authorId: contributor.id,
       voteCount: 41,
     },
+    {
+    slug: "chat-app",
+    name: "Chat App",
+    description:
+      "A real-time chat application using WebSocket. Supports multiple rooms and emoji reactions.",
+    repoUrl: "https://github.com/example/chat-app",
+    demoUrl: "https://chat.example.com",
+    status: SubmissionStatus.APPROVED,
+    categoryId: categories.find((c) => c.slug === "social")!.id,
+    authorId: contributor.id,
+    voteCount: 55,
+  },
+  {
+    slug: "todo-list",
+    name: "Todo List",
+    description:
+      "Simple and clean todo list with drag-and-drop support. Stores data in localStorage.",
+    repoUrl: "https://github.com/example/todo-list",
+    demoUrl: null,
+    status: SubmissionStatus.APPROVED,
+    categoryId: categories.find((c) => c.slug === "productivity")!.id,
+    authorId: contributor.id,
+    voteCount: 12,
+  },
+  {
+    slug: "weather-app",
+    name: "Weather App",
+    description:
+      "Check current weather and forecast using OpenWeather API. Supports location search.",
+    repoUrl: "https://github.com/example/weather-app",
+    demoUrl: "https://weather.example.com",
+    status: SubmissionStatus.APPROVED,
+    categoryId: categories.find((c) => c.slug === "utility")!.id,
+    authorId: contributor.id,
+    voteCount: 33,
+  },
+  {
+    slug: "budget-planner",
+    name: "Budget Planner",
+    description:
+      "Plan your monthly budget with income and expense tracking. Includes charts and reports.",
+    repoUrl: "https://github.com/example/budget-planner",
+    demoUrl: null,
+    status: SubmissionStatus.APPROVED,
+    categoryId: categories.find((c) => c.slug === "finance")!.id,
+    authorId: contributor.id,
+    voteCount: 27,
+  },
   ];
 
-  for (const mod of approvedModules) {
-    await prisma.miniApp.upsert({
-      where: { slug: mod.slug },
-      update: {},
-      create: mod,
-    });
-  }
+    for (const mod of approvedModules) {
+      await prisma.miniApp.upsert({
+        where: { slug: mod.slug },
+        update: {},
+        create: mod,
+      });
+    }
 
-  // Seed pending submissions (for admin panel demo)
-  const pendingModules = [
-    {
-      slug: "markdown-editor",
-      name: "Markdown Editor",
-      description:
-        "Live-preview markdown editor with syntax highlighting. Based on CodeMirror.",
-      repoUrl: "https://github.com/example/md-editor",
-      demoUrl: null,
-      status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "utility")!.id,
-      authorId: contributor.id,
-      voteCount: 0,
-    },
-    {
-      slug: "habit-tracker",
-      name: "Habit Tracker",
-      description:
-        "Build and track daily habits with streak visualization. Sends browser notifications.",
-      repoUrl: "https://github.com/example/habit-tracker",
-      demoUrl: "https://habits.example.com",
-      status: SubmissionStatus.PENDING,
-      categoryId: categories.find((c) => c.slug === "productivity")!.id,
-      authorId: contributor.id,
-      voteCount: 0,
-    },
+    // Seed pending submissions (for admin panel demo)
+    const pendingModules = [
+      {
+        slug: "markdown-editor",
+        name: "Markdown Editor",
+        description:
+          "Live-preview markdown editor with syntax highlighting. Based on CodeMirror.",
+        repoUrl: "https://github.com/example/md-editor",
+        demoUrl: null,
+        status: SubmissionStatus.PENDING,
+        categoryId: categories.find((c) => c.slug === "utility")!.id,
+        authorId: contributor.id,
+        voteCount: 0,
+      },
+      {
+        slug: "habit-tracker",
+        name: "Habit Tracker",
+        description:
+          "Build and track daily habits with streak visualization. Sends browser notifications.",
+        repoUrl: "https://github.com/example/habit-tracker",
+        demoUrl: "https://habits.example.com",
+        status: SubmissionStatus.PENDING,
+        categoryId: categories.find((c) => c.slug === "productivity")!.id,
+        authorId: contributor.id,
+        voteCount: 0,
+      },
   ];
 
   for (const mod of pendingModules) {
