@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Cube, Code, SignOut, User, PlusCircle, FolderOpen, Shield } from "@phosphor-icons/react";
+import { NotificationDropdown } from "./notification-dropdown";
+import { useNotifications } from "./notification-provider";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
 
   return (
     <nav className="bg-gradient-to-r from-blue-600 to-indigo-600 border-b border-blue-700/20">
@@ -36,6 +39,11 @@ export function Navbar() {
                 <FolderOpen weight="regular" className="w-4 h-4" />
                 <span className="hidden sm:inline">My Submissions</span>
               </Link>
+              <NotificationDropdown 
+                notifications={notifications} 
+                unreadCount={unreadCount} 
+                onMarkAsRead={markAsRead} 
+              />
               {session.user.isAdmin && (
                 <Link 
                   href="/admin" 

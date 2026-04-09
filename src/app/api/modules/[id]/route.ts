@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminReviewSchema } from "@/lib/validations";
+import { createStatusChangeNotification } from "@/lib/notifications";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -32,6 +33,29 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const parsed = adminReviewSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  }
+
+  // Get module details before update
+  const moduleRecord = await db.miniApp.findUnique({
+    where: { id },
+    select: { authorId: true, name: true, status: true }
+  });
+
+  if (!moduleRecord) {
+    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+
+  // Only create notification if status is actually changing
+  if (moduleRecord.status !== parsed.data.status && 
+      ["APPROVED", "REJECTED"].includes(parsed.data.status)) {
+    
+    await createStatusChangeNotification(
+      moduleRecord.authorId,
+      parsed.data.status,
+      moduleRecord.name,
+      id,
+      parsed.data.feedback
+    );
   }
 
   const updated = await db.miniApp.update({
