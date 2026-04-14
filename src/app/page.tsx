@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { ModuleList } from "@/components/module-list";
+import Form from "next/form";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -12,18 +14,19 @@ export default async function HomePage({
 }) {
   const { q, category } = await searchParams;
   const session = await auth();
+  const limit = 12
 
-  const modules = await db.miniApp.findMany({
+  const fetchedModules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // DO NOT remove include — avoids N+1 on category/author fields.
@@ -32,8 +35,12 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: limit + 1,
   });
+
+  const hasMore = fetchedModules.length > limit;
+  const modules = hasMore ? fetchedModules.slice(0, limit) : fetchedModules;
+  const nextCursor = hasMore ? modules[modules.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -50,41 +57,47 @@ export default async function HomePage({
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
+  const initialModules = modules.map((module) => ({
+    ...module,
+    hasVoted: votedIds.has(module.id),
+  }));
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Community Modules
+          </h1>
+          <p className="text-sm font-medium text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
         </div>
 
-        <form className="flex gap-2">
+        <Form action="/" className="flex gap-2">
           <input
             name="q"
             defaultValue={q}
             placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full sm:w-64 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
           <button
             type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-full bg-gray-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-800"
           >
             Search
           </button>
-        </form>
+        </Form>
       </div>
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
         <a
           href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
+          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${!category
+            ? "bg-blue-600 text-white"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
         >
           All
         </a>
@@ -92,18 +105,17 @@ export default async function HomePage({
           <a
             key={c.id}
             href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${category === c.slug
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
           >
             {c.name}
           </a>
         ))}
       </div>
 
-      {modules.length === 0 ? (
+      {initialModules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
@@ -113,15 +125,13 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+
+        <ModuleList
+          initialModules={initialModules}
+          initialNextCursor={nextCursor}
+          q={q}
+          category={category}
+        />
       )}
     </div>
   );

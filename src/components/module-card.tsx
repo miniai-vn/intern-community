@@ -9,7 +9,7 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-200/50">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}

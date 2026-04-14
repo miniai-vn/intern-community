@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -52,7 +53,11 @@ export default async function MySubmissionsPage() {
                 <p className="font-medium text-gray-900">{sub.name}</p>
                 <p className="text-xs text-gray-400">
                   {sub.category.name} ·{" "}
-                  {new Date(sub.createdAt).toLocaleDateString()}
+                  {new Date(sub.createdAt).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })}
                 </p>
                 {sub.feedback && (
                   <p className="mt-1 rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
@@ -60,13 +65,27 @@ export default async function MySubmissionsPage() {
                   </p>
                 )}
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
-                  statusStyles[sub.status]
-                }`}
-              >
-                {sub.status}
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                    statusStyles[sub.status]
+                  }`}
+                >
+                  {sub.status}
+                </span>
+
+                {sub.status === "PENDING" && (
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/submit?editId=${sub.id}`}
+                      className="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                    >
+                      Edit
+                    </Link>
+                    <DeleteSubmissionButton id={sub.id} />
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

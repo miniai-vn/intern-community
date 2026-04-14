@@ -12,11 +12,15 @@ export const metadata: Metadata = {
     "An open platform for the TD developer community to submit and discover mini-app modules.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { auth } from "@/lib/auth";
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-gray-50 font-sans">
-        <AuthSessionProvider>
+        <AuthSessionProvider session={session}>
           <Navbar />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
             {children}
