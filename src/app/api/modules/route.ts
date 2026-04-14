@@ -70,11 +70,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-<<<<<<< HEAD
   const moduleData = await db.miniApp.create({
-=======
-  const appModule = await db.miniApp.create({
->>>>>>> hanghoang/feat/issue-21-category-filter
     data: {
       slug,
       name,
