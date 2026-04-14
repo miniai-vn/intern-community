@@ -65,23 +65,23 @@ export default async function ModuleDetailPage({ params }: Props) {
       <p className="text-gray-700">{moduleData.description}</p>
 
       <div className="flex gap-3">
-        <a
+        <Link
           href={moduleData.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           View on GitHub
-        </a>
+        </Link>
         {moduleData.demoUrl && (
-          <a
+          <Link
             href={moduleData.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             Live Demo
-          </a>
+          </Link>
         )}
       </div>
 
