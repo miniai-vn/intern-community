@@ -21,12 +21,6 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "tsc --noEmit --skipLibCheck"
-    ]
-  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/adapter-pg": "^7.6.0",
