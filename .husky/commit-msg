@@ -1,0 +1,12 @@
+# Enforce Conventional Commits format
+commit_msg=$(cat "$1")
+pattern="^(feat|fix|chore|docs|style|refactor|test|perf|ci|build|revert)(\(.+\))?: .{1,100}"
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo "  Commit message does not follow Conventional Commits format."
+  echo "  Expected: <type>(optional-scope): <description>"
+  echo "  Example:  feat(auth): add GitHub OAuth login"
+  echo "  Types: feat|fix|chore|docs|style|refactor|test|perf|ci|build|revert"
+  echo ""
+  exit 1
+fi
