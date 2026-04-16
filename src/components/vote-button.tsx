@@ -21,6 +21,8 @@ export function VoteButton({
     initialCount,
   });
 
+  const ariaLabel = isLoading ? "Updating vote" : voted ? "Remove vote" : "Upvote this module";
+
   if (!session) {
     return (
       <span className="inline-flex items-center gap-1 text-sm text-gray-400">
@@ -34,7 +36,8 @@ export function VoteButton({
     <button
       onClick={toggle}
       disabled={isLoading}
-      aria-label={voted ? "Remove vote" : "Upvote this module"}
+      aria-label={ariaLabel}
+      aria-busy={isLoading}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
           ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
@@ -43,7 +46,7 @@ export function VoteButton({
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
       {count}
     </button>
   );
@@ -61,6 +64,24 @@ function TriangleIcon({ filled = false }: { filled?: boolean }) {
       aria-hidden="true"
     >
       <path d="M6 1 L11 10 L1 10 Z" />
+    </svg>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      className="animate-spin"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M12 2 A10 10 0 0 1 22 12" />
     </svg>
   );
 }
