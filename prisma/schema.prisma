@@ -106,6 +106,9 @@ model MiniApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Supports monthly leaderboard scans: status filter + createdAt range + author grouping.
+  @@index([status, createdAt, authorId], map: "mini_apps_status_created_at_author_id_idx")
+
   @@map("mini_apps")
 }
 

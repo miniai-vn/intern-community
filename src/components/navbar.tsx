@@ -16,6 +16,9 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
               </Link>
@@ -36,12 +39,17 @@ export function Navbar() {
               <span className="text-sm text-gray-700">{session.user.name}</span>
             </>
           ) : (
-            <button
-              onClick={() => signIn("github")}
-              className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
-            >
-              Sign in with GitHub
-            </button>
+            <div className="flex items-center gap-4">
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
+              <button
+                onClick={() => signIn("github")}
+                className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+              >
+                Sign in with GitHub
+              </button>
+            </div>
           )}
         </div>
       </div>
