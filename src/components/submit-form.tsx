@@ -9,6 +9,8 @@ interface SubmitFormProps {
   categories: Category[];
 }
 
+const inputClass = "w-full rounded-xl border border-border bg-surface-raised px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-150 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 disabled:opacity-50";
+
 export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
@@ -65,7 +67,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         name="description"
         error={error.description}
         hint={`${descLength} / 500`}
-        hintClassName={descLength >= 450 ? "text-red-600" : undefined}
+        hintClassName={descLength >= 450 ? "text-warning-text" : "text-text-tertiary"}
       >
         <textarea
           name="description"
@@ -105,22 +107,19 @@ export function SubmitForm({ categories }: SubmitFormProps) {
       </Field>
 
       {error._ && (
-        <p className="text-sm text-red-600">{error._.join(", ")}</p>
+        <p className="text-sm text-error-text">{error._.join(", ")}</p>
       )}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-black shadow-sm shadow-amber-500/20 transition-colors duration-150 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Submitting…" : "Submit Module"}
       </button>
     </form>
   );
 }
-
-const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
 function Field({
   label,
@@ -139,12 +138,12 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="block text-sm font-medium text-text-secondary">
         {label}
       </label>
       {children}
-      {hint && <p className={`text-xs ${hintClassName ?? "text-gray-400"}`}>{hint}</p>}
-      {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
+      {hint && <p className={`text-xs ${hintClassName ?? "text-text-tertiary"}`}>{hint}</p>}
+      {error && <p className="text-xs text-error-text">{error.join(", ")}</p>}
     </div>
   );
 }

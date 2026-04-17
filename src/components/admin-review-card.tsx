@@ -28,22 +28,22 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+    <div className="rounded-2xl border border-border bg-surface p-5 space-y-3 transition-colors duration-150 hover:border-border-strong">
       <div>
-        <h3 className="font-semibold text-gray-900">{module.name}</h3>
-        <p className="text-xs text-gray-400">
+        <h3 className="font-display font-semibold text-text-primary">{module.name}</h3>
+        <p className="text-xs text-text-tertiary">
           by {module.author.name} · {module.category.name}
         </p>
       </div>
 
-      <p className="text-sm text-gray-600">{module.description}</p>
+      <p className="text-sm text-text-secondary line-clamp-2">{module.description}</p>
 
-      <div className="flex gap-2 text-xs">
-        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+      <div className="flex gap-3 text-xs">
+        <a href={module.repoUrl} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
           GitHub →
         </a>
         {module.demoUrl && (
-          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a href={module.demoUrl} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
             Demo →
           </a>
         )}
@@ -55,21 +55,21 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         placeholder="Feedback for the contributor (optional)"
         rows={2}
         maxLength={500}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-150 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
       />
 
       <div className="flex gap-2">
         <button
           onClick={() => review("APPROVED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-amber-500 px-3 py-2.5 text-xs font-semibold text-black shadow-sm shadow-amber-500/20 transition-colors duration-150 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Approve
         </button>
         <button
           onClick={() => review("REJECTED")}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className="flex-1 rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-xs font-medium text-text-secondary transition-colors duration-150 hover:border-border-strong hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Reject
         </button>

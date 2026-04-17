@@ -23,8 +23,8 @@ export function VoteButton({
 
   if (!session) {
     return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
-        <TriangleIcon />
+      <span className="inline-flex items-center gap-1.5 text-sm text-text-tertiary">
+        <TriangleIcon filled={voted} />
         {count}
       </span>
     );
@@ -35,12 +35,12 @@ export function VoteButton({
       onClick={toggle}
       disabled={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
+      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all duration-200
         ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "border border-amber-500/25 bg-amber-warm-bg text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:shadow-[0_0_18px_rgba(245,158,11,0.2)]"
+          : "border border-border bg-surface-raised text-text-secondary hover:border-border-strong hover:text-text-primary"
         }
-        disabled:opacity-50 disabled:cursor-not-allowed`}
+        disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       {isLoading ? <SpinnerIcon /> : <TriangleIcon filled={voted} />}
       {count}
@@ -68,15 +68,15 @@ function SpinnerIcon() {
 function TriangleIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
       fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth="1.5"
       aria-hidden="true"
     >
-      <path d="M6 1 L11 10 L1 10 Z" />
+      <path d="M7 1.5 L13 11.5 L1 11.5 Z" />
     </svg>
   );
 }
