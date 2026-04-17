@@ -13,6 +13,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descLength, setDescLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,13 +60,19 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
-        {/* TODO [easy-challenge]: add a live character counter below this textarea */}
+      <Field
+        label="Description"
+        name="description"
+        error={error.description}
+        hint={`${descLength} / 500`}
+        hintClassName={descLength >= 450 ? "text-red-600" : undefined}
+      >
         <textarea
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
           maxLength={500}
+          onChange={(e) => setDescLength(e.target.value.length)}
           className={inputClass}
         />
       </Field>
@@ -120,12 +127,14 @@ function Field({
   name,
   error,
   hint,
+  hintClassName,
   children,
 }: {
   label: string;
   name: string;
   error?: string[];
   hint?: string;
+  hintClassName?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -134,7 +143,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p className={`text-xs ${hintClassName ?? "text-gray-400"}`}>{hint}</p>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
