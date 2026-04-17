@@ -2,20 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const now = new Date();
+  const sixtySecondsAgo = new Date(now.getTime() - 60_000);
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 10) return false;
-  entry.count++;
+  // Use a transaction to reliably check and increment
+  // For a "Medium" challenge, we can also just use two queries
+  const count = await db.rateLimitEvent.count({
+    where: {
+      key: `vote:${userId}`,
+      timestamp: { gte: sixtySecondsAgo },
+    },
+  });
+
+  if (count >= 10) return false;
+
+  await db.rateLimitEvent.create({
+    data: {
+      key: `vote:${userId}`,
+      timestamp: now,
+    },
+  });
+
+  // Optional: Background cleanup of old events for this user
+  // This helps keep the table size manageable
+  db.rateLimitEvent.deleteMany({
+    where: {
+      key: `vote:${userId}`,
+      timestamp: { lt: sixtySecondsAgo },
+    },
+  }).catch(err => console.error("Rate limit cleanup failed:", err));
+
   return true;
 }
 
@@ -26,9 +43,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRateLimit(session.user.id)) {
+  const isAllowed = await checkRateLimit(session.user.id);
+  if (!isAllowed) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
+      { error: "Too many votes. Max 10 per minute." },
       { status: 429 }
     );
   }

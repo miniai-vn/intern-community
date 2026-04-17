@@ -8,15 +8,15 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const module = await db.miniApp.findUnique({ where: { slug } });
-  return { title: module ? `${module.name} — Intern Community Hub` : "Not Found" };
+  const miniApp = await db.miniApp.findUnique({ where: { slug } });
+  return { title: miniApp ? `${miniApp.name} — Intern Community Hub` : "Not Found" };
 }
 
 export default async function ModuleDetailPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const module = await db.miniApp.findUnique({
+  const miniApp = await db.miniApp.findUnique({
     where: { slug, status: "APPROVED" },
     include: {
       category: true,
@@ -24,74 +24,71 @@ export default async function ModuleDetailPage({ params }: Props) {
     },
   });
 
-  if (!module) notFound();
+  if (!miniApp) notFound();
 
   let hasVoted = false;
   if (session?.user) {
     const vote = await db.vote.findUnique({
       where: {
-        userId_moduleId: { userId: session.user.id, moduleId: module.id },
+        userId_moduleId: { userId: session.user.id, moduleId: miniApp.id },
       },
     });
     hasVoted = !!vote;
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-        ← Back to modules
+    <div className="mx-auto max-w-2xl space-y-8">
+      <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors group">
+        <span className="mr-1 group-hover:-translate-x-1 transition-transform">←</span> Back to modules
       </Link>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">{module.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{miniApp.name}</h1>
           <VoteButton
-            moduleId={module.id}
+            moduleId={miniApp.id}
             initialVoted={hasVoted}
-            initialCount={module.voteCount}
+            initialCount={miniApp.voteCount}
           />
         </div>
-        <p className="text-sm text-gray-500">
-          by {module.author.name} · {module.category.name}
-        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{miniApp.author.name}</span>
+          <span>·</span>
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+            {miniApp.category.name}
+          </span>
+        </div>
       </div>
 
-      <p className="text-gray-700">{module.description}</p>
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <p className="text-foreground leading-relaxed whitespace-pre-wrap">{miniApp.description}</p>
+      </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <a
-          href={module.repoUrl}
+          href={miniApp.repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors shadow-sm"
         >
           View on GitHub
         </a>
-        {module.demoUrl && (
+        {miniApp.demoUrl && (
           <a
-            href={module.demoUrl}
+            href={miniApp.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-all shadow-sm"
           >
             Live Demo
           </a>
         )}
       </div>
 
-      {/* TODO [hard-challenge]: Implement sandboxed iframe preview here.
-          Requirements:
-          - Only show if module.demoUrl exists
-          - Use sandbox="allow-scripts allow-same-origin" at minimum
-          - Add Content-Security-Policy header for the iframe origin
-          - Show a loading skeleton while the iframe loads
-          See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
+      {miniApp.demoUrl && (
+        <div className="rounded-xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground bg-muted/30">
+          <p className="font-medium text-foreground mb-1">Sandboxed preview coming soon</p>
+          <p>Contribute this feature! See <Link href="/ISSUES.md" className="text-primary hover:underline">ISSUES.md</Link></p>
         </div>
       )}
     </div>

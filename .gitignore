@@ -42,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# PULL_REQUEST.md
+/PULL_REQUEST.md
+

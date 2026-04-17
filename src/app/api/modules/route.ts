@@ -6,6 +6,7 @@ import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
+  const session = await auth();
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("q");
@@ -25,8 +26,6 @@ export async function GET(req: NextRequest) {
           }
         : {}),
     },
-    // NOTE: Always include category and author to avoid N+1 on listing pages.
-    // DO NOT remove the include without running EXPLAIN ANALYZE on the query.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
@@ -40,7 +39,25 @@ export async function GET(req: NextRequest) {
   const items = hasMore ? modules.slice(0, limit) : modules;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-  return NextResponse.json({ items, nextCursor });
+  // If user is logged in, attach hasVoted status
+  let votedIds = new Set<string>();
+  if (session?.user?.id) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: items.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedIds = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const itemsWithVotes = items.map((m) => ({
+    ...m,
+    hasVoted: votedIds.has(m.id),
+  }));
+
+  return NextResponse.json({ items: itemsWithVotes, nextCursor });
 }
 
 // POST /api/modules — submit a new module (authenticated)
@@ -67,7 +84,7 @@ export async function POST(req: NextRequest) {
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
-  const module = await db.miniApp.create({
+  const miniApp = await db.miniApp.create({
     data: {
       slug,
       name,
@@ -80,5 +97,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(module, { status: 201 });
+  return NextResponse.json(miniApp, { status: 201 });
 }

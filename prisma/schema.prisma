@@ -129,3 +129,12 @@ enum SubmissionStatus {
   APPROVED
   REJECTED
 }
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  key       String
+  timestamp DateTime @default(now())
+
+  @@index([key, timestamp])
+  @@map("rate_limit_events")
+}
