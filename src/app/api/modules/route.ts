@@ -6,8 +6,9 @@ import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
+  const session = await auth();
   const { searchParams } = req.nextUrl;
-  const category = searchParams.get("category");
+  const categories = searchParams.getAll("category");
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
   const limit = 12;
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categories.length > 0 ? { category: { slug: { in: categories } } } : {}),
       ...(search
         ? {
             OR: [
@@ -25,19 +26,39 @@ export async function GET(req: NextRequest) {
           }
         : {}),
     },
-    // NOTE: Always include category and author to avoid N+1 on listing pages.
-    // DO NOT remove the include without running EXPLAIN ANALYZE on the query.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+    orderBy: [
+      { voteCount: "desc" },
+      { id: "desc" },
+    ],
     take: limit + 1,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });
 
   const hasMore = modules.length > limit;
-  const items = hasMore ? modules.slice(0, limit) : modules;
+  const rawItems = hasMore ? modules.slice(0, limit) : modules;
+
+  // Determine which modules the user has voted on
+  let votedIds = new Set<string>();
+  if (session?.user) {
+    const votes = await db.vote.findMany({
+      where: {
+        userId: session.user.id,
+        moduleId: { in: rawItems.map((m) => m.id) },
+      },
+      select: { moduleId: true },
+    });
+    votedIds = new Set(votes.map((v) => v.moduleId));
+  }
+
+  const items = rawItems.map(m => ({
+    ...m,
+    hasVoted: votedIds.has(m.id)
+  }));
+
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   return NextResponse.json({ items, nextCursor });

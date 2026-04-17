@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
@@ -57,7 +58,7 @@ export default async function MySubmissionsPage() {
               key={sub.id}
               className="group flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20"
             >
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 flex-1 pr-4">
                 <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
                   {sub.name}
                 </p>
@@ -75,14 +76,22 @@ export default async function MySubmissionsPage() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col items-end gap-3">
-                <span
-                  className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    statusStyles[sub.status]
-                  }`}
-                >
-                  {sub.status}
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-end gap-3 px-2">
+                  <span
+                    className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                      statusStyles[sub.status]
+                    }`}
+                  >
+                    {sub.status}
+                  </span>
+                </div>
+                {sub.status === "PENDING" && (
+                  <DeleteSubmissionButton 
+                    submissionId={sub.id} 
+                    submissionName={sub.name} 
+                  />
+                )}
               </div>
             </div>
           ))}

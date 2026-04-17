@@ -1,12 +1,8 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import Link from "next/link";
-import { ModuleCard } from "@/components/module-card";
 import { CategoryFilter } from "@/components/category-filter";
 import { SearchBar } from "@/components/search-bar";
-
-// TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// Done: Implemented multi-select category filter with URL persistence.
+import { ModuleList } from "@/components/module-list";
 
 export default async function HomePage({
   searchParams,
@@ -15,9 +11,11 @@ export default async function HomePage({
 }) {
   const { q, category } = await searchParams;
   const categoriesParam = Array.isArray(category) ? category : category ? [category] : [];
+  const limit = 12;
 
   const session = await auth();
 
+  // Fetch initial modules with the same logic as the API (composite sort)
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
@@ -31,65 +29,66 @@ export default async function HomePage({
           }
         : {}),
     },
-    // DO NOT remove include — avoids N+1 on category/author fields.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
-    take: 12,
+    orderBy: [
+      { voteCount: "desc" },
+      { id: "desc" },
+    ],
+    take: limit + 1,
   });
 
-  // Fetch which modules the current user has voted on
+  const hasMore = modules.length > limit;
+  const initialItems = hasMore ? modules.slice(0, limit) : modules;
+  const initialNextCursor = hasMore ? initialItems[initialItems.length - 1].id : null;
+
+  // Determine initial voting state
   let votedIds = new Set<string>();
   if (session?.user) {
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: initialItems.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
 
+  const items = initialItems.map(m => ({
+    ...m,
+    hasVoted: votedIds.has(m.id)
+  }));
+
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Community Modules</h1>
-          <p className="text-sm text-muted-foreground">
-            Discover mini-apps built by the Intern developer community.
+    <div className="space-y-10 py-6">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between border-b border-border pb-10">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">Discovery</h1>
+          <p className="max-w-xl text-lg text-muted-foreground">
+            Explore premium modules and mini-apps built by the community.
           </p>
         </div>
 
-        <SearchBar />
+        <div className="w-full sm:w-auto">
+          <SearchBar />
+        </div>
       </div>
 
-      <CategoryFilter categories={categories} />
+      <div className="space-y-12">
+        <CategoryFilter categories={categories} />
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <Link href="/" className="mt-2 block text-sm text-primary hover:underline transition-colors">
-              Clear search
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+        <ModuleList 
+          initialItems={items} 
+          initialNextCursor={initialNextCursor} 
+          searchQuery={q}
+          categories={categoriesParam}
+        />
+      </div>
     </div>
   );
 }

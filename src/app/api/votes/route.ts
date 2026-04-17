@@ -2,20 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-// Simple in-memory rate limit: max 10 votes per minute per user.
-// In production, replace with Redis-backed sliding window (e.g. Upstash).
-// TODO [medium-challenge]: Replace this with a proper rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+/**
+ * DB-backed Rate Limiter
+ * Ensures max 10 votes per 60 seconds across all server instances.
+ */
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - 60_000);
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(userId);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 10) return false;
-  entry.count++;
+  // Use a transaction to both check and record the event
+  // This avoids double-counting or skipping due to race conditions
+  const count = await db.rateLimitEvent.count({
+    where: {
+      userId,
+      key: "vote_action",
+      createdAt: { gte: windowStart },
+    },
+  });
+
+  if (count >= 10) return false;
+
+  // Record this action
+  await db.rateLimitEvent.create({
+    data: { userId, key: "vote_action" },
+  });
+
   return true;
 }
 
@@ -26,9 +36,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRateLimit(session.user.id)) {
+  // Check rate limit (DB-backed sliding window)
+  const isAllowed = await checkRateLimit(session.user.id);
+  if (!isAllowed) {
     return NextResponse.json(
-      { error: "Too many votes. Please wait a moment." },
+      { error: "Too many votes. Please wait a minute." },
       { status: 429 }
     );
   }
