@@ -56,10 +56,22 @@ describe("makeUniqueSlug", () => {
     expect(makeUniqueSlug("my-app", ["my-app", "my-app-1"])).toBe("my-app-2");
   });
 
-  // TODO [easy-challenge]: Add test cases for:
-  // 1. When many suffixed versions already exist (e.g. -1 through -5)
-  // 2. When the existing list contains similar but non-conflicting slugs
-  //    e.g. existing = ["my-app-tool"] should NOT block "my-app"
+  it("finds the next suffix when many suffixed versions already exist", () => {
+    expect(
+      makeUniqueSlug("my-app", [
+        "my-app",
+        "my-app-1",
+        "my-app-2",
+        "my-app-3",
+        "my-app-4",
+        "my-app-5",
+      ])
+    ).toBe("my-app-6");
+  });
+
+  it("does not treat a longer similar slug as blocking the base", () => {
+    expect(makeUniqueSlug("my-app", ["my-app-tool"])).toBe("my-app");
+  });
 });
 
 // ============================================================
