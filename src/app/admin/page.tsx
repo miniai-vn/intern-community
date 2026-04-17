@@ -26,16 +26,23 @@ export default async function AdminPage() {
     take: 5,
   });
 
+  const statusStyles: Record<string, string> = {
+    APPROVED: "border border-success-border bg-success-bg text-success-text",
+    REJECTED: "border border-error-border bg-error-bg text-error-text",
+  };
+
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Admin — Module Review</h1>
+    <div className="space-y-8 animate-fade-up">
+      <h1 className="font-display text-3xl font-semibold text-text-primary tracking-tight">
+        Admin — Module Review
+      </h1>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">
+        <h2 className="text-lg font-semibold text-text-secondary">
           Pending ({pending.length})
         </h2>
         {pending.length === 0 ? (
-          <p className="text-sm text-gray-400">No pending submissions. 🎉</p>
+          <p className="text-sm text-text-tertiary">No pending submissions.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {pending.map((module) => (
@@ -46,21 +53,15 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700">Recently Reviewed</h2>
+        <h2 className="text-lg font-semibold text-text-secondary">Recently Reviewed</h2>
         <div className="space-y-2">
           {recentlyReviewed.map((module) => (
             <div
               key={module.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
             >
-              <span className="text-sm font-medium text-gray-800">{module.name}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  module.status === "APPROVED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
+              <span className="text-sm font-medium text-text-primary">{module.name}</span>
+              <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusStyles[module.status]}`}>
                 {module.status}
               </span>
             </div>
