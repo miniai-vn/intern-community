@@ -22,14 +22,21 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  // TODO [easy-challenge]: Add test cases for the following:
-  // 1. A name that is already a valid slug (no changes needed)
-  // 2. A name with numbers (numbers should be preserved)
-  // 3. An empty string (what should the output be? Check the implementation)
-  // 4. A name with leading/trailing hyphens after special char removal
-  //
-  // Hint: read `src/lib/utils.ts` to understand the exact transformation rules
-  // before writing your assertions.
+  it("returns the same string when already a valid slug", () => {
+    expect(generateSlug("my-cool-app")).toBe("my-cool-app");
+  });
+
+  it("preserves numbers in the name", () => {
+    expect(generateSlug("Project 123")).toBe("project-123");
+  });
+
+  it("returns an empty string for empty input", () => {
+    expect(generateSlug("")).toBe("");
+  });
+
+  it("strips leading and trailing hyphens after special char removal", () => {
+    expect(generateSlug("!hello-world!")).toBe("hello-world");
+  });
 });
 
 // ============================================================
