@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
@@ -75,16 +75,56 @@ describe("makeUniqueSlug", () => {
 });
 
 // ============================================================
-// formatRelativeTime — NOT yet tested, candidate must write all tests
+// formatRelativeTime
 // ============================================================
 
-// TODO [easy-challenge]: Write a full test suite for `formatRelativeTime`.
-// Requirements:
-// - "just now" for dates less than 1 minute ago
-// - "{n}m ago" for dates 1–59 minutes ago
-// - "{n}h ago" for dates 1–23 hours ago
-// - "{n}d ago" for dates 1–29 days ago
-// - toLocaleDateString() format for dates 30+ days ago
-//
-// Hint: You'll need to mock or control `Date.now()` to make these tests
-// deterministic. Look into Vitest's `vi.setSystemTime()`.
+describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const MIN = 60_000;
+  const HOUR = 60 * MIN;
+  const DAY = 24 * HOUR;
+
+  it('returns "just now" for dates less than 1 minute ago', () => {
+    const now = new Date("2024-06-15T12:00:00.000Z");
+    vi.setSystemTime(now);
+    const past = new Date(now.getTime() - 30_000);
+    expect(formatRelativeTime(past)).toBe("just now");
+  });
+
+  it('returns "{n}m ago" for dates 1–59 minutes ago', () => {
+    const now = new Date("2024-06-15T12:00:00.000Z");
+    vi.setSystemTime(now);
+    expect(formatRelativeTime(new Date(now.getTime() - 1 * MIN))).toBe("1m ago");
+    expect(formatRelativeTime(new Date(now.getTime() - 59 * MIN))).toBe("59m ago");
+  });
+
+  it('returns "{n}h ago" for dates 1–23 hours ago', () => {
+    const now = new Date("2024-06-15T12:00:00.000Z");
+    vi.setSystemTime(now);
+    expect(formatRelativeTime(new Date(now.getTime() - 1 * HOUR))).toBe("1h ago");
+    expect(formatRelativeTime(new Date(now.getTime() - 23 * HOUR))).toBe("23h ago");
+  });
+
+  it('returns "{n}d ago" for dates 1–29 days ago', () => {
+    const now = new Date("2024-06-15T12:00:00.000Z");
+    vi.setSystemTime(now);
+    expect(formatRelativeTime(new Date(now.getTime() - 1 * DAY))).toBe("1d ago");
+    expect(formatRelativeTime(new Date(now.getTime() - 29 * DAY))).toBe("29d ago");
+  });
+
+  it("returns toLocaleDateString for dates 30 or more days ago", () => {
+    const now = new Date("2024-06-15T12:00:00.000Z");
+    vi.setSystemTime(now);
+    const past30 = new Date(now.getTime() - 30 * DAY);
+    const past31 = new Date(now.getTime() - 31 * DAY);
+    expect(formatRelativeTime(past30)).toBe(past30.toLocaleDateString());
+    expect(formatRelativeTime(past31)).toBe(past31.toLocaleDateString());
+  });
+});
