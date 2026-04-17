@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { ModuleCard } from "@/components/module-card";
 import { Loader2 } from "lucide-react";
+import type { Module } from "@/types";
+
+interface ModuleWithVote extends Module {
+  hasVoted?: boolean;
+}
 
 interface ModuleListProps {
-  initialItems: any[];
+  initialItems: ModuleWithVote[];
   initialNextCursor: string | null;
   searchQuery?: string;
   categories?: string[];
