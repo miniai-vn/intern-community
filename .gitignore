@@ -42,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# local docs / notes
+CODEBASE_PATTERNS.md
+/issues/
