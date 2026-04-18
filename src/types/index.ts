@@ -1,4 +1,11 @@
-import type { MiniApp, Category, User, SubmissionStatus } from "@prisma/client";
+import type {
+  MiniApp,
+  Category,
+  User,
+  SubmissionStatus,
+  Notification,
+  NotificationType,
+} from "@prisma/client";
 
 // "Module" is the UI-facing term for a MiniApp DB record.
 // The naming difference is intentional — keep it consistent.
@@ -11,4 +18,13 @@ export type Module = MiniApp & {
 
 export type ModuleStatus = SubmissionStatus;
 
-export type { Category, User };
+// AppNotification is the shape returned by GET /api/notifications.
+// We extend the Prisma type with the minimal linked-module fields we select.
+export type AppNotification = Pick<
+  Notification,
+  "id" | "type" | "message" | "read" | "createdAt" | "miniAppId"
+> & {
+  miniApp: { slug: string } | null;
+};
+
+export type { Category, User, NotificationType };

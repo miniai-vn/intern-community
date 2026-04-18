@@ -60,10 +60,11 @@ model User {
   // Our custom fields
   isAdmin       Boolean   @default(false)
 
-  accounts    Account[]
-  sessions    Session[]
-  submissions MiniApp[]
-  votes       Vote[]
+  accounts      Account[]
+  sessions      Session[]
+  submissions   MiniApp[]
+  votes         Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -103,6 +104,8 @@ model MiniApp {
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
 
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -124,8 +127,65 @@ model Vote {
   @@map("votes")
 }
 
+// ─── Notification model ────────────────────────────────────────────────────
+//
+// Design notes:
+//
+// Indexes:
+//   - (userId, read)       — used by the navbar bell to fetch unread count quickly.
+//                            The partial filter `WHERE read = false` means Postgres can
+//                            use this index for the common case (unread badge query)
+//                            without scanning the full notifications table for a user.
+//   - (userId, createdAt DESC) — used by the /notifications page to list all
+//                            notifications in reverse-chronological order efficiently.
+//
+// Scaling to 10 000 simultaneous users:
+//   The unread-count query (`SELECT count(*) WHERE userId=? AND read=false`) is a
+//   point-lookup on the composite index above — O(unread rows per user), not O(total
+//   rows). At 10 k concurrent requests this becomes a read-heavy workload on a
+//   well-indexed table. Mitigations in rough priority order:
+//     1. Add a read replica and route GET /api/notifications there.
+//     2. Cache the unread count in Redis per userId (invalidate on PATCH).
+//     3. Replace polling with Server-Sent Events (one long-lived connection vs N polls).
+//     4. If notification volume explodes, partition the table by userId range or
+//        archive rows older than N days to a cold store.
+//
+// miniAppId is nullable (SetNull on delete) so that deleting a module does not
+// cascade-delete the user's notification history.
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  // Human-readable message stored at creation time so renames don't silently
+  // change historical notification text.
+  message String
+
+  read    Boolean @default(false)
+
+  // Nullable — allows linking back to the module detail page.
+  // SetNull so deleting a module doesn't erase the notification.
+  miniAppId String?
+  miniApp   MiniApp? @relation(fields: [miniAppId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  // Used by unread-count badge query: WHERE userId = ? AND read = false
+  @@index([userId, read])
+  // Used by the notifications list page: ORDER BY createdAt DESC
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
 enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum NotificationType {
+  SUBMISSION_APPROVED
+  SUBMISSION_REJECTED
 }
