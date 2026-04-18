@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -27,6 +28,12 @@ export function Navbar() {
                   Admin
                 </Link>
               )}
+
+              {/* Notification bell — only shown to authenticated, non-admin users
+                  (admins create notifications rather than receive them in this system).
+                  Remove the isAdmin guard if you want admins to receive notifications too. */}
+              <NotificationBell />
+
               <button
                 onClick={() => signOut()}
                 className="text-sm text-gray-400 hover:text-gray-600"
