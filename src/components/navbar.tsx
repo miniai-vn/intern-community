@@ -16,6 +16,9 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leader Board
+              </Link>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
               </Link>

@@ -6,6 +6,13 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+
+  await prisma.miniApp.deleteMany({}); // Xóa app trước vì nó có khóa ngoại tới User
+  await prisma.user.deleteMany({});
+  await prisma.category.deleteMany({});
+
+  console.log("🗑️ Đã xóa sạch dữ liệu cũ...");
+
   // Seed categories
   const categories = await Promise.all([
     prisma.category.upsert({
@@ -49,13 +56,36 @@ async function main() {
   // Seed demo contributor
   const contributor = await prisma.user.upsert({
     where: { email: "dev@example.com" },
-    update: {},
+    update: {
+      image: "/default-avatar.jpg",
+    },
     create: {
       name: "Demo Dev",
       email: "dev@example.com",
       isAdmin: false,
     },
   });
+
+  // --- BỔ SUNG: 2 contributor mới (để test Leaderboard hạng 2, 3) ---
+  const contributor2 = await prisma.user.upsert({
+    where: { email: "hao_scholar@sgu.edu.vn" },
+    update: {},
+    create: {
+      name: "Nguyễn Vũ Hào",
+      email: "hao_scholar@sgu.edu.vn",
+      image: "/default-avatar.jpg",
+    },
+  });
+
+  const contributor3 = await prisma.user.upsert({
+    where: { email: "intern_pro@example.com" },
+    update: {},
+    create: {
+      name: "Pro Intern",
+      email: "intern_pro@example.com",
+    },
+  });
+  // --- KẾT THÚC BỔ SUNG contributor mới ---
 
   // Seed approved mini-apps (displayed as "Modules" in the UI)
   const approvedModules = [
@@ -95,6 +125,42 @@ async function main() {
       authorId: contributor.id,
       voteCount: 41,
     },
+    // --- BỔ SUNG: Approved modules của contributor2 (Nguyễn Vũ Hào) ---
+    {
+      slug: "sgu-helper",
+      name: "SGU Helper",
+      description: "Công cụ hỗ trợ sinh viên SGU tra cứu lịch học.",
+      repoUrl: "https://github.com/hao/sgu-helper",
+      demoUrl: "https://sgu-helper.vercel.app",
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      authorId: contributor2.id,
+      voteCount: 50,
+    },
+    {
+      slug: "fastapi-template",
+      name: "FastAPI Backend Template",
+      description: "Template chuẩn cho dự án Backend dùng FastAPI.",
+      repoUrl: "https://github.com/hao/fastapi-template",
+      demoUrl: null,
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      authorId: contributor2.id,
+      voteCount: 30,
+    },
+    // --- BỔ SUNG: Approved module của contributor3 ---
+    {
+      slug: "weather-notif",
+      name: "Weather Notifier",
+      description: "Gửi thông báo thời tiết mỗi sáng.",
+      repoUrl: "https://github.com/intern/weather",
+      demoUrl: null,
+      status: SubmissionStatus.APPROVED,
+      categoryId: categories.find((c) => c.slug === "utility")!.id,
+      authorId: contributor3.id,
+      voteCount: 5,
+    },
+    // --- KẾT THÚC BỔ SUNG approved modules ---
   ];
 
   for (const mod of approvedModules) {
@@ -141,10 +207,40 @@ async function main() {
     });
   }
 
+  // --- BỔ SUNG: Rejected module (để test Notification cho Demo Dev) ---
+  const rejectedModules = [
+    {
+      slug: "spam-bot",
+      name: "Auto Spam Bot",
+      description: "A tool that should be rejected.",
+      repoUrl: "https://github.com/example/spam",
+      demoUrl: null,
+      status: SubmissionStatus.REJECTED,
+      feedback: "Vi phạm quy định: Không cho phép các công cụ spam.",
+      categoryId: categories.find((c) => c.slug === "social")!.id,
+      authorId: contributor.id,
+      voteCount: 0,
+    },
+  ];
+
+  for (const mod of rejectedModules) {
+    await prisma.miniApp.upsert({
+      where: { slug: mod.slug },
+      update: { status: mod.status, feedback: mod.feedback || null },
+      create: mod,
+    });
+  }
+  // --- KẾT THÚC BỔ SUNG rejected modules ---
+
   console.log("✅ Seed complete");
   console.log(`   ${categories.length} categories`);
   console.log(`   ${approvedModules.length} approved modules`);
   console.log(`   ${pendingModules.length} pending modules`);
+  // --- BỔ SUNG: Log thêm thông tin contributor ---
+  console.log(`   - Contributor 1 (Demo Dev): 3 Approved, 1 Rejected`);
+  console.log(`   - Contributor 2 (Vũ Hào): 2 Approved`);
+  console.log(`   - Contributor 3 (Intern): 1 Approved`);
+  // --- KẾT THÚC BỔ SUNG log ---
 }
 
 main()
