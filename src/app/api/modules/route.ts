@@ -25,20 +25,32 @@ export async function GET(req: NextRequest) {
           }
         : {}),
     },
-    // NOTE: Always include category and author to avoid N+1 on listing pages.
-    // DO NOT remove the include without running EXPLAIN ANALYZE on the query.
+
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
-    orderBy: { voteCount: "desc" },
+
+    orderBy: [
+      { voteCount: "desc" },
+      { id: "desc" }, 
+    ],
+
     take: limit + 1,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+
+    ...(cursor
+      ? {
+          skip: 1,
+          cursor: { id: cursor },
+        }
+      : {}),
   });
 
   const hasMore = modules.length > limit;
+
   const items = hasMore ? modules.slice(0, limit) : modules;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+  const nextCursor = hasMore ? modules[limit].id : null;
 
   return NextResponse.json({ items, nextCursor });
 }
@@ -55,7 +67,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.flatten() },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
@@ -63,7 +75,10 @@ export async function POST(req: NextRequest) {
 
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
-    .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
+    .findMany({
+      where: { slug: { startsWith: baseSlug } },
+      select: { slug: true },
+    })
     .then((r) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 

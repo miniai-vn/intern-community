@@ -23,7 +23,9 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label="Open demo in new tab"
+            title="Open demo"
+            className="shrink-0 text-gray-400 hover:text-gray-600 transition"
           >
             <ExternalLinkIcon />
           </a>
