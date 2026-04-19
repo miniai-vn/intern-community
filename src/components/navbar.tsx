@@ -14,11 +14,15 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link
+            href="/leaderboard"
+            className="group flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1 text-sm font-medium text-gray-600 transition-all hover:border-yellow-400 hover:bg-yellow-50 hover:text-yellow-700 hover:shadow-sm"
+          >
+            <span className="transition-transform group-hover:rotate-12">🏆</span>
+            <span className="hidden sm:inline">Leaderboard</span>
+          </Link>
           {session ? (
             <>
-              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
-                Leader Board
-              </Link>
               <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
                 Submit Module
               </Link>
