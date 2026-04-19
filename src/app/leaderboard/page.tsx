@@ -1,6 +1,6 @@
 import { getLeaderboardData, LEADERBOARD_REVALIDATE } from "@/lib/leaderboard";
 
-export const revalidate = LEADERBOARD_REVALIDATE;
+export const revalidate = 600;
 
 // Function to extract the first letter
 const getInitial = (name: string) => name.charAt(0).toUpperCase();
