@@ -9,31 +9,33 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="glass-card card-animate group flex flex-col gap-3 rounded-2xl p-5 cursor-pointer">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/modules/${module.slug}`}
-          className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+          className="text-base font-semibold text-slate-800 transition-colors group-hover:text-indigo-600"
         >
           {module.name}
         </Link>
-        {/* TODO [easy-challenge]: icon-only buttons need aria-label — add one to the external link below */}
         {module.demoUrl && (
           <a
             href={module.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-gray-400 hover:text-gray-600"
+            className="shrink-0 rounded-lg p-1.5 text-slate-300 transition-all hover:bg-indigo-50 hover:text-indigo-500"
+            aria-label="Open demo"
           >
             <ExternalLinkIcon />
           </a>
         )}
       </div>
 
-      <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
+      <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
+        {module.description}
+      </p>
 
-      <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+      <div className="mt-auto flex items-center justify-between pt-1">
+        <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 ring-1 ring-inset ring-indigo-500/10">
           {module.category.name}
         </span>
 
