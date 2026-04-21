@@ -16,16 +16,33 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link href="/submit" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/submit"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Submit Module
               </Link>
-              <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="/my-submissions"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 My Submissions
               </Link>
               {session.user.isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
-                  Admin
-                </Link>
+                <>
+                  <Link
+                    href="/admin"
+                    className="text-sm font-medium text-orange-600 hover:text-orange-700"
+                  >
+                    Admin
+                  </Link>
+                  <Link
+                    href="/admin/analytics"
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Analytics
+                  </Link>
+                </>
               )}
               <button
                 onClick={() => signOut()}
