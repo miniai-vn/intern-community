@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { TrendingModules } from "@/components/trending-modules";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -8,9 +9,9 @@ import { ModuleCard } from "@/components/module-card";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; sort?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const { q, category, sort } = await searchParams;
   const session = await auth();
 
   const modules = await db.miniApp.findMany({
@@ -54,7 +55,9 @@ export default async function HomePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Community Modules
+          </h1>
           <p className="text-sm text-gray-500">
             Discover mini-apps built by the Intern developer community.
           </p>
@@ -103,11 +106,41 @@ export default async function HomePage({
         ))}
       </div>
 
-      {modules.length === 0 ? (
+      {/* Sort toggle */}
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-gray-500">Sort by:</span>
+        <a
+          href={`/?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}) }).toString()}`}
+          className={`rounded-full px-3 py-1 font-medium transition-colors ${
+            !sort
+              ? "bg-gray-800 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          Most Voted
+        </a>
+        <a
+          href={`/?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}), sort: "trending" }).toString()}`}
+          className={`rounded-full px-3 py-1 font-medium transition-colors ${
+            sort === "trending"
+              ? "bg-gray-800 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          🔥 Trending
+        </a>
+      </div>
+
+      {sort === "trending" ? (
+        <TrendingModules />
+      ) : modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <a
+              href="/"
+              className="mt-2 block text-sm text-blue-600 hover:underline"
+            >
               Clear search
             </a>
           )}

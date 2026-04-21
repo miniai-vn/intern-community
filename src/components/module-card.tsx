@@ -33,9 +33,14 @@ export function ModuleCard({ module, hasVoted = false }: ModuleCardProps) {
       <p className="line-clamp-2 text-sm text-gray-600">{module.description}</p>
 
       <div className="mt-auto flex items-center justify-between">
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-          {module.category.name}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            {module.category.name}
+          </span>
+          <span className="text-xs text-gray-400" title="Views">
+            👁 {module.viewCount}
+          </span>
+        </div>
 
         <VoteButton
           moduleId={module.id}

@@ -64,6 +64,7 @@ model User {
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  moduleViews ModuleView[]
 
   createdAt DateTime @default(now())
 
@@ -99,9 +100,11 @@ model MiniApp {
   authorId String
 
   votes     Vote[]
+  views     ModuleView[]
   // Denormalized for read performance on the browse page.
   // DO NOT remove this field and replace with COUNT(*) without running EXPLAIN ANALYZE first.
   voteCount Int    @default(0)
+  viewCount Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,6 +125,29 @@ model Vote {
 
   @@unique([userId, moduleId])
   @@map("votes")
+}
+
+model ModuleView {
+  id String @id @default(cuid())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  module   MiniApp @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  // SHA-256 hash of IP + User-Agent for anonymous dedup (never stores raw IP).
+  ipHash String?
+
+  viewedAt DateTime @default(now())
+
+  // Index for trending queries: count views in last 7 days per module.
+  @@index([moduleId, viewedAt])
+  // Index for deduplication: logged-in users.
+  @@index([userId, moduleId, viewedAt])
+  // Index for deduplication: anonymous visitors by IP fingerprint.
+  @@index([ipHash, moduleId, viewedAt])
+  @@map("module_views")
 }
 
 enum SubmissionStatus {
