@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
 import { CategoryFilter } from "@/components/category-filter";
+import { ModulesFeed } from "@/components/modules-feed";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -33,8 +34,15 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13,
   });
+
+  const limit = 12;
+  const hasMore = modules.length > limit;
+  const initialItems = hasMore ? modules.slice(0, limit) : modules;
+  const initialNextCursor = hasMore
+    ? initialItems[initialItems.length - 1].id
+    : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -92,15 +100,14 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModulesFeed
+          key={`${q ?? ""}-${category ?? ""}`}
+          initialItems={initialItems}
+          initialNextCursor={initialNextCursor}
+          q={q}
+          category={category}
+          initialVotedIds={[...votedIds]}
+        />
       )}
     </div>
   );
