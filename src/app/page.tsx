@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
+import { CategoryFilter } from "@/components/category-filter";
+import { ModulesFeed } from "@/components/modules-feed";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -19,11 +21,11 @@ export default async function HomePage({
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
         : {}),
     },
     // DO NOT remove include — avoids N+1 on category/author fields.
@@ -32,8 +34,15 @@ export default async function HomePage({
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13,
   });
+
+  const limit = 12;
+  const hasMore = modules.length > limit;
+  const initialItems = hasMore ? modules.slice(0, limit) : modules;
+  const initialNextCursor = hasMore
+    ? initialItems[initialItems.length - 1].id
+    : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -78,29 +87,7 @@ export default async function HomePage({
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
+        <CategoryFilter categories={categories} selectedCategory={category} />
       </div>
 
       {modules.length === 0 ? (
@@ -113,15 +100,14 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModulesFeed
+          key={`${q ?? ""}-${category ?? ""}`}
+          initialItems={initialItems}
+          initialNextCursor={initialNextCursor}
+          q={q}
+          category={category}
+          initialVotedIds={[...votedIds]}
+        />
       )}
     </div>
   );
