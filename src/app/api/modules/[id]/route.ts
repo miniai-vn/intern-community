@@ -42,6 +42,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     },
   });
 
+  // Tạo notification khi admin approve/reject
+  if (parsed.data.status === "APPROVED" || parsed.data.status === "REJECTED") {
+    const statusText = parsed.data.status === "APPROVED" ? "approved" : "rejected";
+    await db.notification.create({
+      data: {
+        userId: updated.authorId,
+        moduleId: updated.id,
+        message: `"${updated.name}" was ${statusText}`,
+      },
+    });
+  }
+
   return NextResponse.json(updated);
 }
 

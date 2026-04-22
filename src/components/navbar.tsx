@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useUnreadCount } from "@/hooks/use-notifications";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const { count: unreadCount } = useUnreadCount();
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -21,6 +23,21 @@ export function Navbar() {
               </Link>
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
+              </Link>
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
+              <Link
+                href="/notifications"
+                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+                className="relative text-sm text-gray-600 hover:text-gray-900"
+              >
+                <span aria-hidden="true">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-2 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Link>
               {session.user.isAdmin && (
                 <Link href="/admin" className="text-sm font-medium text-orange-600 hover:text-orange-700">
