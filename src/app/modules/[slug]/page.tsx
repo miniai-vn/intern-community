@@ -86,14 +86,7 @@ export default async function ModuleDetailPage({ params }: Props) {
           - Add Content-Security-Policy header for the iframe origin
           - Show a loading skeleton while the iframe loads
           See: ISSUES.md for full acceptance criteria */}
-      {module.demoUrl && (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
-          Sandboxed preview coming soon. Contribute this feature! See{" "}
-          <Link href="https://github.com" className="text-blue-600 hover:underline">
-            ISSUES.md
-          </Link>
-        </div>
-      )}
+      {module.demoUrl && <SandboxedDemoPreview demoUrl={module.demoUrl} />}
     </div>
   );
 }
