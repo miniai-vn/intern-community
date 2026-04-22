@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
+      isLocked: false,
       ...(category ? { category: { slug: category } } : {}),
       ...(search
         ? {
@@ -48,6 +49,13 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (session.user.isLocked) {
+    return NextResponse.json(
+      { error: "Your account is locked. You cannot submit modules." },
+      { status: 403 },
+    );
   }
 
   const body = await req.json();
