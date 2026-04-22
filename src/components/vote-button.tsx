@@ -23,7 +23,7 @@ export function VoteButton({
 
   if (!session) {
     return (
-      <span className="inline-flex items-center gap-1 text-sm text-gray-400">
+      <span className="inline-flex items-center gap-1 text-sm text-slate-400">
         <TriangleIcon />
         {count}
       </span>
@@ -37,8 +37,8 @@ export function VoteButton({
       aria-label={voted ? "Remove vote" : "Upvote this module"}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
-          ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "bg-violet-500/25 text-violet-200 hover:bg-violet-500/35"
+          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
         }
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >

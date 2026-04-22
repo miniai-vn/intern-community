@@ -59,11 +59,13 @@ model User {
   image         String?
   // Our custom fields
   isAdmin       Boolean   @default(false)
+  isLocked      Boolean   @default(false)
 
   accounts    Account[]
   sessions    Session[]
   submissions MiniApp[]
   votes       Vote[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
 
@@ -91,6 +93,7 @@ model MiniApp {
   demoUrl     String?
   status      SubmissionStatus @default(PENDING)
   feedback    String?
+  isLocked    Boolean          @default(false)
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId String
@@ -124,8 +127,31 @@ model Vote {
   @@map("votes")
 }
 
+model Notification {
+  id        String   @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
 enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum NotificationType {
+  MODULE_LIKED
+  MODULE_APPROVED
+  MODULE_REJECTED
 }

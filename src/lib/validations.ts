@@ -9,7 +9,15 @@ export const submitModuleSchema = z.object({
     .string()
     .min(20, "Description must be at least 20 characters")
     .max(500, "Description must be at most 500 characters"),
-  categoryId: z.string().cuid("Please select a valid category"),
+  categoryId: z.preprocess(
+    (value) => {
+      if (typeof value === "string") return value.trim();
+      return "";
+    },
+    z
+      .string()
+      .min(1, "Please select categories")
+  ),
   repoUrl: z
     .url("Must be a valid URL")
     .refine(
@@ -25,6 +33,14 @@ export const submitModuleSchema = z.object({
 export const adminReviewSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED"]),
   feedback: z.string().max(500).optional(),
+}).superRefine((data, ctx) => {
+  if (data.status === "REJECTED" && !data.feedback?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["feedback"],
+      message: "Feedback is required when rejecting a module",
+    });
+  }
 });
 
 export type SubmitModuleInput = z.infer<typeof submitModuleSchema>;

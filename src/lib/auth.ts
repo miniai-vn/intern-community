@@ -18,9 +18,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Fetch isAdmin from DB — not cached in the JWT to avoid stale values
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
-          select: { isAdmin: true },
+          select: { isAdmin: true, isLocked: true },
         });
         session.user.isAdmin = dbUser?.isAdmin ?? false;
+        session.user.isLocked = dbUser?.isLocked ?? false;
       }
       return session;
     },
@@ -33,6 +34,7 @@ declare module "next-auth" {
     user: {
       id: string;
       isAdmin: boolean;
+      isLocked: boolean;
       name?: string | null;
       email?: string | null;
       image?: string | null;
