@@ -34,6 +34,7 @@ export function VoteButton({
     <button
       onClick={toggle}
       disabled={isLoading}
+      aria-busy={isLoading}
       aria-label={voted ? "Remove vote" : "Upvote this module"}
       className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors
         ${voted
@@ -45,6 +46,15 @@ export function VoteButton({
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
       <TriangleIcon filled={voted} />
       {count}
+      {isLoading && (
+        <>
+          <span
+            className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-current border-t-transparent"
+            aria-hidden="true"
+          />
+          <span className="text-xs">Voting…</span>
+        </>
+      )}
     </button>
   );
 }
