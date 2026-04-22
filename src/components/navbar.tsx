@@ -24,6 +24,9 @@ export function Navbar() {
               <Link href="/my-submissions" className="text-sm text-gray-600 hover:text-gray-900">
                 My Submissions
               </Link>
+              <Link href="/leaderboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Leaderboard
+              </Link>
               <Link
                 href="/notifications"
                 aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
