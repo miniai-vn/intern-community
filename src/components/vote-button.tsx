@@ -43,7 +43,11 @@ export function VoteButton({
         disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {/* TODO [easy-challenge]: this button shows no loading state during API call — add one */}
-      <TriangleIcon filled={voted} />
+      {isLoading ? (
+        <SpinnerIcon />
+      ) : (
+        <TriangleIcon filled={voted} />
+      )}
       {count}
     </button>
   );
@@ -64,3 +68,21 @@ function TriangleIcon({ filled = false }: { filled?: boolean }) {
     </svg>
   );
 }
+
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+      className="animate-spin"
+    >
+      <path d="M6 1a5 5 0 1 0 5 5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
