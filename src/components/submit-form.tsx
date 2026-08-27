@@ -9,6 +9,9 @@ interface SubmitFormProps {
   categories: Category[];
 }
 
+const DESCRIPTION_LIMIT = 500;
+const WARNING_THRESHOLD = 450;
+
 export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
@@ -62,6 +65,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
       <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
         <textarea
+          id="description"
           name="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
@@ -141,7 +145,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p id={`${name}-help`} className="text-xs text-gray-400">{hint}</p>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
