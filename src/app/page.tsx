@@ -94,9 +94,9 @@ export default async function HomePage({
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (

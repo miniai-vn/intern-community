@@ -1,4 +1,4 @@
-import { describe, it, vi, expect, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================

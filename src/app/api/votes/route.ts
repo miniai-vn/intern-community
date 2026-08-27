@@ -37,9 +37,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { moduleId } = await req.json();
-  if (!moduleId || typeof moduleId !== "string") {
-    return NextResponse.json({ error: "moduleId is required" }, { status: 400 });
+  // Verify module exists and is APPROVED
+  const targetModule = await db.miniApp.findUnique({
+    where: { id: moduleId },
+    select: { id: true, status: true },
+  });
+
+  if (!targetModule) {
+    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+
+  if (targetModule.status !== "APPROVED") {
+    return NextResponse.json(
+      { error: "Can only vote on approved modules" },
+      { status: 403 }
+    );
+  }
+
+  // Rate limit check (DB-backed)
+  if (!(await checkRateLimit(session.user.id))) {
+    return NextResponse.json(
+      { error: "Too many votes. Please wait a moment." },
+      { status: 429 }
+    );
   }
 
   const existing = await db.vote.findUnique({
@@ -57,16 +77,30 @@ export async function POST(req: NextRequest) {
     ]);
     return NextResponse.json({ voted: false });
   } else {
-    // Vote
-    await db.$transaction([
-      db.vote.create({
-        data: { userId: session.user.id, moduleId },
-      }),
-      db.miniApp.update({
-        where: { id: moduleId },
-        data: { voteCount: { increment: 1 } },
-      }),
-    ]);
-    return NextResponse.json({ voted: true });
+    // Vote — handle race condition where two concurrent requests
+    // both pass the findUnique check and try to create simultaneously.
+    try {
+      await db.$transaction([
+        db.vote.create({
+          data: { userId: session.user.id, moduleId },
+        }),
+        db.miniApp.update({
+          where: { id: moduleId },
+          data: { voteCount: { increment: 1 } },
+        }),
+      ]);
+      return NextResponse.json({ voted: true });
+    } catch (error: unknown) {
+      // P2002 = unique constraint violation — treat as already voted
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code: string }).code === "P2002"
+      ) {
+        return NextResponse.json({ voted: true });
+      }
+      throw error;
+    }
   }
 }
