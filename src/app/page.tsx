@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
 import { getCachedData, setCachedData } from "@/lib/redis";
+import { CategoryFilter } from "@/components/category-filter";
+import { ModulesFeed } from "@/components/modules-feed";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -63,6 +65,13 @@ export default async function HomePage({
   }
   // { changed code }
 
+  const limit = 12;
+  const hasMore = modules.length > limit;
+  const initialItems = hasMore ? modules.slice(0, limit) : modules;
+  const initialNextCursor = hasMore
+    ? initialItems[initialItems.length - 1].id
+    : null;
+
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
   if (session?.user) {
@@ -90,67 +99,46 @@ export default async function HomePage({
         </div>
 
         <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Search
-          </button>
-        </form>
+            {category && <input type="hidden" name="category" value={category} />}
+
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Search modules…"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Search
+            </button>
+          </form>
       </div>
 
       {/* Category filter placeholder — see TODO above */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
+        <CategoryFilter categories={categories} selectedCategory={category} />
       </div>
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModulesFeed
+          key={`${q ?? ""}-${category ?? ""}`}
+          initialItems={initialItems}
+          initialNextCursor={initialNextCursor}
+          q={q}
+          category={category}
+          initialVotedIds={[...votedIds]}
+        />
       )}
     </div>
   );
