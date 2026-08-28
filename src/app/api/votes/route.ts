@@ -15,44 +15,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const identifier = `user:${session.user.id}`;
-  const { success, limit, remaining, reset } =
-    await voteRatelimit.limit(identifier);
-
-  if (!success) {
-    return NextResponse.json(
-      {
-        error: "Rate limit exceeded: max 10 votes per 60 seconds.",
-        limit,
-        remaining,
-        reset,
-      },
-      {
-        status: 429,
-        headers: {
-          "X-RateLimit-Limit": String(limit),
-          "X-RateLimit-Remaining": String(remaining),
-          "X-RateLimit-Reset": String(reset),
-        },
-      }
-    );
-  }
-
-  // Verify module exists and is APPROVED
-  const targetModule = await db.miniApp.findUnique({
-    where: { id: moduleId },
-    select: { id: true, status: true },
-  });
-
-  if (!targetModule) {
-    return NextResponse.json({ error: "Module not found" }, { status: 404 });
-  }
-
-  if (targetModule.status !== "APPROVED") {
-    return NextResponse.json(
-      { error: "Can only vote on approved modules" },
-      { status: 403 }
-    );
+  const allowed = await checkRateLimit(session.user.id);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
   // Rate limit check (DB-backed)
