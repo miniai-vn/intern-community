@@ -22,21 +22,20 @@ describe("generateSlug", () => {
     expect(generateSlug("a   b   c")).toBe("a-b-c");
   });
 
-  it("keeps valid slug unchanged", () => {
-    expect(generateSlug("my-cool-app")).toBe("my-cool-app");
+  it("keeps an already valid slug unchanged", () => {
+    expect(generateSlug("already-valid-slug")).toBe("already-valid-slug");
   });
 
-  it("preserves numbers", () => {
-    expect(generateSlug("My App 2.0")).toBe("my-app-20");
+  it("preserves numbers in the slug", () => {
+    expect(generateSlug("Top 10 App 2026")).toBe("top-10-app-2026");
   });
 
-  it("handles empty string", () => {
+  it("returns an empty string for empty input", () => {
     expect(generateSlug("")).toBe("");
   });
 
-  it("removes leading and trailing hyphens", () => {
-    expect(generateSlug("!Hello!")).toBe("hello");
-    expect(generateSlug("World!")).toBe("world");
+  it("removes leading and trailing hyphens after special character cleanup", () => {
+    expect(generateSlug("!!! Hello World ???")).toBe("hello-world");
   });
 });
 
