@@ -9,8 +9,8 @@ interface SubmitFormProps {
   categories: Category[];
 }
 
-const DESCRIPTION_LIMIT = 500;
-const WARNING_THRESHOLD = 450;
+const DESCRIPTION_MAX = 500;
+const DESCRIPTION_WARN_AT = 450;
 
 export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
@@ -67,9 +67,11 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         <textarea
           id="description"
           name="description"
+          id="description"
           rows={4}
           placeholder="What does your module do? Who is it for?"
-          maxLength={500}
+          maxLength={DESCRIPTION_MAX}
+          onChange={(e) => setDescLength(e.target.value.length)}
           className={inputClass}
           onChange={(e) => setDescriptionLength(e.target.value.length)}
         />
@@ -136,7 +138,7 @@ function Field({
   label: string;
   name: string;
   error?: string[];
-  hint?: string;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (

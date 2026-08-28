@@ -48,6 +48,24 @@ export function VoteButton({
   );
 }
 
+function SpinnerIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className="animate-spin"
+    >
+      <circle cx="6" cy="6" r="4" strokeOpacity="0.25" />
+      <path d="M6 2a4 4 0 0 1 4 4" />
+    </svg>
+  );
+}
+
 function TriangleIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg

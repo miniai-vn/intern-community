@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateSlug, makeUniqueSlug, formatRelativeTime } from "@/lib/utils";
 
 // ============================================================
-// generateSlug — already written as examples
+// generateSlug
 // ============================================================
 
 describe("generateSlug", () => {
@@ -40,7 +40,7 @@ describe("generateSlug", () => {
 });
 
 // ============================================================
-// makeUniqueSlug — already written as examples
+// makeUniqueSlug
 // ============================================================
 
 describe("makeUniqueSlug", () => {
@@ -68,7 +68,7 @@ describe("makeUniqueSlug", () => {
 });
 
 // ============================================================
-// formatRelativeTime — NOT yet tested, candidate must write all tests
+// formatRelativeTime
 // ============================================================
 
 import { vi } from "vitest";
