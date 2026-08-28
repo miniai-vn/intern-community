@@ -16,7 +16,7 @@ export function SubmitForm({ categories }: SubmitFormProps) {
   const router = useRouter();
   const [error, setError] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [descLength, setDescLength] = useState(0);
+  const [descriptionLength, setDescriptionLength] = useState(0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,20 +63,9 @@ export function SubmitForm({ categories }: SubmitFormProps) {
         />
       </Field>
 
-      <Field
-        label="Description"
-        name="description"
-        error={error.description}
-        hint={
-          <span
-            className={descLength >= DESCRIPTION_WARN_AT ? "text-red-500" : "text-gray-400"}
-            aria-live="polite"
-          >
-            {descLength} / {DESCRIPTION_MAX}
-          </span>
-        }
-      >
+      <Field label="Description" name="description" error={error.description} hint="Max 500 characters">
         <textarea
+          id="description"
           name="description"
           id="description"
           rows={4}
@@ -84,7 +73,14 @@ export function SubmitForm({ categories }: SubmitFormProps) {
           maxLength={DESCRIPTION_MAX}
           onChange={(e) => setDescLength(e.target.value.length)}
           className={inputClass}
+          onChange={(e) => setDescriptionLength(e.target.value.length)}
         />
+        <div className="flex justify-between text-xs">
+          <span></span>
+          <span className={descriptionLength >= 450 ? "text-red-600" : "text-gray-400"}>
+            {descriptionLength} / 500
+          </span>
+        </div>
       </Field>
 
       <Field label="Category" name="categoryId" error={error.categoryId}>
@@ -151,7 +147,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p id={`${name}-help`} className="text-xs text-gray-400">{hint}</p>}
       {error && <p className="text-xs text-red-600">{error.join(", ")}</p>}
     </div>
   );
