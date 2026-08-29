@@ -12,16 +12,28 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
   const router = useRouter();
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function review(status: "APPROVED" | "REJECTED") {
     setIsLoading(true);
+    setError(null);
     try {
-      await fetch(`/api/modules/${module.id}`, {
+      const response = await fetch(`/api/modules/${module.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, feedback: feedback || undefined }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Failed to ${status.toLowerCase()} module (${response.status})`
+        );
+      }
+
       router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +61,12 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
         )}
       </div>
 
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
       <textarea
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
@@ -64,14 +82,14 @@ export function AdminReviewCard({ module }: AdminReviewCardProps) {
           disabled={isLoading}
           className="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
         >
-          Approve
+          {isLoading ? "Processing..." : "Approve"}
         </button>
         <button
           onClick={() => review("REJECTED")}
           disabled={isLoading}
           className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
         >
-          Reject
+          {isLoading ? "Processing..." : "Reject"}
         </button>
       </div>
     </div>
