@@ -4,6 +4,35 @@ import { db } from "@/lib/db";
 import { submitModuleSchema } from "@/lib/validations";
 import { generateSlug, makeUniqueSlug } from "@/lib/utils";
 
+// DELETE /api/modules/[id] 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const submission = await db.miniApp.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!submission) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  
+  if (submission.authorId !== session.user.id || submission.status !== "PENDING") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await db.miniApp.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ success: true });
+}
+
+
 // GET /api/modules — list approved modules (with optional category filter + search)
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -45,17 +74,79 @@ export async function GET(req: NextRequest) {
 
 // POST /api/modules — submit a new module (authenticated)
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await req.json();
-  const parsed = submitModuleSchema.safeParse(body);
-  if (!parsed.success) {
+    const body = await req.json();
+
+    // ✅ Schema validation
+    const parsed = submitModuleSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.flatten() },
+        { status: 422 }
+      );
+    }
+
+    const { name, description, categoryId, repoUrl, demoUrl } = parsed.data;
+
+    // ✅ Defensive validation (extra layer)
+    if (!repoUrl.startsWith("http")) {
+      return NextResponse.json(
+        { error: "Invalid repository URL" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Prevent duplicate repo submission
+    const existing = await db.miniApp.findFirst({
+      where: { repoUrl },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "This repository has already been submitted" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Slug generation
+    const baseSlug = generateSlug(name);
+    const existingSlugs = await db.miniApp
+      .findMany({
+        where: { slug: { startsWith: baseSlug } },
+        select: { slug: true },
+      })
+      .then((r) => r.map((m) => m.slug));
+
+    const slug = makeUniqueSlug(baseSlug, existingSlugs);
+
+    // ✅ Create module
+    const newModule = await db.miniApp.create({
+      data: {
+        slug,
+        name: name.trim(),
+        description: description.trim(),
+        categoryId,
+        repoUrl,
+        demoUrl,
+        authorId: session.user.id,
+        status: "PENDING",
+      },
+    });
+
+    return NextResponse.json(newModule, { status: 201 });
+
+  } catch (error) {
+    // ✅ Logging (rất quan trọng)
+    console.error("POST /api/modules error:", error);
+
     return NextResponse.json(
-      { error: parsed.error.flatten() },
-      { status: 422 }
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
 
@@ -64,7 +155,7 @@ export async function POST(req: NextRequest) {
   const baseSlug = generateSlug(name);
   const existingSlugs = await db.miniApp
     .findMany({ where: { slug: { startsWith: baseSlug } }, select: { slug: true } })
-    .then((r) => r.map((m) => m.slug));
+    .then((r: { slug: string }[]) => r.map((m) => m.slug));
   const slug = makeUniqueSlug(baseSlug, existingSlugs);
 
   const appModule = await db.miniApp.create({

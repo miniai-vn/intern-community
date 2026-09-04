@@ -52,7 +52,8 @@ cp .env.example .env
 # 4. Start the database
 docker compose up -d
 
-# 5. Apply schema and seed demo data
+# 5. Generate prisma client, apply schema and seed demo data
+pnpm db:generate
 pnpm db:push
 pnpm db:seed
 
@@ -81,6 +82,7 @@ pnpm build        # Production build
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript check
 pnpm test         # Run tests
+pnpm db:generate  # Generate Prisma Client
 pnpm db:push      # Apply schema to DB (dev, no migration file)
 pnpm db:migrate   # Create and apply a named migration
 pnpm db:seed      # Seed demo data

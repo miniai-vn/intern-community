@@ -7,6 +7,9 @@ import { CategoryFilters } from "@/components/category-filters";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
+export const revalidate = 600; // ISR: revalidate every 10 minutes as fallback
+
+type ModuleData = typeof modules;
 
 export default async function HomePage({
   searchParams,
@@ -53,6 +56,7 @@ export default async function HomePage({
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -76,15 +80,14 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
+        <ModulesFeed
+          key={`${q ?? ""}-${category ?? ""}`}
+          initialItems={initialItems}
+          initialNextCursor={initialNextCursor}
+          q={q}
+          category={category}
+          initialVotedIds={[...votedIds]}
+        />
       )}
     </div>
   );
