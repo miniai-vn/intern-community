@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { ModuleCard } from "@/components/module-card";
-import { getCachedData, setCachedData } from "@/lib/redis";
-import { CategoryFilter } from "@/components/category-filter";
-import { ModulesFeed } from "@/components/modules-feed";
+import { SearchBar } from "@/components/search-bar";
+import { CategoryFilters } from "@/components/category-filters";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // See: ISSUES.md for full acceptance criteria
@@ -14,63 +14,32 @@ type ModuleData = typeof modules;
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string }>;//searchParams is a promise (q=abc?, category=game?) )
 }) {
-  const { q, category } = await searchParams;
+  const { q, category } = await searchParams;//wait for sParams from URL
   const session = await auth();
 
-  // { changed code } Cache key based on filter parameters
-  const cacheKey = `modules:popular:${category || "all"}:${q || "all"}`;
-  let modules: ModuleData = [];
-
-  // Step 1: Check Redis cache first
-  if (!q && !category) {
-    // Only cache the "no filter" case for simplicity
-    const cachedModules = await getCachedData<ModuleData>(cacheKey);
-    if (cachedModules) {
-      console.log("[Cache HIT] Popular modules from Redis");
-      modules = cachedModules;
-    }
-  }
-
-  // Step 2: If cache miss, fetch from database
-  if (modules.length === 0) {
-    console.log("[Cache MISS] Fetching popular modules from database");
-    modules = await db.miniApp.findMany({
-      where: {
-        status: "APPROVED",
-        ...(category ? { category: { slug: category } } : {}),
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { description: { contains: q, mode: "insensitive" } },
-              ],
-            }
-          : {}),
-      },
-      // DO NOT remove include — avoids N+1 on category/author fields.
-      include: {
-        category: true,
-        author: { select: { id: true, name: true, image: true } },
-      },
-      orderBy: { voteCount: "desc" },
-      take: 12,
-    });
-
-    // Step 3: Store in Redis cache (only if no search filters)
-    if (!q && !category) {
-      await setCachedData(cacheKey, modules, 300); // 5 minutes TTL
-    }
-  }
-  // { changed code }
-
-  const limit = 12;
-  const hasMore = modules.length > limit;
-  const initialItems = hasMore ? modules.slice(0, limit) : modules;
-  const initialNextCursor = hasMore
-    ? initialItems[initialItems.length - 1].id
-    : null;
+  const modules = await db.miniApp.findMany({
+    where: {
+      status: "APPROVED",//only show approved modules
+      ...(category ? { category: { slug: category } } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },//search in name and description for the query, case insensitive
+            ],
+          }
+        : {}),
+    },
+    // DO NOT remove include — avoids N+1 on category/author fields.
+    include: {
+      category: true,//include all category fields (id, name, slug)
+      author: { select: { id: true, name: true, image: true } },//include only id, name, image of author 
+    },
+    orderBy: { voteCount: "desc" },//order by most voted
+    take: 12,//only take 12 modules
+  });
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -78,11 +47,11 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: modules.map((m) => m.id) },//only fetch votes for the displayed modules
       },
       select: { moduleId: true },
     });
-    votedIds = new Set(votes.map((v) => v.moduleId));
+    votedIds = new Set(votes.map((v) => v.moduleId));//create a set of moduleIds that the user has voted on for easy lookup
   }
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
@@ -98,35 +67,15 @@ export default async function HomePage({
           </p>
         </div>
 
-        <form className="flex gap-2">
-            {category && <input type="hidden" name="category" value={category} />}
-
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Search modules…"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Search
-            </button>
-          </form>
+        <SearchBar />
       </div>
-
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <CategoryFilter categories={categories} selectedCategory={category} />
-      </div>
-
+      <CategoryFilters categories={categories} />
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
             <Link href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
-              Clear search
+            Clear search
             </Link>
           )}
         </div>
